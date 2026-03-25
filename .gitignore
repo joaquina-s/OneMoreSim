@@ -1,0 +1,23 @@
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Gemini agent artifacts
+.gemini/
+
+# Temp / debug scripts
+tmp.js
+check_glb.js
+check_glb.py
+test_clicks.js
+inspect.mjs
+
+# Node (if ever added)
+node_modules/

@@ -1,0 +1,213 @@
+// core/worldManager.js
+// Dynamic WorldManager — manages lazy loading, activation and disposal of 8 worlds.
+// Uses global THREE and gsap (from CDN script tags).
+
+export class WorldManager {
+    /**
+     * @param {THREE.WebGLRenderer} renderer
+     * @param {THREE.EffectComposer} composer
+     * @param {HTMLElement} canvasContainer - #canvas-area element (for fade transitions)
+     */
+    constructor(renderer, composer, canvasContainer) {
+        this.renderer = renderer;
+        this.composer = composer;
+        this.canvasContainer = canvasContainer;
+
+        /** @type {Map<string, Function>} id → loaderFn */
+        this.worlds = new Map();
+
+        /** @type {Map<string, object>} id → cached module */
+        this.cache = new Map();
+
+        this.activeModule = null;
+        this.activeId = null;
+        this._transitioning = false;
+
+        // DOM refs
+        this._loader = document.getElementById('world-loader');
+        this._worldName = document.getElementById('active-world-name');
+        this._worldButtons = document.querySelectorAll('.world-btn');
+    }
+
+    // ─── World names for the header HUD ───
+    static WORLD_NAMES = {
+        '0': 'CAROUSEL', '1': 'TERRAIN', '2': 'ARRAY-3D', '3': 'TUNNEL',
+        '4': 'VÓRTICE', '5': 'NEBULOSA', '6': 'OCÉANO', '7': 'CRISTAL'
+    };
+
+    /**
+     * Register a world with a lazy loader function.
+     * @param {string} id - world id ('0'–'7')
+     * @param {Function} loaderFn - () => Promise<module>
+     */
+    register(id, loaderFn) {
+        this.worlds.set(id, loaderFn);
+    }
+
+    /**
+     * Activate the landing module (special case — no transition UI).
+     * @param {object} landingModule
+     */
+    activateLanding(landingModule) {
+        if (this.activeModule && this.activeModule.dispose) {
+            this.activeModule.dispose();
+        }
+        this.activeModule = landingModule;
+        this.activeId = 'landing';
+        landingModule.init(this.renderer);
+    }
+
+    /**
+     * Activate a world by id with full transition.
+     * @param {string} id
+     */
+    async activate(id) {
+        // Guard: same world or already transitioning
+        if (id === this.activeId || this._transitioning) return;
+        if (!this.worlds.has(id)) {
+            console.warn(`WorldManager: world "${id}" not registered.`);
+            return;
+        }
+
+        this._transitioning = true;
+
+        const canvas = this.renderer.domElement;
+
+        try {
+            // 1. Fade out canvas
+            await this._gsapTo(canvas, { opacity: 0, duration: 0.3 });
+
+            // 2. Show loader
+            this._showLoader();
+
+            // 3. Dispose current world
+            if (this.activeModule && this.activeModule.dispose) {
+                this.activeModule.dispose();
+            }
+            // Deep-clean render lists
+            if (this.renderer.renderLists) {
+                this.renderer.renderLists.dispose();
+            }
+            // Clear all passes from the composer (composer may be null on mobile)
+            if (this.composer && this.composer.passes) {
+                this.composer.passes.length = 0;
+            }
+
+            this.activeModule = null;
+
+            // 4. Load module (from cache or loaderFn)
+            let mod;
+            if (this.cache.has(id)) {
+                mod = this.cache.get(id);
+            } else {
+                const loaderFn = this.worlds.get(id);
+                const result = await loaderFn();
+                // Support both default exports and named exports
+                mod = result.default || result;
+                this.cache.set(id, mod);
+            }
+
+            // 5. Init the new world
+            mod.init(this.renderer, this.composer);
+
+            // 6. Update active state
+            this.activeModule = mod;
+            this.activeId = id;
+
+            // 7. Update UI: buttons
+            this._worldButtons.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.world === id);
+            });
+
+            // 8. Update UI: header world name
+            if (this._worldName) {
+                this._worldName.textContent = WorldManager.WORLD_NAMES[id] || `WORLD ${id}`;
+            }
+
+            // 8.5 Flash the world number in the center of the screen
+            const flashEl = document.getElementById('world-flash');
+            if (flashEl) {
+                flashEl.textContent = '0' + id;
+                if (window.gsap) {
+                    gsap.fromTo(flashEl,
+                        { scale: 3, opacity: 1 },
+                        { scale: 1, opacity: 0, duration: 0.8, ease: 'power4.out' }
+                    );
+                }
+            }
+
+            // 9. Hide loader, fade in canvas
+            this._hideLoader();
+            await this._gsapTo(canvas, { opacity: 1, duration: 0.5 });
+        } catch (err) {
+            console.error(`WorldManager: activate failed for "${id}"`, err);
+            this._hideLoader();
+            canvas.style.opacity = '1';
+        } finally {
+            this._transitioning = false;
+        }
+    }
+
+    /**
+     * Preload a world module without activating it.
+     * @param {string} id
+     */
+    async preload(id) {
+        if (this.cache.has(id) || !this.worlds.has(id)) return;
+        try {
+            const loaderFn = this.worlds.get(id);
+            const result = await loaderFn();
+            const mod = result.default || result;
+            this.cache.set(id, mod);
+        } catch (e) {
+            console.warn(`WorldManager: preload failed for "${id}"`, e);
+        }
+    }
+
+    /**
+     * Called every frame from the animation loop.
+     * @param {number} time
+     * @param {object} keys
+     */
+    tick(time, keys) {
+        if (this.activeModule && this.activeModule.update) {
+            if (this.activeId === 'landing') {
+                this.activeModule.update(time, keys, this.renderer);
+            } else {
+                this.activeModule.update(time, keys);
+            }
+        }
+    }
+
+    /**
+     * Returns the id of the currently active world.
+     * @returns {string|null}
+     */
+    getCurrentId() {
+        return this.activeId;
+    }
+
+    // Kept for backward compat with resize handler
+    getActive() {
+        return this.activeId;
+    }
+
+    // ─── Private helpers ───
+
+    _showLoader() {
+        if (this._loader) this._loader.style.display = 'flex';
+    }
+
+    _hideLoader() {
+        if (this._loader) this._loader.style.display = 'none';
+    }
+
+    /**
+     * Promisified gsap.to
+     */
+    _gsapTo(target, vars) {
+        return new Promise(resolve => {
+            gsap.to(target, { ...vars, onComplete: resolve });
+        });
+    }
+}

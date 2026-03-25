@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive 3D Room Carousel Simulation</title>
+    <link rel="stylesheet" href="style.css?v=3">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&family=Orbitron:wght@400;700&family=Roboto+Condensed:wght@300;400;700&family=Share+Tech+Mono&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <!-- TransformControls + OrbitControls (World 5) -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- UnrealBloomPass (World 6) -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+</head>
+
+<body>
+    <!-- Landing Page View -->
+    <div id="landing-container">
+
+        <!-- Video de fondo en loop -->
+        <video id="landing-video" src="assets/VDCTeaser.mp4" autoplay loop muted playsinline preload="auto"></video>
+
+        <!-- Overlay oscuro encima del video para que el texto sea legible -->
+        <div id="landing-overlay"></div>
+        <div id="landing-vignette"></div>
+
+        <!-- UI encima del video -->
+        <div id="landing-ui">
+            <h1 id="landing-title">SIMULACIONES INTERACTIVAS</h1>
+            <p id="landing-subtitle">Explora cuatro habitaciones con simulaciones dinámicas y atmosféricas.</p>
+            <button id="enter-button">ENTRAR</button>
+        </div>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- UI SHELL — visible after ENTRAR transition      -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <div id="ui-shell">
+
+        <!-- HEADER HUD — 4-panel expanded layout -->
+        <div id="hud-header">
+
+            <!-- Panel H1: Mini-mapa interactivo -->
+            <div class="hud-panel panel-h1" id="minimap-panel">
+                <div class="minimap-label">MAP</div>
+                <svg id="minimap-svg" viewBox="0 0 120 90" xmlns="http://www.w3.org/2000/svg">
+
+                    <!-- Caminos entre nodos (líneas de conexión) -->
+                    <g id="minimap-paths" stroke="#4a3a5a" stroke-width="1.5" fill="none" opacity="0.6">
+                        <!-- Conexiones entre nodos según layout de grilla irregular -->
+                        <line x1="20" y1="20" x2="50" y2="15"/>
+                        <line x1="50" y1="15" x2="80" y2="20"/>
+                        <line x1="80" y1="20" x2="100" y2="40"/>
+                        <line x1="20" y1="20" x2="15" y2="50"/>
+                        <line x1="50" y1="15" x2="60" y2="45"/>
+                        <line x1="80" y1="20" x2="85" y2="50"/>
+                        <line x1="15" y1="50" x2="35" y2="72"/>
+                        <line x1="60" y1="45" x2="35" y2="72"/>
+                        <line x1="60" y1="45" x2="85" y2="50"/>
+                        <line x1="100" y1="40" x2="85" y2="50"/>
+                        <line x1="35" y1="72" x2="65" y2="75"/>
+                        <line x1="85" y1="50" x2="65" y2="75"/>
+                    </g>
+
+                    <!-- Nodos — uno por mundo (0 al 7) -->
+                    <g id="minimap-nodes">
+                        <!-- Mundo 0: CAROUSEL -->
+                        <circle class="map-node" data-world="0" cx="20" cy="20" r="5"
+                            fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
+                        <text class="map-label" x="20" y="13" text-anchor="middle">0</text>
+
+                        <!-- Mundo 1: TERRAIN -->
+                        <circle class="map-node" data-world="1" cx="50" cy="15" r="5"
+                            fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
+                        <text class="map-label" x="50" y="8" text-anchor="middle">1</text>
+
+                        <!-- Mundo 2: ARRAY-3D -->
+                        <circle class="map-node" data-world="2" cx="80" cy="20" r="5"
+                            fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
+                        <text class="map-label" x="80" y="13" text-anchor="middle">2</text>
+
+                        <!-- Mundo 3: BAÑERA -->
+                        <circle class="map-node" data-world="3" cx="100" cy="40" r="5"
+                            fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
+                        <text class="map-label" x="108" y="43" text-anchor="middle">3</text>
+
+                        <!-- Mundo 4: VÓRTICE -->
+                        <circle class="map-node" data-world="4" cx="15" cy="50" r="5"
+                            fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
+                        <text class="map-label" x="8" y="53" text-anchor="middle">4</text>
+
+                        <!-- Mundo 5: NEBULOSA -->
+                        <circle class="map-node" data-world="5" cx="60" cy="45" r="5"
+                            fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
+                        <text class="map-label" x="60" y="38" text-anchor="middle">5</text>
+
+                        <!-- Mundo 6: OCÉANO -->
+                        <circle class="map-node" data-world="6" cx="85" cy="50" r="5"
+                            fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
+                        <text class="map-label" x="93" y="53" text-anchor="middle">6</text>
+
+                        <!-- Mundo 7: CRISTAL -->
+                        <circle class="map-node" data-world="7" cx="35" cy="72" r="5"
+                            fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
+                        <text class="map-label" x="35" y="65" text-anchor="middle">7</text>
+
+                        <!-- Mundo 8: LAYER -->
+                        <circle class="map-node" data-world="8" cx="65" cy="75" r="5"
+                            fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
+                        <text class="map-label" x="65" y="68" text-anchor="middle">8</text>
+                    </g>
+
+                    <!-- Marcador del personaje — se mueve al nodo activo -->
+                    <g id="minimap-character" transform="translate(20, 20)">
+                        <!-- Sombra/halo -->
+                        <circle cx="0" cy="0" r="7" fill="rgba(125,133,180,0.15)" />
+                        <!-- Silueta del personaje (rombo con punto) -->
+                        <polygon points="0,-5 4,0 0,5 -4,0" fill="#8899cc" opacity="0.9"/>
+                        <circle cx="0" cy="-7" r="2" fill="#8899cc"/>
+                    </g>
+
+                </svg>
+            </div>
+
+            <!-- Panel H2: dynamic world info text holder -->
+            <div class="hud-panel panel-h2" id="world-info-panel">
+                <div class="world-info-icon" id="world-info-icon">
+                    <svg viewBox="0 0 48 48" id="world-icon-svg">
+                        <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="2" />
+                        <circle cx="24" cy="24" r="6" fill="currentColor" />
+                    </svg>
+                </div>
+                <div class="world-info-text">
+                    <div class="world-info-title" id="world-info-title">CAROUSEL</div>
+                    <div class="world-info-desc" id="world-info-desc">
+                        Explora cuatro habitaciones interactivas con simulaciones atmosféricas únicas.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel H3: decorative with relief texture -->
+            <div class="hud-panel panel-h3">
+                <img src="assets/sys-relief.png" alt="SYS" class="sys-relief-img" />
+                <div class="hud-panel-label">SYS</div>
+            </div>
+
+            <!-- Panel H4: decorative with relief texture -->
+            <div class="hud-panel panel-h4" id="spectrogram-panel">
+                <div class="hud-relief-pattern"></div>
+                <div class="spectrogram-label">AUDIO SPECTRUM</div>
+                <div id="spectrogram-container"></div>
+            </div>
+
+        </div>
+
+        <!-- CHARACTER PANEL -->
+        <aside id="character-panel">
+            <div id="texture-buttons">
+                <button class="texture-btn active" data-texture="0" style="--btn-color:#00d4cc" title="Cyan Glow"></button>
+                <button class="texture-btn" data-texture="1" style="--btn-color:#2222cc" title="Azul Eléctrico"></button>
+                <button class="texture-btn" data-texture="2" style="--btn-color:#aaaaaa" title="Circuitos"></button>
+                <button class="texture-btn" data-texture="3" style="--btn-color:#4466bb" title="Fantasma"></button>
+                <button class="texture-btn" data-texture="4" style="--btn-color:#111122" title="Sombra"></button>
+                <button class="texture-btn" data-texture="5" style="--btn-color:#446655" title="Bronce"></button>
+                <button class="texture-btn" data-texture="6" style="--btn-color:#cc3311" title="Rojo"></button>
+                <button class="texture-btn" data-texture="7" style="--btn-color:#3333ff" title="Cobalto"></button>
+            </div>
+            <div id="character-display">
+                <img id="character-webp"
+                     src="assets/chars/1.webp"
+                     alt="Character"
+                     class="character-anim" />
+            </div>
+        </aside>
+
+        <div id="vertical-divider">
+            <div class="divider-img-track">
+                <img src="assets/panel-06.png" alt="" class="divider-img" />
+                <img src="assets/panel-06.png" alt="" class="divider-img" />
+                <img src="assets/panel-06.png" alt="" class="divider-img" />
+                <img src="assets/panel-06.png" alt="" class="divider-img" />
+            </div>
+        </div>
+
+        <!-- CUSTOM CURSOR -->
+        <div id="custom-cursor"></div>
+
+        <!-- MAIN CANVAS AREA — Three.js canvas is inserted here -->
+        <div id="canvas-area">
+            <!-- Corner Decorations -->
+            <div class="corner-decoration top-left"><svg viewBox="0 0 20 20" width="20" height="20">
+                    <path d="M0,20 L0,0 L20,0" fill="none" stroke="currentColor" stroke-width="2" />
+                </svg></div>
+            <div class="corner-decoration top-right"><svg viewBox="0 0 20 20" width="20" height="20">
+                    <path d="M0,0 L20,0 L20,20" fill="none" stroke="currentColor" stroke-width="2" />
+                </svg></div>
+            <div class="corner-decoration bottom-left"><svg viewBox="0 0 20 20" width="20" height="20">
+                    <path d="M0,0 L0,20 L20,20" fill="none" stroke="currentColor" stroke-width="2" />
+                </svg></div>
+            <div class="corner-decoration bottom-right"><svg viewBox="0 0 20 20" width="20" height="20">
+                    <path d="M20,0 L20,20 L0,20" fill="none" stroke="currentColor" stroke-width="2" />
+                </svg></div>
+
+            <!-- World Switch Flash Text -->
+            <div id="world-flash">01</div>
+
+            <!-- Old carousel-container becomes the canvas mount point -->
+            <div id="carousel-container"></div>
+            <div id="text-overlay-container"></div>
+            <div id="room-name-display" class="hidden"></div>
+
+            <!-- World Loader — shown during world transitions -->
+            <div id="world-loader">
+                <div class="loader-spinner"></div>
+                <div class="loader-text">INICIANDO SIMULACIÓN...</div>
+                <div class="loader-bar-track">
+                    <div class="loader-bar-fill"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- WORLD NAV -->
+        <nav id="world-nav">
+            <button class="world-btn active" data-world="0">
+                <svg class="world-icon" viewBox="0 0 32 32">
+                    <circle cx="16" cy="16" r="10" fill="none" stroke="currentColor" stroke-width="2" />
+                    <circle cx="16" cy="16" r="4" fill="currentColor" />
+                </svg>
+                <span class="world-label">CAROUSEL</span>
+            </button>
+            <button class="world-btn" data-world="1">
+                <svg class="world-icon" viewBox="0 0 32 32">
+                    <polygon points="4,28 16,4 28,28" fill="none" stroke="currentColor" stroke-width="2" />
+                </svg>
+                <span class="world-label">TERRAIN</span>
+            </button>
+            <button class="world-btn" data-world="2">
+                <svg class="world-icon" viewBox="0 0 32 32">
+                    <rect x="6" y="6" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                        rx="2" />
+                    <rect x="12" y="12" width="8" height="8" fill="currentColor" opacity="0.5" />
+                </svg>
+                <span class="world-label">ARRAY-3D</span>
+            </button>
+            <button class="world-btn" data-world="3">
+                <svg class="world-icon" viewBox="0 0 32 32">
+                    <ellipse cx="16" cy="16" rx="14" ry="6" fill="none" stroke="currentColor" stroke-width="2" />
+                    <line x1="16" y1="2" x2="16" y2="30" stroke="currentColor" stroke-width="1.5" opacity="0.5" />
+                </svg>
+                <span class="world-label">TUNNEL</span>
+            </button>
+            <button class="world-btn" data-world="4">
+                <svg class="world-icon" viewBox="0 0 32 32">
+                    <path d="M16 4 C22 10, 28 14, 16 28 C4 14, 10 10, 16 4Z" fill="none" stroke="currentColor"
+                        stroke-width="2" />
+                </svg>
+                <span class="world-label">VÓRTICE</span>
+            </button>
+            <button class="world-btn" data-world="5">
+                <svg class="world-icon" viewBox="0 0 32 32">
+                    <circle cx="16" cy="16" r="12" fill="none" stroke="currentColor" stroke-width="1.5"
+                        stroke-dasharray="3 2" />
+                    <circle cx="16" cy="16" r="6" fill="none" stroke="currentColor" stroke-width="1.5" />
+                </svg>
+                <span class="world-label">NEBULOSA</span>
+            </button>
+            <button class="world-btn" data-world="6">
+                <svg class="world-icon" viewBox="0 0 32 32">
+                    <path d="M4 20 Q10 10, 16 18 Q22 26, 28 16" fill="none" stroke="currentColor" stroke-width="2" />
+                    <line x1="4" y1="26" x2="28" y2="26" stroke="currentColor" stroke-width="1" opacity="0.3" />
+                </svg>
+                <span class="world-label">OCÉANO</span>
+            </button>
+            <button class="world-btn" data-world="7">
+                <svg class="world-icon" viewBox="0 0 32 32">
+                    <polygon points="16,2 20,12 30,12 22,18 25,28 16,22 7,28 10,18 2,12 12,12" fill="none"
+                        stroke="currentColor" stroke-width="1.5" />
+                </svg>
+                <span class="world-label">CRISTAL</span>
+            </button>
+            <button class="world-btn" data-world="8">
+                <svg class="world-icon" viewBox="0 0 32 32">
+                    <!-- Ícono: capas apiladas con profundidad -->
+                    <rect x="4"  y="20" width="24" height="4" rx="1"
+                        fill="none" stroke="currentColor" stroke-width="1.5"/>
+                    <rect x="6"  y="14" width="20" height="4" rx="1"
+                        fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.75"/>
+                    <rect x="8"  y="8"  width="16" height="4" rx="1"
+                        fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.5"/>
+                </svg>
+                <span class="world-label">LAYER</span>
+            </button>
+        </nav>
+
+        <div id="hud-footer">
+            <div class="image-panel minesweeper-panel" id="minesweeper-left">
+                <div class="ms-header">
+                    <span class="ms-counter" id="ms-left-counter">5</span>
+                    <button class="ms-reset" id="ms-left-reset" title="Nuevo juego">⟳</button>
+                    <span class="ms-timer" id="ms-left-timer">0</span>
+                </div>
+                <div class="ms-grid" id="ms-left-grid"></div>
+                <div class="ms-status" id="ms-left-status"></div>
+            </div>
+            <div class="image-panel" id="img-panel-1">
+                <img src="assets/panel-02.png" alt="Panel 2" class="panel-img" />
+                <div class="panel-border-overlay"></div>
+            </div>
+            <div class="image-panel" id="img-panel-2">
+                <img src="assets/panel-03.png" alt="Panel 3" class="panel-img" />
+                <div class="panel-border-overlay"></div>
+            </div>
+            <div class="image-panel" id="img-panel-3">
+                <img src="assets/panel-04.png" alt="Panel 4" class="panel-img" />
+                <div class="panel-border-overlay"></div>
+            </div>
+            <div class="image-panel minesweeper-panel" id="minesweeper-right">
+                <div class="ms-header">
+                    <span class="ms-counter" id="ms-right-counter">5</span>
+                    <button class="ms-reset" id="ms-right-reset" title="Nuevo juego">⟳</button>
+                    <span class="ms-timer" id="ms-right-timer">0</span>
+                </div>
+                <div class="ms-grid" id="ms-right-grid"></div>
+                <div class="ms-status" id="ms-right-status"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Mobile: Texture FAB + Drawer -->
+    <button id="texture-fab" aria-label="Character textures">
+        <span class="fab-swatch"></span>
+    </button>
+    <div id="texture-drawer-backdrop"></div>
+    <div id="texture-drawer">
+        <div class="drawer-title">TEXTURAS</div>
+        <div class="drawer-grid">
+            <button class="texture-btn active" data-texture="0" style="--btn-color:#00d4cc" title="Cyan Glow"></button>
+            <button class="texture-btn" data-texture="1" style="--btn-color:#2222cc" title="Azul Eléctrico"></button>
+            <button class="texture-btn" data-texture="2" style="--btn-color:#aaaaaa" title="Circuitos"></button>
+            <button class="texture-btn" data-texture="3" style="--btn-color:#4466bb" title="Fantasma"></button>
+            <button class="texture-btn" data-texture="4" style="--btn-color:#111122" title="Sombra"></button>
+            <button class="texture-btn" data-texture="5" style="--btn-color:#446655" title="Bronce"></button>
+            <button class="texture-btn" data-texture="6" style="--btn-color:#cc3311" title="Rojo"></button>
+            <button class="texture-btn" data-texture="7" style="--btn-color:#3333ff" title="Cobalto"></button>
+        </div>
+    </div>
+
+    <script type="module" src="index.js?v=6"></script>
+</body>
+
+</html>

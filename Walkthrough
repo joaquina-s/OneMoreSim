@@ -1,0 +1,25 @@
+# 3D Room Carousel Simulation Walkthrough
+
+The Interactive 3D Room Carousel Simulation has been successfully implemented using Three.js and tested successfully via browser subagent.
+
+## Features Completed
+- **Core 3D Engine**: Initialized Three.js `Scene`, `PerspectiveCamera`, and `WebGLRenderer` directly onto an HTML canvas using `PCFSoftShadowMap` and anti-aliasing. Wrapped the renderer into an `EffectComposer` to support Post-Processing Shaders.
+- **Dynamic Lighting**: Added ambient lighting, point lights colored by room, and a directional light that always follows the player character seamlessly.
+- **4 Custom Rooms & Visual Effects**: Built a 2x2 symmetrical grid featuring 4 heavily detailed simulations, each paired with a localized graphical backdrop or post-processing filter based on character proximity:
+  - 🟣 **Nebulosa Cósmica**: Floating, sine-animated particles. Features a smooth, screen-space **Gaussian Blur** rendering it a dreamy space.
+  - 🔵 **Océano Digital**: An undulating wave of metallic spheres. Features a custom **Grid/Checker Fragment Shader** scaling across the floor with time.
+  - 🟠 **Volcán Eléctrico**: 12 rotating, high-metalness torus rings. Features an animated **Heat Haze Distortion Shader** that warps the view dynamically.
+  - 🟢 **Bosque de Cristal**: 20 rotating, hovering semi-transparent octahedrons. Features a distance-calculated **Pixelation Mosaic Shader** scaling fidelity by proximity.
+- **Landing Webpage**: A cinematic frontend screen featuring an animated Title & Subtitle UI. The background renders a separate `THREE.Scene` populated with 2000 `InstancedMesh` geometries replicating the Toruses, Crystals, Particles, and Spheres from the simulations organized into a beautifully spaced lattice grid resembling LOD batches. The user can navigate over the massive array via keyboard arrows before hitting enter.
+- **Transitions**: Controlled strictly via **GSAP Animations**, clicking the "Entrar" button performs a graceful 1.5-second opacity fade transitioning `isLandingPage = false` out of the landing elements and right into the interactive Carousel. 
+- **Player & Movement**: A humanoid figure orbiting smoothly around the origin mapping Left & Right arrow keys. The avatar visibly rotates to face the direction of its path across the circle's circumference. Movement naturally decelerates down to a `0.95` scale factor representing kinetic friction.
+- **Camera System**: The camera is situated directly *outside* the 2x2 room grid (radius 18+ from avatar), keeping the avatar between the camera and the origin. This provides a constant outside-looking-in view, revealing the dynamic rooms in the background behind the avatar.
+
+## Verification Recording
+The following recording verifies the brand-new landing page booting up, featuring the vast array of 2000 organized Geometry instances, the ability to smoothly pan the camera using the Arrow keys, and the subsequent smooth fade-in directly into the main Carousel Simulation:
+
+![Interactive Landing Page Grid Lattice Simulation](C:/Users/TortugaMarina/.gemini/antigravity/brain/b605a1a6-a29a-4ed7-8bec-91f51151209c/testing_landing_page_grid_layout_1771676389746.webp)
+
+## How to Play
+Since local node servers proved unavailable on your system, I designed the architecture to run straight out of the box using inline `file://` permissions and global CDN `<script>` hooks. 
+Simply open [`index.html`](file:///C:/Users/TortugaMarina/Documents/AntiGravity/index.html) in your browser of choice to begin navigating the rooms!
