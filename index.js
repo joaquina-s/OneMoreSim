@@ -69,7 +69,7 @@ if (window.matchMedia('(pointer: fine)').matches && cursor) {
 }
 
 // Register all 8 worlds
-worldManager.register('0', () => Promise.resolve(carousel));
+worldManager.register('0', () => import('./worlds/world-00-huevo.js').then(m => m.default));
 worldManager.register('1', () => import('./worlds/world-01-teatro.js').then(m => m.default));
 worldManager.register('2', () => import('./worlds/world-02-array3d.js?v=28').then(m => m.default));
 worldManager.register('3', () => import('./worlds/world-03-tunnel.js?v=2').then(m => m.default));
@@ -193,11 +193,11 @@ document.getElementById('enter-button').addEventListener('click', () => {
 
 const WORLD_DATA = {
     '0': {
-        title: 'CAROUSEL',
-        desc: 'Explora cuatro habitaciones interactivas con simulaciones atmosféricas únicas.',
+        title: 'HUEVO',
+        desc: 'Origen inmersivo 00. Huevo central proyectando rayos de luz.',
         accent: '#8899cc',
-        iconSvg: `<circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="2"/>
-              <circle cx="24" cy="24" r="6" fill="currentColor"/>`
+        iconSvg: `<path d="M16 26 C8 24 8 16 16 6 C24 16 24 24 16 26 Z" fill="none" stroke="currentColor" stroke-width="2"/>
+                  <circle cx="16" cy="18" r="3" fill="currentColor"/>`
     },
     '1': {
         title: 'TEATRO',

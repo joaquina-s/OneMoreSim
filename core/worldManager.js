@@ -171,6 +171,29 @@ export class WorldManager {
      */
     tick(time, keys) {
         if (this.activeModule && this.activeModule.update) {
+            
+            // Global Orbit Navigation via Left/Right Arrows
+            if (this.activeModule.camera && this.activeModule._orbitControls && this.activeModule._orbitControls.enabled !== false) {
+                if (keys && (keys.left || keys.right)) {
+                    const cam = this.activeModule.camera;
+                    const target = this.activeModule._orbitControls.target;
+                    
+                    const angle = 0.02 * (keys.right ? 1 : -1);
+                    
+                    // Simple 2D rotation around Y
+                    const dx = cam.position.x - target.x;
+                    const dz = cam.position.z - target.z;
+                    
+                    const cosA = Math.cos(angle);
+                    const sinA = Math.sin(angle);
+                    
+                    cam.position.x = target.x + dx * cosA - dz * sinA;
+                    cam.position.z = target.z + dx * sinA + dz * cosA;
+                    
+                    cam.lookAt(target);
+                }
+            }
+
             if (this.activeId === 'landing') {
                 this.activeModule.update(time, keys, this.renderer);
             } else {
