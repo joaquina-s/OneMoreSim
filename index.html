@@ -226,15 +226,7 @@
             <div id="world-loader">
                 <div class="loader-spinner"></div>
                 <div class="loader-text">INICIANDO SIMULACIÓN...</div>
-                <div class="loader-bar-track">
-                    <div class="loader-bar-fill"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- WORLD NAV -->
-        <nav id="world-nav">
-            <button class="world-btn active" data-world="0">
+                         <button class="world-btn active" data-world="0">
                 <svg class="world-icon" viewBox="0 0 32 32">
                     <path d="M16 26 C8 24 8 16 16 6 C24 16 24 24 16 26 Z" fill="none" stroke="currentColor" stroke-width="2"/>
                     <circle cx="16" cy="18" r="3" fill="currentColor"/>
@@ -243,63 +235,63 @@
             </button>
             <button class="world-btn" data-world="1">
                 <svg class="world-icon" viewBox="0 0 32 32">
-                    <polygon points="4,28 16,4 28,28" fill="none" stroke="currentColor" stroke-width="2" />
+                    <circle cx="16" cy="16" r="10" fill="none" stroke="currentColor" stroke-width="2" />
+                    <circle cx="16" cy="16" r="4" fill="currentColor" />
                 </svg>
-                <span class="world-label">TERRAIN</span>
+                <span class="world-label">CAROUSEL</span>
             </button>
             <button class="world-btn" data-world="2">
                 <svg class="world-icon" viewBox="0 0 32 32">
-                    <rect x="6" y="6" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
-                        rx="2" />
-                    <rect x="12" y="12" width="8" height="8" fill="currentColor" opacity="0.5" />
+                    <polygon points="4,28 16,4 28,28" fill="none" stroke="currentColor" stroke-width="2" />
                 </svg>
-                <span class="world-label">ARRAY-3D</span>
+                <span class="world-label">TEATRO</span>
             </button>
             <button class="world-btn" data-world="3">
+                <svg class="world-icon" viewBox="0 0 32 32">
+                    <rect x="6" y="6" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" rx="2" />
+                    <rect x="12" y="12" width="8" height="8" fill="currentColor" opacity="0.5" />
+                </svg>
+                <span class="world-label">PROCESIÓN</span>
+            </button>
+            <button class="world-btn" data-world="4">
                 <svg class="world-icon" viewBox="0 0 32 32">
                     <ellipse cx="16" cy="16" rx="14" ry="6" fill="none" stroke="currentColor" stroke-width="2" />
                     <line x1="16" y1="2" x2="16" y2="30" stroke="currentColor" stroke-width="1.5" opacity="0.5" />
                 </svg>
-                <span class="world-label">TUNNEL</span>
-            </button>
-            <button class="world-btn" data-world="4">
-                <svg class="world-icon" viewBox="0 0 32 32">
-                    <path d="M16 4 C22 10, 28 14, 16 28 C4 14, 10 10, 16 4Z" fill="none" stroke="currentColor"
-                        stroke-width="2" />
-                </svg>
-                <span class="world-label">VÓRTICE</span>
+                <span class="world-label">BAÑERA</span>
             </button>
             <button class="world-btn" data-world="5">
                 <svg class="world-icon" viewBox="0 0 32 32">
-                    <circle cx="16" cy="16" r="12" fill="none" stroke="currentColor" stroke-width="1.5"
-                        stroke-dasharray="3 2" />
-                    <circle cx="16" cy="16" r="6" fill="none" stroke="currentColor" stroke-width="1.5" />
+                    <path d="M16 4 C22 10, 28 14, 16 28 C4 14, 10 10, 16 4Z" fill="none" stroke="currentColor" stroke-width="2" />
                 </svg>
-                <span class="world-label">NEBULOSA</span>
+                <span class="world-label">NETWORK</span>
             </button>
             <button class="world-btn" data-world="6">
+                <svg class="world-icon" viewBox="0 0 32 32">
+                    <circle cx="16" cy="16" r="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2" />
+                    <circle cx="16" cy="16" r="6" fill="none" stroke="currentColor" stroke-width="1.5" />
+                </svg>
+                <span class="world-label">TRANSFORM</span>
+            </button>
+            <button class="world-btn" data-world="7">
                 <svg class="world-icon" viewBox="0 0 32 32">
                     <path d="M4 20 Q10 10, 16 18 Q22 26, 28 16" fill="none" stroke="currentColor" stroke-width="2" />
                     <line x1="4" y1="26" x2="28" y2="26" stroke="currentColor" stroke-width="1" opacity="0.3" />
                 </svg>
-                <span class="world-label">OCÉANO</span>
-            </button>
-            <button class="world-btn" data-world="7">
-                <svg class="world-icon" viewBox="0 0 32 32">
-                    <polygon points="16,2 20,12 30,12 22,18 25,28 16,22 7,28 10,18 2,12 12,12" fill="none"
-                        stroke="currentColor" stroke-width="1.5" />
-                </svg>
-                <span class="world-label">CRISTAL</span>
+                <span class="world-label">BLOOM</span>
             </button>
             <button class="world-btn" data-world="8">
                 <svg class="world-icon" viewBox="0 0 32 32">
+                    <polygon points="16,2 20,12 30,12 22,18 25,28 16,22 7,28 10,18 2,12 12,12" fill="none" stroke="currentColor" stroke-width="1.5" />
+                </svg>
+                <span class="world-label">GOD RAYS</span>
+            </button>
+            <button class="world-btn" data-world="9">
+                <svg class="world-icon" viewBox="0 0 32 32">
                     <!-- Ícono: capas apiladas con profundidad -->
-                    <rect x="4"  y="20" width="24" height="4" rx="1"
-                        fill="none" stroke="currentColor" stroke-width="1.5"/>
-                    <rect x="6"  y="14" width="20" height="4" rx="1"
-                        fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.75"/>
-                    <rect x="8"  y="8"  width="16" height="4" rx="1"
-                        fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.5"/>
+                    <rect x="4"  y="20" width="24" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                    <rect x="6"  y="14" width="20" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.75"/>
+                    <rect x="8"  y="8" width="16" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.5"/>
                 </svg>
                 <span class="world-label">LAYER</span>
             </button>
