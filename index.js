@@ -70,14 +70,15 @@ if (window.matchMedia('(pointer: fine)').matches && cursor) {
 
 // Register all 8 worlds
 worldManager.register('0', () => import('./worlds/world-00-huevo.js').then(m => m.default));
-worldManager.register('1', () => import('./worlds/world-01-teatro.js').then(m => m.default));
-worldManager.register('2', () => import('./worlds/world-02-array3d.js?v=28').then(m => m.default));
-worldManager.register('3', () => import('./worlds/world-03-tunnel.js?v=2').then(m => m.default));
-worldManager.register('4', () => import('./worlds/world-04-drawrange.js').then(m => m.default));
-worldManager.register('5', () => import('./worlds/world-05-transform.js').then(m => m.default));
-worldManager.register('6', () => import('./worlds/world-06-bloom.js').then(m => m.default));
-worldManager.register('7', () => import('./worlds/world-07-godrays.js').then(m => m.default));
-worldManager.register('8', () => import('./worlds/world-layer.js').then(m => m.default));
+worldManager.register('1', () => Promise.resolve(carousel));
+worldManager.register('2', () => import('./worlds/world-01-teatro.js').then(m => m.default));
+worldManager.register('3', () => import('./worlds/world-02-array3d.js?v=28').then(m => m.default));
+worldManager.register('4', () => import('./worlds/world-03-tunnel.js?v=2').then(m => m.default));
+worldManager.register('5', () => import('./worlds/world-04-drawrange.js').then(m => m.default));
+worldManager.register('6', () => import('./worlds/world-05-transform.js').then(m => m.default));
+worldManager.register('7', () => import('./worlds/world-06-bloom.js').then(m => m.default));
+worldManager.register('8', () => import('./worlds/world-07-godrays.js').then(m => m.default));
+worldManager.register('9', () => import('./worlds/world-layer.js').then(m => m.default));
 
 // ───────────────────────────────────────────────
 // Video Landing Autoplay Fallback
@@ -200,6 +201,13 @@ const WORLD_DATA = {
                   <circle cx="16" cy="18" r="3" fill="currentColor"/>`
     },
     '1': {
+        title: 'CAROUSEL',
+        desc: 'Explora cuatro habitaciones interactivas con simulaciones atmosféricas únicas.',
+        accent: '#8899cc',
+        iconSvg: `<circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="2"/>
+              <circle cx="24" cy="24" r="6" fill="currentColor"/>`
+    },
+    '2': {
         title: 'TEATRO',
         desc: 'Un mundo cinemático. Haz click en una de las sillas de la audiencia para sentarte.',
         accent: '#8899cc',
@@ -208,7 +216,7 @@ const WORLD_DATA = {
                   <line x1="32" y1="36" x2="32" y2="28" stroke="currentColor" stroke-width="2"/>
                   <line x1="8" y1="36" x2="40" y2="36" stroke="currentColor" stroke-width="2"/>`
     },
-    '2': {
+    '3': {
         title: 'PROCESIÓN',
         desc: '50 figuras avanzan en formación. Cada una desfasada del ciclo colectivo.',
         accent: '#8899cc',
@@ -221,7 +229,7 @@ const WORLD_DATA = {
                   <circle cx="28" cy="16" r="3" fill="currentColor" opacity="0.5"/>
                   <circle cx="36" cy="16" r="3" fill="currentColor" opacity="0.5"/>`
     },
-    '3': {
+    '4': {
         title: 'BAÑERA',
         desc:  'Dos huevos luminosos en una bañera. El agua es un campo de palabras que ondula.',
         accent: '#88ccff',
@@ -236,7 +244,7 @@ const WORLD_DATA = {
                   <line x1="35" y1="36" x2="37" y2="42"
                     stroke="currentColor" stroke-width="2"/>`
     },
-    '4': {
+    '5': {
         title: 'NETWORK',
         desc: 'Red neuronal animada con nodos y conexiones que se escriben progresivamente en tiempo real.',
         accent: '#8899cc',
@@ -247,7 +255,7 @@ const WORLD_DATA = {
               <line x1="12" y1="12" x2="24" y2="36" stroke="currentColor" stroke-width="1.5"/>
               <line x1="36" y1="12" x2="24" y2="36" stroke="currentColor" stroke-width="1.5"/>`
     },
-    '5': {
+    '6': {
         title: 'TRANSFORM',
         desc: 'Editor 3D interactivo. Seleccioná y manipulá objetos con controles de posición, rotación y escala.',
         accent: '#ffaa00',
@@ -257,7 +265,7 @@ const WORLD_DATA = {
               <line x1="4" y1="24" x2="16" y2="24" stroke="currentColor" stroke-width="2"/>
               <line x1="32" y1="24" x2="44" y2="24" stroke="currentColor" stroke-width="2"/>`
     },
-    '6': {
+    '7': {
         title: 'BLOOM',
         desc: 'Post-processing Unreal Bloom. Objetos emisivos con halos de luz cinematográfica dinámica.',
         accent: '#ffffff',
@@ -265,7 +273,7 @@ const WORLD_DATA = {
               <circle cx="24" cy="24" r="14" fill="none" stroke="currentColor" stroke-width="1" opacity="0.4"/>
               <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="0.5" opacity="0.2"/>`
     },
-    '7': {
+    '8': {
         title: 'GOD RAYS',
         desc: 'Rayos de luz volumétrica con MorphTargets. Geometrías que se transforman entre formas en tiempo real.',
         accent: '#ff8800',
@@ -279,7 +287,7 @@ const WORLD_DATA = {
               <line x1="4" y1="24" x2="14" y2="24" stroke="currentColor" stroke-width="2"/>
               <line x1="10" y1="10" x2="17" y2="17" stroke="currentColor" stroke-width="2"/>`
     },
-    '8': {
+    '9': {
         title: 'LAYER',
         desc:  'Veintiséis planos transparentes apilados en profundidad. De frente parece flat.',
         accent: '#8899cc',
