@@ -80,14 +80,14 @@ export default {
         const W = window.innerWidth;
         const H = window.innerHeight;
         this.camera = new THREE.PerspectiveCamera(60, W / H, 0.1, 100);
-        this.camera.position.set(0, 0, 5); // Centered, looking at origin
+        this.camera.position.set(0, 0, 2.5); // Much closer to the egg
 
         // ── Controls ──
         this._orbitControls = new THREE.OrbitControls(this.camera, renderer.domElement);
         this._orbitControls.enableDamping = true;
         this._orbitControls.dampingFactor = 0.05;
         this._orbitControls.enablePan = false;
-        this._orbitControls.minDistance = 2;
+        this._orbitControls.minDistance = 1.0;
         this._orbitControls.maxDistance = 15;
         this._orbitControls.target.set(0, 0, 0);
 
