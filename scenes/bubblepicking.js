@@ -143,10 +143,9 @@ const HazeShader = {
             if (intensity <= 0.0) { gl_FragColor = texture2D(tDiffuse, vUv); }
             else {
                 vec2 distortedUv = vUv;
-                distortedUv.x += sin(vUv.y * 20.0 + time * 5.0) * 0.005 * intensity;
-                distortedUv.y += cos(vUv.x * 20.0 + time * 4.0) * 0.005 * intensity;
+                distortedUv.x += sin(vUv.y * 10.0 + time * 2.5) * 0.0025 * intensity;
+                distortedUv.y += cos(vUv.x * 10.0 + time * 2.0) * 0.0025 * intensity;
                 vec4 color = texture2D(tDiffuse, distortedUv);
-                color.r += 0.1 * intensity; color.b -= 0.1 * intensity;
                 gl_FragColor = color;
             }
         }
@@ -186,10 +185,11 @@ function buildRooms(scene) {
         pLight.position.set(room.cx, 5, room.cz);
         scene.add(pLight);
 
-        // Inner wall material — with texture, stretched to fit
+        // Inner wall material — with texture, stretched to fit, no color tint
         const innerWallMat = new THREE.MeshStandardMaterial({
             map: wTex,
-            emissive: room.emissive, emissiveIntensity: 0.08,
+            color: 0xffffff,
+            emissive: 0x000000, emissiveIntensity: 0.0,
             transparent: true, opacity: 0.85, side: THREE.DoubleSide
         });
 
@@ -200,7 +200,7 @@ function buildRooms(scene) {
             transparent: true, opacity: 0.15, side: THREE.DoubleSide
         });
 
-        const wT = 0.5, wH = 10, rs = 25;
+        const wT = 0.5, wH = 10, rs = 24.5; // slightly smaller to add gap between walls
         roomWalls[room.id] = [];
 
         const addWall = (w, h, d, px, pz, mat) => {
@@ -256,8 +256,8 @@ function initRoom1(scene) {
     }
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     const mat = new THREE.PointsMaterial({
-        size: 0.15, color: pRoom.emissive, transparent: true,
-        opacity: 0.8, blending: THREE.AdditiveBlending
+        size: 0.15, color: 0xcccccc, transparent: true,
+        opacity: 0.5, blending: THREE.AdditiveBlending
     });
     const particles = new THREE.Points(geo, mat);
     scene.add(particles);
@@ -278,16 +278,16 @@ function initRoom2(scene) {
     bubbles = [];
 
     for (let i = 0; i < 20; i++) {
-        const r = 0.05 + Math.random() * 0.15;
+        const r = 0.15 + Math.random() * 0.35;
         const geo = new THREE.SphereGeometry(r, 16, 16);
         const mat = new THREE.MeshStandardMaterial({
-            color: 0x88ccff,
-            emissive: 0x44aaff,
-            emissiveIntensity: 0.3,
+            color: 0xffffff,
+            emissive: 0xffffff,
+            emissiveIntensity: 0.1,
             transparent: true,
             opacity: 0.3 + Math.random() * 0.2,
             roughness: 0.1,
-            metalness: 0.3
+            metalness: 0.1
         });
         const mesh = new THREE.Mesh(geo, mat);
 
@@ -692,9 +692,11 @@ export const bubblepicking = {
         playerGroup.position.x = Math.cos(orbitAngle) * orbitRadius;
         playerGroup.position.z = Math.sin(orbitAngle) * orbitRadius;
 
-        playerGroup.rotation.y = orbitAngle - Math.PI / 2;
-        if (velocity < -0.0001) {
-            playerGroup.rotation.y += Math.PI;
+        // Fixed rotation: only face left or right, no progressive rotation
+        if (keys.left) {
+            playerGroup.rotation.y = Math.PI; // face left
+        } else if (keys.right) {
+            playerGroup.rotation.y = 0; // face right
         }
 
         // ── Walk animation control ──
@@ -736,21 +738,20 @@ export const bubblepicking = {
             const distR1 = Math.sqrt(Math.pow(px - (-12.5), 2) + Math.pow(pz - (-12.5), 2));
             const weightR1 = Math.max(0, 1.0 - (distR1 / 20.0));
             blurPass.uniforms.amount.value = THREE.MathUtils.lerp(
-                blurPass.uniforms.amount.value, weightR1 * 5.0, 0.05
+                blurPass.uniforms.amount.value, weightR1 * 2.5, 0.05
             );
 
             // Room 4 pixelate
             const distR4 = Math.sqrt(Math.pow(px - (-12.5), 2) + Math.pow(pz - 12.5, 2));
             const weightR4 = Math.max(0, 1.0 - (distR4 / 20.0));
-            pixelPass.uniforms.pixelSize.value = THREE.MathUtils.lerp(
-                pixelPass.uniforms.pixelSize.value, weightR4 * 16.0, 0.05
-            );
+            // Room 4: pixelate disabled
+            pixelPass.uniforms.pixelSize.value = 0.0;
 
             // Room 3 haze
             const distR3 = Math.sqrt(Math.pow(px - 12.5, 2) + Math.pow(pz - 12.5, 2));
             const weightR3 = Math.max(0, 1.0 - (distR3 / 20.0));
             hazePass.uniforms.intensity.value = THREE.MathUtils.lerp(
-                hazePass.uniforms.intensity.value, weightR3 * 2.5, 0.05
+                hazePass.uniforms.intensity.value, weightR3 * 1.25, 0.05
             );
             hazePass.uniforms.time.value = time;
         }
