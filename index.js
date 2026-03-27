@@ -7,7 +7,7 @@ import { getTime } from './core/clock.js';
 import { WorldManager } from './core/worldManager.js';
 import { deviceProfile } from './core/deviceProfile.js';
 import { ResizeManager } from './core/resizeManager.js';
-import { carousel } from './scenes/carousel.js';
+import { bubblepicking } from './scenes/bubblepicking.js';
 import { createPlaceholder } from './worlds/world-placeholder.js';
 import { uiSound } from './audio/uiSounds.js';
 import Spectrogram from './audio/Spectrogram.js';
@@ -70,7 +70,7 @@ if (window.matchMedia('(pointer: fine)').matches && cursor) {
 
 // Register all 8 worlds
 worldManager.register('0', () => import('./worlds/world-00-huevo.js').then(m => m.default));
-worldManager.register('1', () => Promise.resolve(carousel));
+worldManager.register('1', () => Promise.resolve(bubblepicking));
 worldManager.register('2', () => import('./worlds/world-01-teatro.js').then(m => m.default));
 worldManager.register('3', () => import('./worlds/world-02-array3d.js?v=28').then(m => m.default));
 worldManager.register('4', () => import('./worlds/world-03-tunnel.js?v=2').then(m => m.default));
@@ -201,11 +201,12 @@ const WORLD_DATA = {
                   <circle cx="16" cy="18" r="3" fill="currentColor"/>`
     },
     '1': {
-        title: 'CAROUSEL',
-        desc: 'Explora cuatro habitaciones interactivas con simulaciones atmosféricas únicas.',
-        accent: '#8899cc',
-        iconSvg: `<circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="2"/>
-              <circle cx="24" cy="24" r="6" fill="currentColor"/>`
+        title: 'BUBBLEPICKING',
+        desc: 'Recorre 4 salas, recoge burbujas y absorbe imágenes flotantes.',
+        accent: '#88ccff',
+        iconSvg: `<circle cx="16" cy="16" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+              <circle cx="16" cy="16" r="4" fill="currentColor" opacity="0.4"/>
+              <circle cx="16" cy="10" r="2" fill="currentColor" opacity="0.6"/>`
     },
     '2': {
         title: 'TEATRO',
@@ -483,8 +484,8 @@ resizeManager.init();
 
 // Carousel-specific: update pixelPass resolution on resize
 window.addEventListener('resize', () => {
-    if (worldManager.getCurrentId() === '0' && carousel.getPixelPass) {
-        const pp = carousel.getPixelPass();
+    if (worldManager.getCurrentId() === '1' && bubblepicking.getPixelPass) {
+        const pp = bubblepicking.getPixelPass();
         if (pp) {
             const w = canvasArea.clientWidth;
             const h = canvasArea.clientHeight;
