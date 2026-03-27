@@ -169,7 +169,9 @@ function buildRooms(scene) {
     const floorMat = new THREE.MeshStandardMaterial({
         map: floorTex, roughness: 0.8, metalness: 0.2
     });
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(50, 50), floorMat);
+    // Circular floor — radius = diagonal/2 so the edge touches the wall corners
+    const floorRadius = Math.sqrt(25 * 25 + 25 * 25); // ~35.36
+    const floor = new THREE.Mesh(new THREE.CircleGeometry(floorRadius, 64), floorMat);
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
     scene.add(floor);
