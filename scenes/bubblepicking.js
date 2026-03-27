@@ -17,7 +17,8 @@ let playerMixer = null;   // AnimationMixer for the walkloop
 let walkAction = null;    // AnimationAction
 let orbitAngle = 0;
 let velocity = 0;
-const orbitRadius = 16;   // Further out — centered between walls
+const orbitRadius = 16;
+let lastFacingRight = true; // track last facing direction
 
 let currentRoomId = null;
 let roomOverlayTimeout = null;
@@ -65,12 +66,12 @@ let absorbTimer = 0;
 // ─── Room 4: Player bubble with images ───
 let playerBubbleImages = [];  // Mini-planes orbiting inside the attached bubble
 
-// ─── Room Data ───
+// ─── Room Data (ordered so ArrowRight = 1→2→3→4 clockwise) ───
 const roomData = [
-    { id: "1", name: "Sala 1 — Nebulosa", color: 0x6a0dad, emissive: 0x9c27b0, cx: -12.5, cz: -12.5, wallTex: 'Wall1.png' },
-    { id: "2", name: "Sala 2 — Burbujas", color: 0x0077be, emissive: 0x00bcd4, cx: 12.5, cz: -12.5, wallTex: 'Wall2.png' },
-    { id: "4", name: "Sala 4 — Fusión",   color: 0x00c853, emissive: 0x4caf50, cx: -12.5, cz: 12.5, wallTex: 'Wall4.png' },
-    { id: "3", name: "Sala 3 — Imágenes", color: 0xff5722, emissive: 0xff9800, cx: 12.5, cz: 12.5, wallTex: 'Wall3.png' }
+    { id: "1", name: "Sala 1 — Nebulosa", color: 0xffffff, emissive: 0xffffff, cx: -12.5, cz: -12.5, wallTex: 'Wall1.png' },
+    { id: "2", name: "Sala 2 — Burbujas", color: 0xffffff, emissive: 0xffffff, cx: -12.5, cz: 12.5,  wallTex: 'Wall2.png' },
+    { id: "3", name: "Sala 3 — Imágenes", color: 0xffffff, emissive: 0xffffff, cx: 12.5,  cz: 12.5,  wallTex: 'Wall3.png' },
+    { id: "4", name: "Sala 4 — Fusión",   color: 0xffffff, emissive: 0xffffff, cx: 12.5,  cz: -12.5, wallTex: 'Wall4.png' }
 ];
 
 // ═══════════════════════════════════════════════
@@ -278,7 +279,7 @@ function initRoom2(scene) {
     bubbles = [];
 
     for (let i = 0; i < 20; i++) {
-        const r = 0.15 + Math.random() * 0.35;
+        const r = 0.17 + Math.random() * 0.40;  // 15% bigger than previous 0.15-0.5
         const geo = new THREE.SphereGeometry(r, 16, 16);
         const mat = new THREE.MeshStandardMaterial({
             color: 0xffffff,
@@ -355,8 +356,8 @@ function initRoom3(scene) {
         floatingImages.push(mesh);
     }
 
-    // Central bubble
-    const bubbleGeo = new THREE.SphereGeometry(0.8, 32, 32);
+    // Central bubble (5x larger: radius 4.0)
+    const bubbleGeo = new THREE.SphereGeometry(4.0, 32, 32);
     const bubbleMat = new THREE.MeshStandardMaterial({
         color: 0xaaddff,
         emissive: 0x224466,
@@ -399,7 +400,7 @@ function initRoom3(scene) {
 
         // Images absorbed orbit inside the central bubble
         absorbedImages.forEach((img, i) => {
-            const orbitR = 0.5;
+            const orbitR = 3.0; // orbit inside the larger bubble
             const phase = img.userData.orbitPhase || 0;
             const targetX = centralBubble.position.x + Math.cos(time * 0.8 + phase) * orbitR;
             const targetY = centralBubble.position.y + Math.sin(time * 1.1 + phase) * orbitR * 0.6;
@@ -418,10 +419,23 @@ function initRoom3(scene) {
     });
 }
 
-// ─── Room 4: Empty room (effects happen via state on attached bubble) ───
+// ─── Room 4: Character webp plane + bubble effects ───
 function initRoom4(scene) {
-    // Room 4 visual content is the player's attached bubble with images inside.
-    // No additional scene objects needed; the update loop handles it.
+    const pRoom = roomData.find(r => r.id === "4");
+
+    // Load character webp as a texture on a standing plane
+    const texLoader = new THREE.TextureLoader();
+    texLoader.load('assets/chars/8.webp', (charTex) => {
+        const planeH = 8;  // similar height to the player character
+        const planeW = planeH * (charTex.image.width / charTex.image.height || 0.6);
+        const geo = new THREE.PlaneGeometry(planeW, planeH);
+        const mat = new THREE.MeshBasicMaterial({
+            map: charTex, transparent: true, side: THREE.DoubleSide
+        });
+        const charPlane = new THREE.Mesh(geo, mat);
+        charPlane.position.set(pRoom.cx - 5, planeH / 2, pRoom.cz);
+        scene.add(charPlane);
+    });
 }
 
 // ═══════════════════════════════════════════════
@@ -442,7 +456,7 @@ function createPlayer(scene) {
             clone = gltf.scene.clone();
         }
 
-        clone.scale.set(5, 5, 5);
+        clone.scale.set(4.25, 4.25, 4.25); // 5 * 0.85 = 4.25 (15% smaller than previous 5)
         clone.position.set(0, 0, 0);
 
         // Apply materials
@@ -481,10 +495,11 @@ function detectRoom() {
     const pz = playerGroup.position.z;
 
     let detectedId = null;
-    if (px >= 0 && pz >= 0) detectedId = "3";
-    else if (px < 0 && pz >= 0) detectedId = "4";
-    else if (px < 0 && pz < 0) detectedId = "1";
-    else if (px >= 0 && pz < 0) detectedId = "2";
+    // Quadrant detection matching new roomData positions
+    if (px < 0 && pz < 0)  detectedId = "1";  // Sala 1: (-12.5, -12.5)
+    else if (px < 0 && pz >= 0) detectedId = "2";  // Sala 2: (-12.5, 12.5)
+    else if (px >= 0 && pz >= 0) detectedId = "3"; // Sala 3: (12.5, 12.5)
+    else if (px >= 0 && pz < 0) detectedId = "4";  // Sala 4: (12.5, -12.5)
 
     if (detectedId && detectedId !== currentRoomId) {
         currentRoomId = detectedId;
@@ -554,7 +569,7 @@ function attachNearestBubble() {
         const worldPos = new THREE.Vector3();
         closest.getWorldPosition(worldPos);
         bpScene.remove(closest);
-        closest.position.set(0.5, 2.2, 0); // Shoulder height offset
+        closest.position.set(0, 2.8, 0.1); // Chest height offset
         playerGroup.add(closest);
 
         // Make it a bit bigger so it's visible
@@ -667,10 +682,12 @@ export const bubblepicking = {
             composer.addPass(hazePass);
         }
 
-        // Reset navigation state
-        orbitAngle = 0;
+        // Reset navigation state — start at Sala 1 center angle
+        // Sala 1 is at (-12.5, -12.5), angle from origin = atan2(-12.5, -12.5) = -3π/4
+        orbitAngle = Math.atan2(-12.5, -12.5);
         velocity = 0;
         currentRoomId = null;
+        lastFacingRight = true;
     },
 
     update(time, keys) {
@@ -679,25 +696,28 @@ export const bubblepicking = {
         // ── Movement ──
         const isMoving = keys.left || keys.right;
 
-        if (keys.left) velocity += 0.0006;    // 40% of original 0.0015
-        if (keys.right) velocity -= 0.0006;
+        if (keys.left) velocity += 0.0003;    // 50% slower than previous 0.0006
+        if (keys.right) velocity -= 0.0003;
 
         if (!isMoving) {
             velocity *= 0.95;
         }
 
-        velocity = Math.max(-0.008, Math.min(0.008, velocity)); // 40% of original 0.02
+        velocity = Math.max(-0.004, Math.min(0.004, velocity)); // 50% of previous 0.008
         orbitAngle += velocity;
 
         playerGroup.position.x = Math.cos(orbitAngle) * orbitRadius;
         playerGroup.position.z = Math.sin(orbitAngle) * orbitRadius;
 
-        // Fixed rotation: only face left or right, no progressive rotation
+        // Fixed rotation: only face left or right along the orbit tangent
         if (keys.left) {
-            playerGroup.rotation.y = Math.PI; // face left
+            lastFacingRight = false;
         } else if (keys.right) {
-            playerGroup.rotation.y = 0; // face right
+            lastFacingRight = true;
         }
+        // Tangent angle: perpendicular to the radius vector
+        const tangentAngle = orbitAngle + Math.PI / 2;
+        playerGroup.rotation.y = lastFacingRight ? tangentAngle + Math.PI : tangentAngle;
 
         // ── Walk animation control ──
         if (walkAction) {
@@ -738,7 +758,7 @@ export const bubblepicking = {
             const distR1 = Math.sqrt(Math.pow(px - (-12.5), 2) + Math.pow(pz - (-12.5), 2));
             const weightR1 = Math.max(0, 1.0 - (distR1 / 20.0));
             blurPass.uniforms.amount.value = THREE.MathUtils.lerp(
-                blurPass.uniforms.amount.value, weightR1 * 2.5, 0.05
+                blurPass.uniforms.amount.value, weightR1 * 0.5, 0.05  // 80% less than previous 2.5
             );
 
             // Room 4 pixelate
