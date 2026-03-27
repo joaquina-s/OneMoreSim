@@ -176,28 +176,35 @@ function buildRooms(scene) {
 
     // ── Walls per room ──
     roomData.forEach(room => {
-        // Load this room's wall texture
+        // Load this room's wall texture (stretched, no tiling)
         const wTex = texLoader.load('assets/' + room.wallTex);
-        wTex.wrapS = THREE.RepeatWrapping;
-        wTex.wrapT = THREE.RepeatWrapping;
-        wTex.repeat.set(2.5, 1);
+        wTex.wrapS = THREE.ClampToEdgeWrapping;
+        wTex.wrapT = THREE.ClampToEdgeWrapping;
         wallTextures[room.id] = wTex;
 
         const pLight = new THREE.PointLight(room.emissive, 2.5, 40);
         pLight.position.set(room.cx, 5, room.cz);
         scene.add(pLight);
 
-        const wallMat = new THREE.MeshStandardMaterial({
+        // Inner wall material — with texture, stretched to fit
+        const innerWallMat = new THREE.MeshStandardMaterial({
             map: wTex,
             emissive: room.emissive, emissiveIntensity: 0.08,
             transparent: true, opacity: 0.85, side: THREE.DoubleSide
         });
 
+        // Outer wall material — plain, no texture
+        const outerWallMat = new THREE.MeshStandardMaterial({
+            color: 0x111118,
+            emissive: room.emissive, emissiveIntensity: 0.03,
+            transparent: true, opacity: 0.15, side: THREE.DoubleSide
+        });
+
         const wT = 0.5, wH = 10, rs = 25;
         roomWalls[room.id] = [];
 
-        const addWall = (w, h, d, px, pz) => {
-            const wall = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wallMat.clone());
+        const addWall = (w, h, d, px, pz, mat) => {
+            const wall = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat.clone());
             wall.position.set(px, h / 2, pz);
             wall.receiveShadow = true;
             wall.castShadow = true;
@@ -205,10 +212,18 @@ function buildRooms(scene) {
             roomWalls[room.id].push(wall);
         };
 
-        addWall(rs, wH, wT, room.cx, room.cz - rs / 2);
-        addWall(rs, wH, wT, room.cx, room.cz + rs / 2);
-        addWall(wT, wH, rs, room.cx - rs / 2, room.cz);
-        addWall(wT, wH, rs, room.cx + rs / 2, room.cz);
+        // Determine which walls are inner (near center 0) vs outer (at scene edge ±25)
+        const zNear = room.cz - rs / 2; // e.g. -25 or 0
+        const zFar  = room.cz + rs / 2; // e.g. 0 or 25
+        const xNear = room.cx - rs / 2;
+        const xFar  = room.cx + rs / 2;
+
+        // Z-walls (horizontal, span along X)
+        addWall(rs, wH, wT, room.cx, zNear, Math.abs(zNear) > 12 ? outerWallMat : innerWallMat);
+        addWall(rs, wH, wT, room.cx, zFar,  Math.abs(zFar)  > 12 ? outerWallMat : innerWallMat);
+        // X-walls (vertical, span along Z)
+        addWall(wT, wH, rs, xNear, room.cz, Math.abs(xNear) > 12 ? outerWallMat : innerWallMat);
+        addWall(wT, wH, rs, xFar,  room.cz, Math.abs(xFar)  > 12 ? outerWallMat : innerWallMat);
     });
 
     // Cross Dividers
@@ -427,7 +442,7 @@ function createPlayer(scene) {
             clone = gltf.scene.clone();
         }
 
-        clone.scale.set(1, 1, 1);
+        clone.scale.set(5, 5, 5);
         clone.position.set(0, 0, 0);
 
         // Apply materials
