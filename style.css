@@ -369,15 +369,15 @@ button {
     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.5);
 }
 
-/* ── Individual Panels ── */
-.hud-panel {
+/* ── Header Sections (3-section layout) ── */
+.header-section {
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
     border-right: 1px solid #2d2d4a;
-    padding: 8px;
     box-sizing: border-box;
+    overflow: hidden;
     background: linear-gradient(135deg,
             rgba(255, 255, 255, 0.04) 0%,
             transparent 50%,
@@ -387,48 +387,36 @@ button {
         inset -1px -1px 0 rgba(0, 0, 0, 0.4);
 }
 
-.hud-panel:last-child {
+.header-section:last-child {
     border-right: none;
 }
 
-/* ── Header Panel Sizes ── */
-.panel-h1 {
-    width: 22%;
-    gap: 4px;
+#header-logo {
+    width: calc(29.75% + 64px);
+    flex-shrink: 0;
 }
 
-.panel-h2 {
-    width: 44%;
-    justify-content: flex-start;
-    gap: 16px;
-    padding: 12px 20px;
+#header-map {
+    flex: 66;
+    padding: 4px 8px;
 }
 
-.panel-h3 {
-    width: 17%;
-    flex-direction: column;
-    gap: 6px;
-    overflow: hidden;
-    position: relative;
+#header-credits {
+    flex: 34;
 }
 
-.sys-relief-img {
-    position: absolute;
-    inset: 0;
+.header-section-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    opacity: 0.35;
-    pointer-events: none;
-    filter: contrast(1.2) brightness(0.8);
-    mix-blend-mode: luminosity;
+    display: block;
 }
 
-.panel-h4 {
-    width: 17%;
-    flex-direction: column;
-    gap: 6px;
-}
+/* ── Old panel sizing — kept for compatibility ── */
+.panel-h1 { width: 22%; gap: 4px; }
+.panel-h2 { width: 44%; justify-content: flex-start; gap: 16px; padding: 12px 20px; }
+.panel-h3 { width: 17%; flex-direction: column; gap: 6px; overflow: hidden; position: relative; }
+.panel-h4 { width: 17%; flex-direction: column; gap: 6px; }
 
 /* ── Footer Panel Sizes ── */
 .panel-f1 {
@@ -574,7 +562,9 @@ button {
 /* ── Minimap Panel ── */
 #minimap-panel {
     position: relative;
-    padding: 4px 6px;
+    width: 100%;
+    height: 100%;
+    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -719,7 +709,7 @@ button {
 #character-panel {
     grid-area: char;
     display: grid;
-    grid-template-columns: 52px 1fr;
+    grid-template-columns: 78px 1fr;
     gap: 6px;
     padding: 8px;
     background: linear-gradient(135deg, var(--steel-bg) 0%, var(--steel-panel) 100%);
@@ -732,13 +722,17 @@ button {
 #texture-buttons {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    justify-content: space-evenly;
     align-items: center;
+    width: 78px;
+    height: 100%;
+    gap: 0;
+    padding: 4px 0;
 }
 
 .texture-btn {
-    width: 40px;
-    height: 40px;
+    width: 60px;
+    height: 60px;
     border-radius: 6px;
     background: var(--btn-color, #333);
     border: 2px solid var(--color-border);
@@ -915,49 +909,44 @@ button {
 #world-nav {
     grid-area: worlds;
     display: flex;
-    align-items: center;
+    align-items: stretch;
     justify-content: space-around;
-    padding: 8px 12px;
+    padding: 4px 4px;
     background: linear-gradient(0deg, #0c0d18 0%, #10122a 100%);
     border-top: 1px solid var(--color-border);
-    box-shadow: var(--bevel);
     pointer-events: auto;
-    gap: 4px;
+    gap: 2px;
     min-height: 92px;
-    padding: 10px 8px;
 }
 
 .world-btn {
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    width: 80px;
-    min-height: 74px;
-    padding: 8px 6px;
-    border-radius: 8px;
-    background: #201a35;
-    border: 1px solid #352a50;
-    box-shadow: var(--bevel);
+    width: 120px;
+    height: calc(100% - 8px);
+    padding: 0;
+    border-radius: 2px;
+    background: transparent;
+    border: none;
     transition: all 0.2s ease-out;
-    color: var(--color-text-dim);
+    overflow: hidden;
+}
+
+.world-btn-img {
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    display: block;
+    pointer-events: none;
 }
 
 .world-btn:hover {
-    border-color: var(--color-accent);
-    box-shadow: 0 0 12px rgba(125, 133, 180, 0.25), var(--bevel);
-    color: var(--color-text);
+    filter: brightness(1.1);
 }
 
 .world-btn.active {
-    background: #1a1a2e;
-    border-color: var(--color-accent);
-    box-shadow:
-        inset 0 0 8px rgba(125, 133, 180, 0.3),
-        0 0 15px rgba(125, 133, 180, 0.5),
-        0 0 30px rgba(125, 133, 180, 0.2);
-    color: var(--color-accent);
+    background: transparent;
 }
 
 .world-btn.loading .world-icon {
@@ -1004,18 +993,55 @@ button {
 
 #hud-footer {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     width: 100%;
-    height: 131px;
     background: #0a0c14;
     border-top: 2px solid #2d2d4a;
     grid-area: footer;
     overflow: hidden;
-    gap: 3px;
-    padding: 3px;
     box-sizing: border-box;
     z-index: 2;
     pointer-events: auto;
+}
+
+/* Footer top row: spectrogram + world info */
+#footer-top-row {
+    display: flex;
+    flex-direction: row;
+    height: 35%;
+    width: 100%;
+    border-bottom: 1px solid #2d2d4a;
+    box-sizing: border-box;
+}
+
+#footer-top-left {
+    width: calc(29.75% + 64px);
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+    border-right: 1px solid #2d2d4a;
+    background: linear-gradient(135deg, #10122a 0%, #161830 100%);
+}
+
+#footer-top-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 20px;
+    background: linear-gradient(135deg, #10122a 0%, #161830 100%);
+    min-width: 0;
+}
+
+/* Footer bottom row: minesweepers + panels */
+#footer-bottom-row {
+    display: flex;
+    flex-direction: row;
+    height: 65%;
+    width: 100%;
+    gap: 3px;
+    padding: 3px;
+    box-sizing: border-box;
 }
 
 .image-panel {
@@ -1081,13 +1107,7 @@ button {
 }
 
 .world-btn.active {
-    background: #1a1a2e;
-    border-color: var(--color-accent);
-    box-shadow:
-        inset 0 0 8px rgba(125, 133, 180, 0.3),
-        0 0 15px rgba(125, 133, 180, 0.5),
-        0 0 30px rgba(125, 133, 180, 0.2);
-    color: var(--color-accent);
+    background: transparent;
 }
 
 .world-btn.loading .world-icon {
@@ -1133,19 +1153,7 @@ button {
    FOOTER HUD
    ════════════════════════════════════════════════ */
 
-#hud-footer {
-    grid-area: footer;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
-    background: linear-gradient(0deg, #0d1320 0%, #141c2a 100%);
-    border-top: 1px solid var(--color-border);
-    box-shadow: var(--bevel);
-    font-size: 11px;
-    pointer-events: auto;
-    z-index: 2;
-}
+/* Duplicate #hud-footer override kept for backward compat */
 
 .hud-footer-left,
 .hud-footer-center,
@@ -1450,12 +1458,12 @@ button {
     }
 
     .texture-btn {
-        width: 34px;
-        height: 34px;
+        width: 50px;
+        height: 50px;
     }
 
     #character-panel {
-        grid-template-columns: 44px 1fr;
+        grid-template-columns: 60px 1fr;
     }
 }
 
@@ -1575,8 +1583,14 @@ button {
 }
 
 /* ════════════════════════════════════════════════
-   SPECTROGRAM WATERFALL (H4 PANEL)
+   SPECTROGRAM WATERFALL
    ════════════════════════════════════════════════ */
+
+#spectrogram-container {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
 
 .spectrogram-label {
     position: absolute;
@@ -1590,13 +1604,6 @@ button {
     pointer-events: none;
     text-transform: uppercase;
 }
-
-#spectrogram-container {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-}
-
 #spectrogram-container canvas {
     width: 100% !important;
     height: 100% !important;
@@ -1651,11 +1658,11 @@ button {
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  padding: 7px 6px 5px;
-  gap: 3px;
+  padding: 0;
+  gap: 0;
   cursor: default;
   overflow: hidden;
-  border-radius: 6px;
+  border-radius: 0;
 
   /* Gradiente base extraído de panel-01 */
   background:
@@ -1682,7 +1689,7 @@ button {
   width: 100%;
   justify-content: space-between;
   align-items: center;
-  padding: 0 2px;
+  padding: 2px 4px;
   flex-shrink: 0;
 }
 
@@ -1739,15 +1746,15 @@ button {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   grid-template-rows: repeat(6, 1fr);
-  gap: 2px;
+  gap: 1px;
   max-width: 100%;
   max-height: 100%;
   aspect-ratio: 1;
-  margin: 0 auto;
+  margin: 0;
   flex: 1;
   min-height: 0;
-  padding: 3px;
-  border-radius: 4px;
+  padding: 0;
+  border-radius: 0;
   background: #dae2ff;
   box-shadow:
     inset 2px 2px 4px rgba(20,15,50,0.45),
@@ -1849,8 +1856,4 @@ button {
 
 .image-panel {
     height: 100%;
-}
-
-#hud-footer {
-    height: 100% !important;
 }

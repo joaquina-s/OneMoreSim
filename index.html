@@ -50,118 +50,89 @@
     <!-- ═══════════════════════════════════════════════ -->
     <div id="ui-shell">
 
-        <!-- HEADER HUD — 4-panel expanded layout -->
+        <!-- HEADER HUD — 3-section layout: Logo | Map | Credits -->
         <div id="hud-header">
 
-            <!-- Panel H1: Mini-mapa interactivo -->
-            <div class="hud-panel panel-h1" id="minimap-panel">
-                <div class="minimap-label">MAP</div>
-                <svg id="minimap-svg" viewBox="0 0 120 90" xmlns="http://www.w3.org/2000/svg">
-
-                    <!-- Caminos entre nodos (líneas de conexión) -->
-                    <g id="minimap-paths" stroke="#4a3a5a" stroke-width="1.5" fill="none" opacity="0.6">
-                        <!-- Conexiones entre nodos según layout de grilla irregular -->
-                        <line x1="20" y1="20" x2="50" y2="15"/>
-                        <line x1="50" y1="15" x2="80" y2="20"/>
-                        <line x1="80" y1="20" x2="100" y2="40"/>
-                        <line x1="20" y1="20" x2="15" y2="50"/>
-                        <line x1="50" y1="15" x2="60" y2="45"/>
-                        <line x1="80" y1="20" x2="85" y2="50"/>
-                        <line x1="15" y1="50" x2="35" y2="72"/>
-                        <line x1="60" y1="45" x2="35" y2="72"/>
-                        <line x1="60" y1="45" x2="85" y2="50"/>
-                        <line x1="100" y1="40" x2="85" y2="50"/>
-                        <line x1="35" y1="72" x2="65" y2="75"/>
-                        <line x1="85" y1="50" x2="65" y2="75"/>
-                    </g>
-
-                    <!-- Nodos — uno por mundo (0 al 7) -->
-                    <g id="minimap-nodes">
-                        <!-- Mundo 0: CAROUSEL -->
-                        <circle class="map-node" data-world="0" cx="20" cy="20" r="5"
-                            fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
-                        <text class="map-label" x="20" y="13" text-anchor="middle">0</text>
-
-                        <!-- Mundo 1: TERRAIN -->
-                        <circle class="map-node" data-world="1" cx="50" cy="15" r="5"
-                            fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
-                        <text class="map-label" x="50" y="8" text-anchor="middle">1</text>
-
-                        <!-- Mundo 2: ARRAY-3D -->
-                        <circle class="map-node" data-world="2" cx="80" cy="20" r="5"
-                            fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
-                        <text class="map-label" x="80" y="13" text-anchor="middle">2</text>
-
-                        <!-- Mundo 3: BAÑERA -->
-                        <circle class="map-node" data-world="3" cx="100" cy="40" r="5"
-                            fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
-                        <text class="map-label" x="108" y="43" text-anchor="middle">3</text>
-
-                        <!-- Mundo 4: VÓRTICE -->
-                        <circle class="map-node" data-world="4" cx="15" cy="50" r="5"
-                            fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
-                        <text class="map-label" x="8" y="53" text-anchor="middle">4</text>
-
-                        <!-- Mundo 5: NEBULOSA -->
-                        <circle class="map-node" data-world="5" cx="60" cy="45" r="5"
-                            fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
-                        <text class="map-label" x="60" y="38" text-anchor="middle">5</text>
-
-                        <!-- Mundo 6: OCÉANO -->
-                        <circle class="map-node" data-world="6" cx="85" cy="50" r="5"
-                            fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
-                        <text class="map-label" x="93" y="53" text-anchor="middle">6</text>
-
-                        <!-- Mundo 7: CRISTAL -->
-                        <circle class="map-node" data-world="7" cx="35" cy="72" r="5"
-                            fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
-                        <text class="map-label" x="35" y="65" text-anchor="middle">7</text>
-
-                        <!-- Mundo 8: LAYER -->
-                        <circle class="map-node" data-world="8" cx="65" cy="75" r="5"
-                            fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
-                        <text class="map-label" x="65" y="68" text-anchor="middle">8</text>
-                    </g>
-
-                    <!-- Marcador del personaje — se mueve al nodo activo -->
-                    <g id="minimap-character" transform="translate(20, 20)">
-                        <!-- Sombra/halo -->
-                        <circle cx="0" cy="0" r="7" fill="rgba(125,133,180,0.15)" />
-                        <!-- Silueta del personaje (rombo con punto) -->
-                        <polygon points="0,-5 4,0 0,5 -4,0" fill="#8899cc" opacity="0.9"/>
-                        <circle cx="0" cy="-7" r="2" fill="#8899cc"/>
-                    </g>
-
-                </svg>
+            <!-- Section 1: LOGO -->
+            <div class="header-section" id="header-logo">
+                <img src="assets/panel-03.png" alt="Logo" class="header-section-img" />
             </div>
 
-            <!-- Panel H2: dynamic world info text holder -->
-            <div class="hud-panel panel-h2" id="world-info-panel">
-                <div class="world-info-icon" id="world-info-icon">
-                    <svg viewBox="0 0 48 48" id="world-icon-svg">
-                        <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="2" />
-                        <circle cx="24" cy="24" r="6" fill="currentColor" />
+            <!-- Section 2: MAPA -->
+            <div class="header-section" id="header-map">
+                <div id="minimap-panel">
+                    <div class="minimap-label">MAP</div>
+                    <svg id="minimap-svg" viewBox="0 0 120 90" xmlns="http://www.w3.org/2000/svg">
+
+                        <!-- Caminos entre nodos (líneas de conexión) -->
+                        <g id="minimap-paths" stroke="#4a3a5a" stroke-width="1.5" fill="none" opacity="0.6">
+                            <line x1="20" y1="20" x2="50" y2="15"/>
+                            <line x1="50" y1="15" x2="80" y2="20"/>
+                            <line x1="80" y1="20" x2="100" y2="40"/>
+                            <line x1="20" y1="20" x2="15" y2="50"/>
+                            <line x1="50" y1="15" x2="60" y2="45"/>
+                            <line x1="80" y1="20" x2="85" y2="50"/>
+                            <line x1="15" y1="50" x2="35" y2="72"/>
+                            <line x1="60" y1="45" x2="35" y2="72"/>
+                            <line x1="60" y1="45" x2="85" y2="50"/>
+                            <line x1="100" y1="40" x2="85" y2="50"/>
+                            <line x1="35" y1="72" x2="65" y2="75"/>
+                            <line x1="85" y1="50" x2="65" y2="75"/>
+                        </g>
+
+                        <!-- Nodos — uno por mundo (0 al 8) -->
+                        <g id="minimap-nodes">
+                            <circle class="map-node" data-world="0" cx="20" cy="20" r="5"
+                                fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
+                            <text class="map-label" x="20" y="13" text-anchor="middle">0</text>
+
+                            <circle class="map-node" data-world="1" cx="50" cy="15" r="5"
+                                fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
+                            <text class="map-label" x="50" y="8" text-anchor="middle">1</text>
+
+                            <circle class="map-node" data-world="2" cx="80" cy="20" r="5"
+                                fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
+                            <text class="map-label" x="80" y="13" text-anchor="middle">2</text>
+
+                            <circle class="map-node" data-world="3" cx="100" cy="40" r="5"
+                                fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
+                            <text class="map-label" x="108" y="43" text-anchor="middle">3</text>
+
+                            <circle class="map-node" data-world="4" cx="15" cy="50" r="5"
+                                fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
+                            <text class="map-label" x="8" y="53" text-anchor="middle">4</text>
+
+                            <circle class="map-node" data-world="5" cx="60" cy="45" r="5"
+                                fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
+                            <text class="map-label" x="60" y="38" text-anchor="middle">5</text>
+
+                            <circle class="map-node" data-world="6" cx="85" cy="50" r="5"
+                                fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
+                            <text class="map-label" x="93" y="53" text-anchor="middle">6</text>
+
+                            <circle class="map-node" data-world="7" cx="35" cy="72" r="5"
+                                fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
+                            <text class="map-label" x="35" y="65" text-anchor="middle">7</text>
+
+                            <circle class="map-node" data-world="8" cx="65" cy="75" r="5"
+                                fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
+                            <text class="map-label" x="65" y="68" text-anchor="middle">8</text>
+                        </g>
+
+                        <!-- Marcador del personaje -->
+                        <g id="minimap-character" transform="translate(20, 20)">
+                            <circle cx="0" cy="0" r="7" fill="rgba(125,133,180,0.15)" />
+                            <polygon points="0,-5 4,0 0,5 -4,0" fill="#8899cc" opacity="0.9"/>
+                            <circle cx="0" cy="-7" r="2" fill="#8899cc"/>
+                        </g>
+
                     </svg>
                 </div>
-                <div class="world-info-text">
-                    <div class="world-info-title" id="world-info-title">CAROUSEL</div>
-                    <div class="world-info-desc" id="world-info-desc">
-                        Explora cuatro habitaciones interactivas con simulaciones atmosféricas únicas.
-                    </div>
-                </div>
             </div>
 
-            <!-- Panel H3: decorative with relief texture -->
-            <div class="hud-panel panel-h3">
-                <img src="assets/sys-relief.png" alt="SYS" class="sys-relief-img" />
-                <div class="hud-panel-label">SYS</div>
-            </div>
-
-            <!-- Panel H4: decorative with relief texture -->
-            <div class="hud-panel panel-h4" id="spectrogram-panel">
-                <div class="hud-relief-pattern"></div>
-                <div class="spectrogram-label">AUDIO SPECTRUM</div>
-                <div id="spectrogram-container"></div>
+            <!-- Section 3: CREDITS -->
+            <div class="header-section" id="header-credits">
+                <img src="assets/panel-02.png" alt="Credits" class="header-section-img" />
             </div>
 
         </div>
@@ -235,107 +206,91 @@
         <!-- WORLD NAV -->
         <nav id="world-nav">
             <button class="world-btn active" data-world="0">
-                <svg class="world-icon" viewBox="0 0 32 32">
-                    <path d="M16 26 C8 24 8 16 16 6 C24 16 24 24 16 26 Z" fill="none" stroke="currentColor" stroke-width="2"/>
-                    <circle cx="16" cy="18" r="3" fill="currentColor"/>
-                </svg>
-                <span class="world-label">HUEVO</span>
+                <img src="assets/tex/Buttons/worldBH1.png" alt="HUEVO" class="world-btn-img" />
             </button>
             <button class="world-btn" data-world="1">
-                <svg class="world-icon" viewBox="0 0 32 32">
-                    <circle cx="16" cy="16" r="10" fill="none" stroke="currentColor" stroke-width="2" />
-                    <circle cx="16" cy="16" r="4" fill="currentColor" opacity="0.4" />
-                    <circle cx="16" cy="10" r="2" fill="currentColor" opacity="0.6" />
-                </svg>
-                <span class="world-label">BUBBLES</span>
+                <img src="assets/tex/Buttons/worldB2.png" alt="BUBBLES" class="world-btn-img" />
             </button>
             <button class="world-btn" data-world="2">
-                <svg class="world-icon" viewBox="0 0 32 32">
-                    <polygon points="4,28 16,4 28,28" fill="none" stroke="currentColor" stroke-width="2" />
-                </svg>
-                <span class="world-label">TEATRO</span>
+                <img src="assets/tex/Buttons/worldB3.png" alt="TEATRO" class="world-btn-img" />
             </button>
             <button class="world-btn" data-world="3">
-                <svg class="world-icon" viewBox="0 0 32 32">
-                    <rect x="6" y="6" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" rx="2" />
-                    <rect x="12" y="12" width="8" height="8" fill="currentColor" opacity="0.5" />
-                </svg>
-                <span class="world-label">PROCESIÓN</span>
+                <img src="assets/tex/Buttons/worldB4.png" alt="PROCESIÓN" class="world-btn-img" />
             </button>
             <button class="world-btn" data-world="4">
-                <svg class="world-icon" viewBox="0 0 32 32">
-                    <ellipse cx="16" cy="16" rx="14" ry="6" fill="none" stroke="currentColor" stroke-width="2" />
-                    <line x1="16" y1="2" x2="16" y2="30" stroke="currentColor" stroke-width="1.5" opacity="0.5" />
-                </svg>
-                <span class="world-label">BAÑERA</span>
+                <img src="assets/tex/Buttons/worldB5.png" alt="BAÑERA" class="world-btn-img" />
             </button>
             <button class="world-btn" data-world="5">
-                <svg class="world-icon" viewBox="0 0 32 32">
-                    <path d="M16 4 C22 10, 28 14, 16 28 C4 14, 10 10, 16 4Z" fill="none" stroke="currentColor" stroke-width="2" />
-                </svg>
-                <span class="world-label">NETWORK</span>
+                <img src="assets/tex/Buttons/worldB6.png" alt="NETWORK" class="world-btn-img" />
             </button>
             <button class="world-btn" data-world="6">
-                <svg class="world-icon" viewBox="0 0 32 32">
-                    <circle cx="16" cy="16" r="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2" />
-                    <circle cx="16" cy="16" r="6" fill="none" stroke="currentColor" stroke-width="1.5" />
-                </svg>
-                <span class="world-label">TRANSFORM</span>
+                <img src="assets/tex/Buttons/worldB7.png" alt="TRANSFORM" class="world-btn-img" />
             </button>
             <button class="world-btn" data-world="7">
-                <svg class="world-icon" viewBox="0 0 32 32">
-                    <path d="M4 20 Q10 10, 16 18 Q22 26, 28 16" fill="none" stroke="currentColor" stroke-width="2" />
-                    <line x1="4" y1="26" x2="28" y2="26" stroke="currentColor" stroke-width="1" opacity="0.3" />
-                </svg>
-                <span class="world-label">BLOOM</span>
+                <img src="assets/tex/Buttons/worldB8.png" alt="BLOOM" class="world-btn-img" />
             </button>
             <button class="world-btn" data-world="8">
-                <svg class="world-icon" viewBox="0 0 32 32">
-                    <polygon points="16,2 20,12 30,12 22,18 25,28 16,22 7,28 10,18 2,12 12,12" fill="none" stroke="currentColor" stroke-width="1.5" />
-                </svg>
-                <span class="world-label">GOD RAYS</span>
+                <img src="assets/tex/Buttons/worldB9.png" alt="GOD RAYS" class="world-btn-img" />
             </button>
             <button class="world-btn" data-world="9">
-                <svg class="world-icon" viewBox="0 0 32 32">
-                    <!-- Ícono: capas apiladas con profundidad -->
-                    <rect x="4"  y="20" width="24" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/>
-                    <rect x="6"  y="14" width="20" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.75"/>
-                    <rect x="8"  y="8" width="16" height="4" rx="1" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.5"/>
-                </svg>
-                <span class="world-label">LAYER</span>
+                <img src="assets/tex/Buttons/worldB10.png" alt="LAYER" class="world-btn-img" />
             </button>
         </nav>
 
         <div id="hud-footer">
-            <div class="image-panel minesweeper-panel" id="minesweeper-left">
-                <div class="ms-header">
-                    <span class="ms-counter" id="ms-left-counter">5</span>
-                    <button class="ms-reset" id="ms-left-reset" title="Nuevo juego">⟳</button>
-                    <span class="ms-timer" id="ms-left-timer">0</span>
+            <!-- FILA SUPERIOR: Spectrogram + World Info Text -->
+            <div id="footer-top-row">
+                <div id="footer-top-left">
+                    <div class="spectrogram-label">AUDIO SPECTRUM</div>
+                    <div id="spectrogram-container"></div>
                 </div>
-                <div class="ms-grid" id="ms-left-grid"></div>
-                <div class="ms-status" id="ms-left-status"></div>
-            </div>
-            <div class="image-panel" id="img-panel-1">
-                <img src="assets/panel-02.png" alt="Panel 2" class="panel-img" />
-                <div class="panel-border-overlay"></div>
-            </div>
-            <div class="image-panel" id="img-panel-2">
-                <img src="assets/panel-03.png" alt="Panel 3" class="panel-img" />
-                <div class="panel-border-overlay"></div>
-            </div>
-            <div class="image-panel" id="img-panel-3">
-                <img src="assets/panel-04.png" alt="Panel 4" class="panel-img" />
-                <div class="panel-border-overlay"></div>
-            </div>
-            <div class="image-panel minesweeper-panel" id="minesweeper-right">
-                <div class="ms-header">
-                    <span class="ms-counter" id="ms-right-counter">5</span>
-                    <button class="ms-reset" id="ms-right-reset" title="Nuevo juego">⟳</button>
-                    <span class="ms-timer" id="ms-right-timer">0</span>
+                <div id="footer-top-right">
+                    <div class="world-info-icon" id="world-info-icon">
+                        <svg viewBox="0 0 48 48" id="world-icon-svg">
+                            <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="2" />
+                            <circle cx="24" cy="24" r="6" fill="currentColor" />
+                        </svg>
+                    </div>
+                    <div class="world-info-text">
+                        <div class="world-info-title" id="world-info-title">CAROUSEL</div>
+                        <div class="world-info-desc" id="world-info-desc">
+                            Explora cuatro habitaciones interactivas con simulaciones atmosféricas únicas.
+                        </div>
+                    </div>
                 </div>
-                <div class="ms-grid" id="ms-right-grid"></div>
-                <div class="ms-status" id="ms-right-status"></div>
+            </div>
+            <!-- FILA INFERIOR: Minesweepers + Image Panels -->
+            <div id="footer-bottom-row">
+                <div class="image-panel minesweeper-panel" id="minesweeper-left">
+                    <div class="ms-header">
+                        <span class="ms-counter" id="ms-left-counter">5</span>
+                        <button class="ms-reset" id="ms-left-reset" title="Nuevo juego">⟳</button>
+                        <span class="ms-timer" id="ms-left-timer">0</span>
+                    </div>
+                    <div class="ms-grid" id="ms-left-grid"></div>
+                    <div class="ms-status" id="ms-left-status"></div>
+                </div>
+                <div class="image-panel" id="img-panel-1">
+                    <img src="assets/panel-02.png" alt="Panel 2" class="panel-img" />
+                    <div class="panel-border-overlay"></div>
+                </div>
+                <div class="image-panel" id="img-panel-2">
+                    <img src="assets/panel-03.png" alt="Panel 3" class="panel-img" />
+                    <div class="panel-border-overlay"></div>
+                </div>
+                <div class="image-panel" id="img-panel-3">
+                    <img src="assets/panel-04.png" alt="Panel 4" class="panel-img" />
+                    <div class="panel-border-overlay"></div>
+                </div>
+                <div class="image-panel minesweeper-panel" id="minesweeper-right">
+                    <div class="ms-header">
+                        <span class="ms-counter" id="ms-right-counter">5</span>
+                        <button class="ms-reset" id="ms-right-reset" title="Nuevo juego">⟳</button>
+                        <span class="ms-timer" id="ms-right-timer">0</span>
+                    </div>
+                    <div class="ms-grid" id="ms-right-grid"></div>
+                    <div class="ms-status" id="ms-right-status"></div>
+                </div>
             </div>
         </div>
 
