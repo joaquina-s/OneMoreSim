@@ -413,6 +413,30 @@ function fadeOutWorldTexts() {
     });
 }
 
+// ───────────────────────────────────────────────
+// World Button PNG Hover + Active Image Swap
+// ───────────────────────────────────────────────
+
+// Map data-world index to file number (0→1, 1→2 ... 9→10)
+function worldBtnNormalSrc(worldIdx) {
+    return `assets/tex/Buttons/worldB${Number(worldIdx) + 1}.png`;
+}
+function worldBtnHoverSrc(worldIdx) {
+    return `assets/tex/Buttons/worldBH${Number(worldIdx) + 1}.png`;
+}
+
+function updateWorldBtnImages() {
+    document.querySelectorAll('.world-btn').forEach(b => {
+        const img = b.querySelector('.world-btn-img');
+        if (!img) return;
+        if (b.classList.contains('active')) {
+            img.src = worldBtnHoverSrc(b.dataset.world);
+        } else {
+            img.src = worldBtnNormalSrc(b.dataset.world);
+        }
+    });
+}
+
 document.querySelectorAll('.world-btn').forEach(btn => {
     // Click → activate
     btn.addEventListener('click', () => {
@@ -421,17 +445,30 @@ document.querySelectorAll('.world-btn').forEach(btn => {
         worldManager.activate(btn.dataset.world);
         updateWorldInfo(btn.dataset.world);
         updateMinimap(btn.dataset.world);
+
+        // Update active class and images
+        document.querySelectorAll('.world-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateWorldBtnImages();
     });
 
-    // Desktop: preload on hover (debounced)
+    // Desktop: preload on hover + swap image (debounced)
     btn.addEventListener('mouseenter', debounce(() => {
         uiSound.hover();
         if (cursor) cursor.classList.add('hover');
         worldManager.preload(btn.dataset.world);
+        // Swap to hover image
+        const img = btn.querySelector('.world-btn-img');
+        if (img) img.src = worldBtnHoverSrc(btn.dataset.world);
     }, 50));
 
     btn.addEventListener('mouseleave', () => {
         if (cursor) cursor.classList.remove('hover');
+        // Swap back to normal if not active
+        if (!btn.classList.contains('active')) {
+            const img = btn.querySelector('.world-btn-img');
+            if (img) img.src = worldBtnNormalSrc(btn.dataset.world);
+        }
     });
 
     // Mobile: preload on touch
