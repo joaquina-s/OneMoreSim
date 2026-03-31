@@ -377,7 +377,7 @@ const PMAP_NODES = [
             g.setAttribute('data-py', node.py);
 
             const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            circle.setAttribute('r', '5');
+            circle.setAttribute('r', '5.5');
             circle.setAttribute('fill', '#1a142e');
             circle.setAttribute('stroke', '#8899cc');
             circle.setAttribute('stroke-width', '1.5');
@@ -443,14 +443,14 @@ const PMAP_NODES = [
 
             const circle = g.querySelector('circle');
             if (world === activeWorld) {
-              circle.setAttribute('fill', '#0000ef');
-              circle.setAttribute('stroke', '#0000ef');
-              circle.setAttribute('r', '7');
+              circle.setAttribute('fill', '#ffffff');
+              circle.setAttribute('stroke', '#ffffff');
+              circle.setAttribute('r', '7.7');
               circle.classList.add('pmap-node-active');
             } else {
               circle.setAttribute('fill', '#1a142e');
               circle.setAttribute('stroke', '#8899cc');
-              circle.setAttribute('r', '5');
+              circle.setAttribute('r', '5.5');
               circle.classList.remove('pmap-node-active');
               circle.removeAttribute('filter');
             }
@@ -470,7 +470,7 @@ const PMAP_NODES = [
               line.setAttribute('y1', prevY);
               line.setAttribute('x2', currX);
               line.setAttribute('y2', currY);
-              line.setAttribute('stroke', '#0000ef');
+              line.setAttribute('stroke', '#ffffff');
               line.setAttribute('stroke-width', '1.5');
               line.setAttribute('stroke-dasharray', '4 3');
               line.classList.add('pmap-trajectory');
