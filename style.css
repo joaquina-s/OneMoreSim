@@ -85,6 +85,8 @@ button {
     height: 100vh;
     overflow: hidden;
     background: #000;
+    z-index: 100;
+    cursor: default;
 }
 
 #landing-video {
