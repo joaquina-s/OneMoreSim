@@ -99,7 +99,7 @@ if (landingVideo) {
 // Transition: Landing → Carousel (ENTRAR button)
 // ───────────────────────────────────────────────
 
-document.getElementById('enter-button').addEventListener('click', () => {
+document.getElementById('enter-button-img').addEventListener('click', () => {
     uiSound.enter();
 
     // Fade out del landing-ui
