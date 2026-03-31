@@ -1876,7 +1876,7 @@ button {
   height: 380%;
   top: 0;
   left: 0;
-  background-image: url('assets/map2.png');
+  background-image: url('assets/map2.png?v=3');
   background-size: cover;
   background-repeat: repeat;
   opacity: 0.4;
@@ -1891,7 +1891,7 @@ button {
   height: 380%;
   top: 0;
   left: 0;
-  background-image: url('assets/map1.png');
+  background-image: url('assets/map1.jpg?v=3');
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
