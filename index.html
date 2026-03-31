@@ -61,72 +61,22 @@
             <!-- Section 2: MAPA -->
             <div class="header-section" id="header-map">
                 <div id="minimap-panel">
-                    <div class="minimap-label">MAP</div>
-                    <svg id="minimap-svg" viewBox="0 0 120 90" xmlns="http://www.w3.org/2000/svg">
+                    <div id="parallax-viewport">
 
-                        <!-- Caminos entre nodos (líneas de conexión) -->
-                        <g id="minimap-paths" stroke="#4a3a5a" stroke-width="1.5" fill="none" opacity="0.6">
-                            <line x1="20" y1="20" x2="50" y2="15"/>
-                            <line x1="50" y1="15" x2="80" y2="20"/>
-                            <line x1="80" y1="20" x2="100" y2="40"/>
-                            <line x1="20" y1="20" x2="15" y2="50"/>
-                            <line x1="50" y1="15" x2="60" y2="45"/>
-                            <line x1="80" y1="20" x2="85" y2="50"/>
-                            <line x1="15" y1="50" x2="35" y2="72"/>
-                            <line x1="60" y1="45" x2="35" y2="72"/>
-                            <line x1="60" y1="45" x2="85" y2="50"/>
-                            <line x1="100" y1="40" x2="85" y2="50"/>
-                            <line x1="35" y1="72" x2="65" y2="75"/>
-                            <line x1="85" y1="50" x2="65" y2="75"/>
-                        </g>
+                        <!-- Capa 1: textura de fondo, se mueve lento -->
+                        <div id="pmap-bg"></div>
 
-                        <!-- Nodos — uno por mundo (0 al 8) -->
-                        <g id="minimap-nodes">
-                            <circle class="map-node" data-world="0" cx="20" cy="20" r="5"
-                                fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
-                            <text class="map-label" x="20" y="13" text-anchor="middle">0</text>
+                        <!-- Capa 2: mapa RPG, se mueve más rápido -->
+                        <div id="pmap-fg"></div>
 
-                            <circle class="map-node" data-world="1" cx="50" cy="15" r="5"
-                                fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
-                            <text class="map-label" x="50" y="8" text-anchor="middle">1</text>
+                        <!-- Capa 3: nodos SVG encima de todo -->
+                        <svg id="pmap-nodes-svg"
+                             xmlns="http://www.w3.org/2000/svg"
+                             style="position:absolute; inset:0; width:100%; height:100%;
+                                    pointer-events:none; overflow:visible; z-index:3;">
+                        </svg>
 
-                            <circle class="map-node" data-world="2" cx="80" cy="20" r="5"
-                                fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
-                            <text class="map-label" x="80" y="13" text-anchor="middle">2</text>
-
-                            <circle class="map-node" data-world="3" cx="100" cy="40" r="5"
-                                fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
-                            <text class="map-label" x="108" y="43" text-anchor="middle">3</text>
-
-                            <circle class="map-node" data-world="4" cx="15" cy="50" r="5"
-                                fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
-                            <text class="map-label" x="8" y="53" text-anchor="middle">4</text>
-
-                            <circle class="map-node" data-world="5" cx="60" cy="45" r="5"
-                                fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
-                            <text class="map-label" x="60" y="38" text-anchor="middle">5</text>
-
-                            <circle class="map-node" data-world="6" cx="85" cy="50" r="5"
-                                fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
-                            <text class="map-label" x="93" y="53" text-anchor="middle">6</text>
-
-                            <circle class="map-node" data-world="7" cx="35" cy="72" r="5"
-                                fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
-                            <text class="map-label" x="35" y="65" text-anchor="middle">7</text>
-
-                            <circle class="map-node" data-world="8" cx="65" cy="75" r="5"
-                                fill="#1a142e" stroke="#8899cc" stroke-width="1.5"/>
-                            <text class="map-label" x="65" y="68" text-anchor="middle">8</text>
-                        </g>
-
-                        <!-- Marcador del personaje -->
-                        <g id="minimap-character" transform="translate(20, 20)">
-                            <circle cx="0" cy="0" r="7" fill="rgba(125,133,180,0.15)" />
-                            <polygon points="0,-5 4,0 0,5 -4,0" fill="#8899cc" opacity="0.9"/>
-                            <circle cx="0" cy="-7" r="2" fill="#8899cc"/>
-                        </g>
-
-                    </svg>
+                    </div>
                 </div>
             </div>
 

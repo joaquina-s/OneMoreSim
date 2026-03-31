@@ -1857,3 +1857,60 @@ button {
 .image-panel {
     height: 100%;
 }
+
+#minimap-panel {
+  position: relative !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+#parallax-viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+#pmap-bg {
+  position: absolute;
+  width: 400%;
+  height: 400%;
+  top: 0;
+  left: 0;
+  background-image: url('assets/map2.png');
+  background-size: cover;
+  background-repeat: repeat;
+  opacity: 0.4;
+  will-change: transform;
+  transition: transform 1.1s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+}
+
+#pmap-fg {
+  position: absolute;
+  width: 350%;
+  height: 350%;
+  top: 0;
+  left: 0;
+  background-image: url('assets/map1.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: top left;
+  will-change: transform;
+  transition: transform 0.75s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 2;
+}
+
+.pmap-node {
+  transition: r 300ms, fill 300ms;
+}
+
+@keyframes pathTrace {
+  0%   { opacity: 0; stroke-dashoffset: 40; }
+  25%  { opacity: 0.6; }
+  75%  { opacity: 0.6; }
+  100% { opacity: 0; stroke-dashoffset: 0; }
+}
+
+.pmap-trajectory {
+  animation: pathTrace 1.2s ease forwards;
+}

@@ -182,7 +182,7 @@ document.getElementById('enter-button').addEventListener('click', () => {
                 document.querySelectorAll('.texture-btn').forEach(b => {
                     b.classList.toggle('active', b.dataset.texture === '0');
                 });
-                updateMinimap('0');
+                initParallaxMap();
             });
         }
     });
@@ -354,31 +354,130 @@ function debounce(fn, ms) {
 // HUD Minimap Tracker
 // ───────────────────────────────────────────────
 
-const MINIMAP_POSITIONS = {
-    '0': { x: 20,  y: 20 },
-    '1': { x: 50,  y: 15 },
-    '2': { x: 80,  y: 20 },
-    '3': { x: 100, y: 40 },
-    '4': { x: 15,  y: 50 },
-    '5': { x: 60,  y: 45 },
-    '6': { x: 85,  y: 50 },
-    '7': { x: 35,  y: 72 },
-    '8': { x: 65,  y: 75 }
-};
+const PMAP_NODES = [
+          { world: 0, px: 0.15, py: 0.18 },
+          { world: 1, px: 0.38, py: 0.12 },
+          { world: 2, px: 0.62, py: 0.15 },
+          { world: 3, px: 0.82, py: 0.35 },
+          { world: 4, px: 0.12, py: 0.55 },
+          { world: 5, px: 0.45, py: 0.48 },
+          { world: 6, px: 0.70, py: 0.55 },
+          { world: 7, px: 0.30, py: 0.75 },
+          { world: 8, px: 0.58, py: 0.78 },
+          { world: 9, px: 0.78, py: 0.72 },
+        ];
 
-function updateMinimap(worldId) {
-    const pos = MINIMAP_POSITIONS[worldId];
-    if (!pos) return;
+        function initParallaxMap() {
+          const svg = document.getElementById('pmap-nodes-svg');
 
-    const marker = document.getElementById('minimap-character');
-    if (marker) {
-        marker.setAttribute('transform', `translate(${pos.x}, ${pos.y})`);
-    }
+          PMAP_NODES.forEach(node => {
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('data-world', node.world);
+            g.setAttribute('data-px', node.px);
+            g.setAttribute('data-py', node.py);
 
-    document.querySelectorAll('.map-node').forEach(node => {
-        node.classList.toggle('active', node.dataset.world === String(worldId));
-    });
-}
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('r', '5');
+            circle.setAttribute('fill', '#1a142e');
+            circle.setAttribute('stroke', '#8899cc');
+            circle.setAttribute('stroke-width', '1.5');
+            circle.classList.add('pmap-node');
+
+            const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            label.setAttribute('text-anchor', 'middle');
+            label.setAttribute('dy', '-8');
+            label.setAttribute('font-size', '7');
+            label.setAttribute('fill', 'rgba(136,153,204,0.7)');
+            label.setAttribute('font-family', 'Roboto Condensed, sans-serif');
+            label.textContent = node.world;
+
+            g.appendChild(circle);
+            g.appendChild(label);
+            svg.appendChild(g);
+          });
+
+          updateParallaxMap(0);
+        }
+
+        let pmapPrevWorld = 0;
+
+        function updateParallaxMap(activeWorld) {
+          const panel = document.getElementById('minimap-panel');
+          const bg    = document.getElementById('pmap-bg');
+          const fg    = document.getElementById('pmap-fg');
+          const svg   = document.getElementById('pmap-nodes-svg');
+
+          const vw = panel.offsetWidth;
+          const vh = panel.offsetHeight;
+
+          const fgW = vw * 3.5;
+          const fgH = vh * 3.5;
+
+          const activeNode = PMAP_NODES.find(n => n.world === activeWorld);
+          if (!activeNode) return;
+
+          const nodeX = activeNode.px * fgW;
+          const nodeY = activeNode.py * fgH;
+
+          let fgOffsetX = -(nodeX - vw / 2);
+          let fgOffsetY = -(nodeY - vh / 2);
+
+          fgOffsetX = Math.min(0, Math.max(fgOffsetX, -(fgW - vw)));
+          fgOffsetY = Math.min(0, Math.max(fgOffsetY, -(fgH - vh)));
+
+          const bgOffsetX = fgOffsetX * 0.4;
+          const bgOffsetY = fgOffsetY * 0.4;
+
+          fg.style.transform = `translate(${fgOffsetX}px, ${fgOffsetY}px)`;
+          bg.style.transform = `translate(${bgOffsetX}px, ${bgOffsetY}px)`;
+
+          // Actualizar posición y estado de cada nodo
+          svg.querySelectorAll('g[data-world]').forEach(g => {
+            const px     = parseFloat(g.getAttribute('data-px'));
+            const py     = parseFloat(g.getAttribute('data-py'));
+            const world  = parseInt(g.getAttribute('data-world'));
+            const screenX = px * fgW + fgOffsetX;
+            const screenY = py * fgH + fgOffsetY;
+
+            g.setAttribute('transform', `translate(${screenX}, ${screenY})`);
+
+            const circle = g.querySelector('circle');
+            if (world === activeWorld) {
+              circle.setAttribute('fill', '#7d85b4');
+              circle.setAttribute('r', '7');
+              circle.setAttribute('filter', 'drop-shadow(0 0 4px #7d85b4)');
+            } else {
+              circle.setAttribute('fill', '#1a142e');
+              circle.setAttribute('r', '5');
+              circle.removeAttribute('filter');
+            }
+          });
+
+          // Dibujar línea de trayectoria desde nodo anterior al nuevo
+          if (pmapPrevWorld !== activeWorld) {
+            const prevNode = PMAP_NODES.find(n => n.world === pmapPrevWorld);
+            if (prevNode) {
+              const prevX = prevNode.px * fgW + fgOffsetX;
+              const prevY = prevNode.py * fgH + fgOffsetY;
+              const currX = activeNode.px * fgW + fgOffsetX;
+              const currY = activeNode.py * fgH + fgOffsetY;
+
+              const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+              line.setAttribute('x1', prevX);
+              line.setAttribute('y1', prevY);
+              line.setAttribute('x2', currX);
+              line.setAttribute('y2', currY);
+              line.setAttribute('stroke', '#8899cc');
+              line.setAttribute('stroke-width', '1');
+              line.setAttribute('stroke-dasharray', '4 3');
+              line.classList.add('pmap-trajectory');
+              svg.appendChild(line);
+              setTimeout(() => line.remove(), 1200);
+            }
+          }
+
+          pmapPrevWorld = activeWorld;
+        }
 
 // ───────────────────────────────────────────────
 // Text Fade Out Logic (Mundo 2 Interactions)
@@ -444,7 +543,7 @@ document.querySelectorAll('.world-btn').forEach(btn => {
         uiSound.switchWorld();
         worldManager.activate(btn.dataset.world);
         updateWorldInfo(btn.dataset.world);
-        updateMinimap(btn.dataset.world);
+        updateParallaxMap(parseInt(btn.dataset.world, 10));
 
         // Update active class and images
         document.querySelectorAll('.world-btn').forEach(b => b.classList.remove('active'));
