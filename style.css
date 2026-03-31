@@ -1881,7 +1881,7 @@ button {
   background-repeat: repeat;
   opacity: 0.4;
   will-change: transform;
-  transition: transform 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 2.8s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1;
 }
 
@@ -1896,7 +1896,7 @@ button {
   background-repeat: no-repeat;
   background-position: center;
   will-change: transform;
-  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 1.4s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 2;
 }
 
@@ -1905,16 +1905,16 @@ button {
 }
 
 @keyframes nodeHeartbeat {
-  0%   { filter: drop-shadow(0 0 2px #0000ef) 
-                 drop-shadow(0 0 4px #0000ef); }
-  40%  { filter: drop-shadow(0 0 8px #0000ef) 
-                 drop-shadow(0 0 16px #3333ff) 
-                 drop-shadow(0 0 24px #0000ef); }
-  60%  { filter: drop-shadow(0 0 8px #0000ef) 
-                 drop-shadow(0 0 16px #3333ff) 
-                 drop-shadow(0 0 24px #0000ef); }
-  100% { filter: drop-shadow(0 0 2px #0000ef) 
-                 drop-shadow(0 0 4px #0000ef); }
+  0%   { filter: drop-shadow(0 0 2px #ffffff) 
+                 drop-shadow(0 0 4px #ffffff); }
+  40%  { filter: drop-shadow(0 0 8px #ffffff) 
+                 drop-shadow(0 0 16px rgba(255,255,255,0.8)) 
+                 drop-shadow(0 0 24px #ffffff); }
+  60%  { filter: drop-shadow(0 0 8px #ffffff) 
+                 drop-shadow(0 0 16px rgba(255,255,255,0.8)) 
+                 drop-shadow(0 0 24px #ffffff); }
+  100% { filter: drop-shadow(0 0 2px #ffffff) 
+                 drop-shadow(0 0 4px #ffffff); }
 }
 
 .pmap-node-active {
