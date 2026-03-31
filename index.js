@@ -355,16 +355,16 @@ function debounce(fn, ms) {
 // ───────────────────────────────────────────────
 
 const PMAP_NODES = [
-          { world: 0, px: 0.15, py: 0.18 },
-          { world: 1, px: 0.38, py: 0.12 },
-          { world: 2, px: 0.62, py: 0.15 },
-          { world: 3, px: 0.82, py: 0.35 },
-          { world: 4, px: 0.12, py: 0.55 },
-          { world: 5, px: 0.45, py: 0.48 },
-          { world: 6, px: 0.70, py: 0.55 },
-          { world: 7, px: 0.30, py: 0.75 },
-          { world: 8, px: 0.58, py: 0.78 },
-          { world: 9, px: 0.78, py: 0.72 },
+          { world: 0, px: 0.08, py: 0.09  },   // extremo superior izquierdo
+          { world: 1, px: 0.72, py: 0.05  },   // extremo superior derecho
+          { world: 2, px: 0.31, py: 0.28  },   // centro-izquierda alto
+          { world: 3, px: 0.88, py: 0.42  },   // extremo derecho medio
+          { world: 4, px: 0.05, py: 0.58  },   // extremo izquierdo bajo
+          { world: 5, px: 0.55, py: 0.52  },   // centro exacto del mapa
+          { world: 6, px: 0.78, py: 0.71  },   // derecha inferior
+          { world: 7, px: 0.18, py: 0.82  },   // izquierda muy baja
+          { world: 8, px: 0.48, py: 0.91  },   // centro muy bajo
+          { world: 9, px: 0.91, py: 0.88  },   // extremo inferior derecho
         ];
 
         function initParallaxMap() {
@@ -425,8 +425,8 @@ const PMAP_NODES = [
           fgOffsetX = Math.min(0, Math.max(fgOffsetX, -(fgW - vw)));
           fgOffsetY = Math.min(0, Math.max(fgOffsetY, -(fgH - vh)));
 
-          const bgOffsetX = fgOffsetX * 0.4;
-          const bgOffsetY = fgOffsetY * 0.4;
+          const bgOffsetX = fgOffsetX * 0.2;
+          const bgOffsetY = fgOffsetY * 0.2;
 
           fg.style.transform = `translate(${fgOffsetX}px, ${fgOffsetY}px)`;
           bg.style.transform = `translate(${bgOffsetX}px, ${bgOffsetY}px)`;
@@ -443,12 +443,15 @@ const PMAP_NODES = [
 
             const circle = g.querySelector('circle');
             if (world === activeWorld) {
-              circle.setAttribute('fill', '#7d85b4');
+              circle.setAttribute('fill', '#0000ef');
+              circle.setAttribute('stroke', '#0000ef');
               circle.setAttribute('r', '7');
-              circle.setAttribute('filter', 'drop-shadow(0 0 4px #7d85b4)');
+              circle.classList.add('pmap-node-active');
             } else {
               circle.setAttribute('fill', '#1a142e');
+              circle.setAttribute('stroke', '#8899cc');
               circle.setAttribute('r', '5');
+              circle.classList.remove('pmap-node-active');
               circle.removeAttribute('filter');
             }
           });
@@ -467,8 +470,8 @@ const PMAP_NODES = [
               line.setAttribute('y1', prevY);
               line.setAttribute('x2', currX);
               line.setAttribute('y2', currY);
-              line.setAttribute('stroke', '#8899cc');
-              line.setAttribute('stroke-width', '1');
+              line.setAttribute('stroke', '#0000ef');
+              line.setAttribute('stroke-width', '1.5');
               line.setAttribute('stroke-dasharray', '4 3');
               line.classList.add('pmap-trajectory');
               svg.appendChild(line);
