@@ -475,7 +475,7 @@ const PMAP_NODES = [
               line.setAttribute('stroke-dasharray', '4 3');
               line.classList.add('pmap-trajectory');
               svg.appendChild(line);
-              setTimeout(() => line.remove(), 1200);
+              setTimeout(() => line.remove(), 1600);
             }
           }
 

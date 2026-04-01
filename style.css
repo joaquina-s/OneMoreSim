@@ -242,7 +242,7 @@ button {
                 transparent 2px,
                 rgba(0, 0, 0, 0.08) 2px,
                 rgba(0, 0, 0, 0.08) 4px);
-        animation: scanlineScroll 8s linear infinite;
+        animation: scanlineScroll 10s linear infinite;
     }
 }
 
@@ -1882,6 +1882,7 @@ button {
   background-position: center;
   will-change: transform;
   transition: transform 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0.6;
   z-index: 2;
 }
 
@@ -1914,5 +1915,5 @@ button {
 }
 
 .pmap-trajectory {
-  animation: pathTrace 1.2s ease forwards;
+  animation: pathTrace 1.6s ease forwards;
 }
