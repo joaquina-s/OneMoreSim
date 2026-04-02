@@ -73,16 +73,14 @@ export default {
 
         // Videos setup
         this.vid1 = document.createElement('video');
-        // REEMPLAZAR con el path del video 1 (e.g. assets/videos/Seq01.mp4)
-        this.vid1.src = 'assets/videos/video1.mp4'; 
+        this.vid1.src = 'assets/videos/Seq01.mp4'; 
         this.vid1.loop = true;
         this.vid1.muted = true;
         this.vid1.playsInline = true;
         this.vid1.play().catch(e => console.warn("video1 play error", e));
 
         this.vid2 = document.createElement('video');
-        // REEMPLAZAR con el path del video 2 (e.g. assets/videos/Seq02.mp4)
-        this.vid2.src = 'assets/videos/video2.mp4'; 
+        this.vid2.src = 'assets/videos/Seq02.mp4'; 
         this.vid2.loop = true;
         this.vid2.muted = true;
         this.vid2.playsInline = true;
