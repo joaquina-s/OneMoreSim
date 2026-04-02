@@ -141,6 +141,14 @@ export class WorldManager {
             await this._gsapTo(canvas, { opacity: 1, duration: 0.5 });
         } catch (err) {
             console.error(`WorldManager: activate failed for "${id}"`, err);
+            
+            // On-screen debug helper for the USER
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = 'position:fixed; top:20px; left:20px; background:rgba(255,0,0,0.8); color:white; padding:20px; z-index:9999; font-family:monospace; pointer-events:none; white-space:pre-wrap;';
+            errorDiv.textContent = `Error loading world ${id}:\n\n${err.message}\n${err.stack}`;
+            document.body.appendChild(errorDiv);
+            setTimeout(() => { if (errorDiv.parentNode) errorDiv.parentNode.removeChild(errorDiv); }, 8000);
+
             this._hideLoader();
             canvas.style.opacity = '1';
         } finally {
