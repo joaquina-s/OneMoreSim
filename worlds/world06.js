@@ -71,7 +71,7 @@ const WorldChase = {
       uniforms: {
         u_time: { value: 0.0 },
         u_waveHeight: { value: 0.25 },
-        u_waveFreq: { value: 0.6 },
+        u_waveFreq: { value: 0.3 },
         u_waveSpeed: { value: 2.5 },
         u_depthColor: { value: new THREE.Color(0x0a1a3a) },
         u_surfaceColor: { value: new THREE.Color(0x4488cc) }
@@ -89,15 +89,15 @@ const WorldChase = {
           vec4 modelPosition = modelMatrix * vec4(position, 1.0);
 
           // Las ondas viajan en Z positivo (hacia la camara)
-          // Esto da la sensacion de que el agua avanza hacia ti
+          // El signo negativo en u_time hace el flujo haca adelante en Z
           float elevation =
             sin(modelPosition.x * u_waveFreq + u_time * 0.3) *
-            sin(modelPosition.z * u_waveFreq + u_time * u_waveSpeed) *
+            sin(modelPosition.z * u_waveFreq - u_time * u_waveSpeed) *
             u_waveHeight;
 
           elevation +=
             sin(modelPosition.x * u_waveFreq * 1.8 + u_time * 0.5) *
-            sin(modelPosition.z * u_waveFreq * 1.2 + u_time * u_waveSpeed * 1.4) *
+            sin(modelPosition.z * u_waveFreq * 1.2 - u_time * u_waveSpeed * 1.4) *
             u_waveHeight * 0.35;
 
           modelPosition.y += elevation;
@@ -174,8 +174,31 @@ const WorldChase = {
       const center = box.getCenter(new THREE.Vector3());
       this._lancha.position.sub(center);
       
-      this._lancha.position.set(0, 0.5, -6);
+      // Forzar posicion directamente frente a la camara para debug
+      this._lancha.position.set(0, 1, 0);
       this.scene.add(this._lancha);
+      
+      // BoxHelper y logs de debug
+      const helper = new THREE.BoxHelper(this._lancha, 0xff0000);
+      this.scene.add(helper);
+      console.log('lancha position:', this._lancha.position);
+      console.log('lancha scale:', this._lancha.scale);
+      const forcedBox = new THREE.Box3().setFromObject(this._lancha);
+      console.log('lancha bbox min:', forcedBox.min, 'max:', forcedBox.max);
+      console.log('lancha en escena:', this.scene.children.includes(this._lancha));
+
+      // Forzar material visible en los meshes
+      this._lancha.traverse(child => {
+        if (child.isMesh) {
+          child.material = new THREE.MeshStandardMaterial({
+            color: 0xff6600,
+            roughness: 0.5,
+            metalness: 0.3,
+          });
+          child.visible = true;
+          child.frustumCulled = false;
+        }
+      });
 
       // Wake (Estela)
       const wakeGeo = new THREE.PlaneGeometry(0.5, 4);
@@ -202,9 +225,7 @@ const WorldChase = {
       this._character = THREE.SkeletonUtils ? THREE.SkeletonUtils.clone(gltf.scene) : gltf.scene;
       this._character.position.set(0, 0, 2); // Personaje mas cerca
       this._character.scale.setScalar(0.5); // Escala habitual en este proyecto
-      this._character.rotation.y = Math.PI; // Mirando primero a cámara o de espalda?
-      // Prompt dice "personaje la persigue desde atrás", por lo que de espaldas a la cámara:
-      this._character.rotation.y = 0; 
+      this._character.rotation.y = Math.PI; // Fijar mirando de espaldas a la camara
       
       this.scene.add(this._character);
 
@@ -324,14 +345,10 @@ const WorldChase = {
       // The prompt actually says: "a velocidad 0.05 por frame"
       
       if (keys.left) {
-        this._character.rotation.y = Math.PI; // Orientar izquierda de forma fija
         this._character.position.x -= speed;
-        this._character.position.x = Math.max(this._character.position.x, -4);
         isMoving = true;
       } else if (keys.right) {
-        this._character.rotation.y = 0; // Orientar derecha de forma fija
         this._character.position.x += speed;
-        this._character.position.x = Math.min(this._character.position.x, 4);
         isMoving = true;
       }
 
