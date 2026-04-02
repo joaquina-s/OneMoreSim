@@ -164,6 +164,23 @@ const WorldChase = {
       
       this._lancha.scale.setScalar(1); // El modelo ya viene 3x mas grande
       this._lancha.position.set(0, 0.5, -6);
+      this._lancha.rotation.y = Math.PI / 2; // Rotado 90 grados para mirar al horizonte
+      
+      // Aplicar arreglo de textura (reducir metalness y asegurar sRGB)
+      this._lancha.traverse((child) => {
+        if (child.isMesh && child.material) {
+          if (child.material.metalness !== undefined) {
+             child.material.metalness = 0.0;
+             child.material.roughness = 0.9;
+          }
+          if (child.material.map) {
+             child.material.map.encoding = THREE.sRGBEncoding;
+             child.material.map.needsUpdate = true;
+          }
+          child.material.needsUpdate = true;
+        }
+      });
+
       this.scene.add(this._lancha);
 
 
