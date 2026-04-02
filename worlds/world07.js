@@ -106,12 +106,20 @@ export default {
 
             const GAP = 0.003;
             const geo = applyCellUVs(new THREE.PlaneGeometry(sceneW - GAP, sceneH - GAP), cell);
-            const mat1 = new THREE.MeshBasicMaterial({ map: this.texture1, side: THREE.FrontSide });
-            const mat2 = new THREE.MeshBasicMaterial({ map: this.texture2, side: THREE.FrontSide });
-            const mesh = new THREE.Mesh(geo, mat1);
-            mesh.position.set(sceneCX, sceneCY, 0);
+            const mat1 = new THREE.MeshBasicMaterial({ map: this.texture1, side: THREE.FrontSide, transparent: true, opacity: 1.0 });
+            const mat2 = new THREE.MeshBasicMaterial({ map: this.texture2, side: THREE.FrontSide, transparent: true, opacity: 0.0 });
+            
+            const mesh1 = new THREE.Mesh(geo, mat1);
+            mesh1.position.set(sceneCX, sceneCY, 0);
+            
+            const mesh2 = new THREE.Mesh(geo, mat2);
+            mesh2.position.set(sceneCX, sceneCY, -0.01);
 
-            mesh.userData = {
+            const group = new THREE.Group();
+            group.add(mesh1);
+            group.add(mesh2);
+
+            group.userData = {
                 index,
                 cell,
                 showingVideo: 1,
@@ -122,8 +130,8 @@ export default {
                 targetVideo: 1
             };
 
-            this.scene.add(mesh);
-            this.cells.push(mesh);
+            this.scene.add(group);
+            this.cells.push(group);
         });
 
         this.raycaster = new THREE.Raycaster();
@@ -136,13 +144,14 @@ export default {
             this.mouse.y = -((event.clientY - rect.top)  / rect.height) * 2 + 1;
 
             this.raycaster.setFromCamera(this.mouse, this.camera);
-            const intersects = this.raycaster.intersectObjects(this.cells);
+            const intersects = this.raycaster.intersectObjects(this.cells, true);
 
             if (intersects.length > 0) {
-                const mesh = intersects[0].object;
-                mesh.userData.transitioning = true;
-                mesh.userData.transitionProgress = 0;
-                mesh.userData.targetVideo = mesh.userData.showingVideo === 1 ? 2 : 1;
+                // Obtenemos el grupo padre (albergando ambas mallas)
+                const group = intersects[0].object.parent;
+                group.userData.transitioning = true;
+                group.userData.transitionProgress = 0;
+                group.userData.targetVideo = group.userData.showingVideo === 1 ? 2 : 1;
             }
         };
 
@@ -153,21 +162,21 @@ export default {
             this.mouse.y = -((event.clientY - rect.top)  / rect.height) * 2 + 1;
 
             this.raycaster.setFromCamera(this.mouse, this.camera);
-            const intersects = this.raycaster.intersectObjects(this.cells);
+            const intersects = this.raycaster.intersectObjects(this.cells, true);
 
             if (this.hoveredCell) {
                 if (!this.hoveredCell.userData.transitioning) {
-                    this.hoveredCell.material.opacity = 1.0;
-                    this.hoveredCell.material.transparent = false;
+                    const shownMat = this.hoveredCell.userData.showingVideo === 1 ? this.hoveredCell.userData.mat1 : this.hoveredCell.userData.mat2;
+                    shownMat.opacity = 1.0;
                 }
                 this.hoveredCell = null;
             }
 
             if (intersects.length > 0) {
-                this.hoveredCell = intersects[0].object;
+                this.hoveredCell = intersects[0].object.parent;
                 if (!this.hoveredCell.userData.transitioning) {
-                    this.hoveredCell.material.opacity = 0.75;
-                    this.hoveredCell.material.transparent = true;
+                    const shownMat = this.hoveredCell.userData.showingVideo === 1 ? this.hoveredCell.userData.mat1 : this.hoveredCell.userData.mat2;
+                    shownMat.opacity = 0.75;
                 }
                 this.worldCanvas.style.cursor = 'pointer';
             } else {
@@ -190,29 +199,37 @@ export default {
         if (this.texture1) this.texture1.needsUpdate = true;
         if (this.texture2) this.texture2.needsUpdate = true;
 
-        this.cells.forEach(cell => {
-            if (cell.userData.transitioning) {
-                // Ensure delta isn't wildly large (e.g. on resume)
+        this.cells.forEach(group => {
+            if (group.userData.transitioning) {
                 const safeDelta = Math.min(delta, 0.1);
-                cell.userData.transitionProgress += safeDelta * 3;
+                group.userData.transitionProgress += safeDelta * 3; // Crossfade duracion
 
-                if (cell.userData.transitionProgress >= 1) {
-                    cell.userData.transitionProgress = 1;
-                    cell.userData.transitioning = false;
-                    cell.userData.showingVideo = cell.userData.targetVideo;
-                    cell.material = cell.userData.showingVideo === 1
-                        ? cell.userData.mat1
-                        : cell.userData.mat2;
-                    cell.material.opacity = 1.0;
-                    cell.material.transparent = false;
+                if (group.userData.transitionProgress >= 1) {
+                    group.userData.transitionProgress = 1;
+                    group.userData.transitioning = false;
+                    group.userData.showingVideo = group.userData.targetVideo;
                     
-                    if (this.hoveredCell === cell) {
-                        cell.material.opacity = 0.75;
-                        cell.material.transparent = true;
+                    if (group.userData.showingVideo === 1) {
+                        group.userData.mat1.opacity = 1.0;
+                        group.userData.mat2.opacity = 0.0;
+                    } else {
+                        group.userData.mat1.opacity = 0.0;
+                        group.userData.mat2.opacity = 1.0;
+                    }
+                    
+                    if (this.hoveredCell === group) {
+                        const shownMat = group.userData.showingVideo === 1 ? group.userData.mat1 : group.userData.mat2;
+                        shownMat.opacity = 0.75;
                     }
                 } else {
-                    cell.material.opacity = 1 - cell.userData.transitionProgress;
-                    cell.material.transparent = true;
+                    const p = group.userData.transitionProgress;
+                    if (group.userData.targetVideo === 2) {
+                        group.userData.mat1.opacity = 1 - p;
+                        group.userData.mat2.opacity = p;
+                    } else {
+                        group.userData.mat2.opacity = 1 - p;
+                        group.userData.mat1.opacity = p;
+                    }
                 }
             }
         });
@@ -230,17 +247,23 @@ export default {
                       this.camera.updateProjectionMatrix();
 
                       // Reposition and scale geometry
-                      this.cells.forEach(mesh => {
-                          const cell = mesh.userData.cell;
+                      this.cells.forEach(group => {
+                          const cell = group.userData.cell;
                           const sceneW = cell.w * 2 * aspect;
                           const sceneH = cell.h * 2;
                           const sceneCX = (cell.x + cell.w / 2) * 2 * aspect - aspect;
                           const sceneCY = 1 - (cell.y + cell.h / 2) * 2;
                           
                           const GAP = 0.003;
-                          mesh.geometry.dispose();
-                          mesh.geometry = applyCellUVs(new THREE.PlaneGeometry(sceneW - GAP, sceneH - GAP), cell);
-                          mesh.position.set(sceneCX, sceneCY, 0);
+                          const geo = applyCellUVs(new THREE.PlaneGeometry(sceneW - GAP, sceneH - GAP), cell);
+                          
+                          group.children[0].geometry.dispose();
+                          group.children[1].geometry.dispose();
+                          group.children[0].geometry = geo;
+                          group.children[1].geometry = geo;
+                          
+                          group.children[0].position.set(sceneCX, sceneCY, 0);
+                          group.children[1].position.set(sceneCX, sceneCY, -0.01);
                       });
                  }
              }
