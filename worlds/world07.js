@@ -58,7 +58,7 @@ export default {
         this.lastTime = performance.now() / 1000; // in seconds
 
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(0x000000);
+        this.scene.background = new THREE.Color(0xffffff); // Requerido por el usuario: grid lines blancas
 
         const viewportWidth = canvasArea ? canvasArea.clientWidth : window.innerWidth;
         const viewportHeight = canvasArea ? canvasArea.clientHeight : window.innerHeight;
@@ -106,16 +106,18 @@ export default {
 
             const GAP = 0.003;
             const geo = applyCellUVs(new THREE.PlaneGeometry(sceneW - GAP, sceneH - GAP), cell);
+            
             const mat1 = new THREE.MeshBasicMaterial({ map: this.texture1, side: THREE.FrontSide, transparent: true, opacity: 1.0 });
             const mat2 = new THREE.MeshBasicMaterial({ map: this.texture2, side: THREE.FrontSide, transparent: true, opacity: 0.0 });
             
             const mesh1 = new THREE.Mesh(geo, mat1);
-            mesh1.position.set(sceneCX, sceneCY, 0);
+            // mesh1 position local: 0, 0, 0
             
             const mesh2 = new THREE.Mesh(geo, mat2);
-            mesh2.position.set(sceneCX, sceneCY, -0.01);
+            mesh2.position.set(0, 0, -0.01);
 
             const group = new THREE.Group();
+            group.position.set(sceneCX, sceneCY, 0); // Position exactly at center of cell
             group.add(mesh1);
             group.add(mesh2);
 
@@ -139,6 +141,8 @@ export default {
 
         this.clickHandler = (event) => {
             if (!this.worldActive) return;
+            if (event.target.closest('#hud-header') || event.target.closest('#hud-footer') || event.target.closest('#character-panel') || event.target.closest('#world-nav')) return;
+            
             const rect = this.worldCanvas.getBoundingClientRect();
             this.mouse.x =  ((event.clientX - rect.left) / rect.width)  * 2 - 1;
             this.mouse.y = -((event.clientY - rect.top)  / rect.height) * 2 + 1;
@@ -162,13 +166,15 @@ export default {
             this.mouse.y = -((event.clientY - rect.top)  / rect.height) * 2 + 1;
 
             this.raycaster.setFromCamera(this.mouse, this.camera);
-            const intersects = this.raycaster.intersectObjects(this.cells, true);
+            const isOverUI = event.target.closest('#hud-header') || event.target.closest('#hud-footer') || event.target.closest('#character-panel') || event.target.closest('#world-nav');
+            const intersects = isOverUI ? [] : this.raycaster.intersectObjects(this.cells, true);
 
             if (this.hoveredCell) {
                 if (!this.hoveredCell.userData.transitioning) {
                     const shownMat = this.hoveredCell.userData.showingVideo === 1 ? this.hoveredCell.userData.mat1 : this.hoveredCell.userData.mat2;
                     shownMat.opacity = 1.0;
                 }
+                this.hoveredCell.scale.set(1.0, 1.0, 1.0);
                 this.hoveredCell = null;
             }
 
@@ -176,16 +182,18 @@ export default {
                 this.hoveredCell = intersects[0].object.parent;
                 if (!this.hoveredCell.userData.transitioning) {
                     const shownMat = this.hoveredCell.userData.showingVideo === 1 ? this.hoveredCell.userData.mat1 : this.hoveredCell.userData.mat2;
-                    shownMat.opacity = 0.75;
+                    shownMat.opacity = 0.4; // Fuerte mezcla con el blanco de fondo (efecto glow)
                 }
+                this.hoveredCell.scale.set(1.03, 1.03, 1.0); // Leve pop-out efecto glow
                 this.worldCanvas.style.cursor = 'pointer';
             } else {
                 this.worldCanvas.style.cursor = 'default';
             }
         };
 
-        this.worldCanvas.addEventListener('click', this.clickHandler);
-        this.worldCanvas.addEventListener('mousemove', this.mousemoveHandler);
+        // Attach a document para que capture siempre indepenedientemente de la cascada del Canvas
+        document.addEventListener('pointerup', this.clickHandler);
+        document.addEventListener('pointermove', this.mousemoveHandler);
     },
 
     update(time, keys) {
@@ -262,8 +270,9 @@ export default {
                           group.children[0].geometry = geo;
                           group.children[1].geometry = geo;
                           
-                          group.children[0].position.set(sceneCX, sceneCY, 0);
-                          group.children[1].position.set(sceneCX, sceneCY, -0.01);
+                          group.position.set(sceneCX, sceneCY, 0); // Padre centra a los hijos
+                          group.children[0].position.set(0, 0, 0);
+                          group.children[1].position.set(0, 0, -0.01);
                       });
                  }
              }
@@ -280,9 +289,9 @@ export default {
         if (!this.worldActive) return;
         this.worldActive = false;
         
+        document.removeEventListener('pointerup', this.clickHandler);
+        document.removeEventListener('pointermove', this.mousemoveHandler);
         if (this.worldCanvas) {
-            this.worldCanvas.removeEventListener('click', this.clickHandler);
-            this.worldCanvas.removeEventListener('mousemove', this.mousemoveHandler);
             this.worldCanvas.style.cursor = 'default';
         }
 
