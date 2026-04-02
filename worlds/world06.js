@@ -30,7 +30,8 @@ const WorldChase = {
     const W = renderer.domElement.clientWidth;
     const H = renderer.domElement.clientHeight;
 
-    this.camera = new THREE.PerspectiveCamera(60, W / H, 0.1, 300);
+    // FOV mas amplio expone mas entorno e incrementa severamente la percepcion de velocidad (de 60 a 75)
+    this.camera = new THREE.PerspectiveCamera(75, W / H, 0.1, 300);
     this.camera.position.set(0, 2.5, 6);
     this.camera.lookAt(0, 1, 0);
     this.camera.updateProjectionMatrix();
@@ -72,7 +73,7 @@ const WorldChase = {
         u_time: { value: 0.0 },
         u_waveHeight: { value: 0.25 },
         u_waveFreq: { value: 0.3 },
-        u_waveSpeed: { value: 2.5 },
+        u_waveSpeed: { value: 4.8 }, // Velocidad del agua mucho mayor (de 2.5 a 4.8)
         u_depthColor: { value: new THREE.Color(0x0a1a3a) },
         u_surfaceColor: { value: new THREE.Color(0x4488cc) }
       },
@@ -132,25 +133,25 @@ const WorldChase = {
 
   _createSpeedLines() {
     const geo = new THREE.BufferGeometry();
-    const count = 300;
+    const count = 800; // Mas particulas
     const pos = new Float32Array(count * 3);
     
     for (let i = 0; i < count; i++) {
-      // Tunnel distribution
-      const r = 3 + Math.random() * 8;
+      // Tunnel distribution - un poco mas cerrado/agresivo
+      const r = 1.5 + Math.random() * 12;
       const theta = Math.random() * Math.PI * 2;
       pos[i * 3] = Math.cos(theta) * r;
-      pos[i * 3 + 1] = Math.max(0, Math.sin(theta) * r); // Above water mainly
-      pos[i * 3 + 2] = -20 - Math.random() * 60; // Initial Z spread
+      pos[i * 3 + 1] = Math.max(-0.5, Math.sin(theta) * r); 
+      pos[i * 3 + 2] = -20 - Math.random() * 80; // Initial Z spread mas largo
     }
     
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     
     const mat = new THREE.PointsMaterial({
       color: 0xffffff,
-      size: 0.15,
+      size: 0.2, // Puntos con el motion blur se vuelven rayas gruesas veloces
       transparent: true,
-      opacity: 0.3
+      opacity: 0.6
     });
     
     this._speedLines = new THREE.Points(geo, mat);
@@ -311,13 +312,23 @@ const WorldChase = {
       }
     }
 
-    // 3. Speed Lines
+    // 3. Speed Lines (mucho mas veloces)
     if (this._speedLines) {
       const pos = this._speedLines.geometry.attributes.position.array;
       for (let i = 0; i < pos.length / 3; i++) {
-        pos[i * 3 + 2] += 60 * delta; // move toward camera (+Z)
-        if (pos[i * 3 + 2] > 10) {
-          pos[i * 3 + 2] = -60; // reset
+        pos[i * 3 + 2] += 180 * delta; // super fast toward camera (+Z)
+        
+        // Empujar levemente hacia afuera creando sensacion radial de impacto
+        pos[i * 3] += pos[i * 3] * 0.02;
+        pos[i * 3 + 1] += pos[i * 3 + 1] * 0.02;
+
+        if (pos[i * 3 + 2] > 10 || Math.abs(pos[i * 3]) > 15 || Math.abs(pos[i * 3 + 1]) > 15) {
+          // Reset mas agresivo en un radio interior nuevo
+          const r = 1.5 + Math.random() * 6;
+          const theta = Math.random() * Math.PI * 2;
+          pos[i * 3] = Math.cos(theta) * r;
+          pos[i * 3 + 1] = Math.max(-0.5, Math.sin(theta) * r);
+          pos[i * 3 + 2] = -80 - Math.random() * 20; 
         }
       }
       this._speedLines.geometry.attributes.position.needsUpdate = true;
@@ -360,6 +371,7 @@ const WorldChase = {
     // La cámara debe seguir mirando a la lancha si es necesario, 
     // pero configuré la cámara para que mire fijo. El jugador se mueve solo en X.
     this.camera.position.x += ( (this._character ? this._character.position.x * 0.5 : 0) - this.camera.position.x ) * 0.05;
+    this.camera.position.y = 2.5 + Math.sin(time * 30.0) * 0.015; // Camera shake turbulento para energia de velocidad
     this._renderer.render(this.scene, this.camera);
 
     // b. Accumulate (rtScene + rtAccumOld) -> rtAccumNew
