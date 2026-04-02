@@ -31,7 +31,9 @@ const WorldChase = {
     const H = renderer.domElement.clientHeight;
 
     this.camera = new THREE.PerspectiveCamera(60, W / H, 0.1, 300);
-    this.camera.position.set(0, 0.8, 4); // Mirando hacia adelante
+    this.camera.position.set(0, 2.5, 6);
+    this.camera.lookAt(0, 1, 0);
+    this.camera.updateProjectionMatrix();
 
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0xe8f0ff);
@@ -43,6 +45,10 @@ const WorldChase = {
     const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
     dirLight.position.set(5, 10, 5);
     this.scene.add(dirLight);
+
+    const lanchaLight = new THREE.DirectionalLight(0xffffff, 2.0);
+    lanchaLight.position.set(0, 5, 5);
+    this.scene.add(lanchaLight);
 
     // ── WATER ──
     this._createWater();
@@ -64,9 +70,9 @@ const WorldChase = {
     this._waterMat = new THREE.ShaderMaterial({
       uniforms: {
         u_time: { value: 0.0 },
-        u_waveHeight: { value: 0.18 },
+        u_waveHeight: { value: 0.25 },
         u_waveFreq: { value: 0.6 },
-        u_waveSpeed: { value: 1.2 },
+        u_waveSpeed: { value: 2.5 },
         u_depthColor: { value: new THREE.Color(0x0a1a3a) },
         u_surfaceColor: { value: new THREE.Color(0x4488cc) }
       },
@@ -82,15 +88,17 @@ const WorldChase = {
           vUv = uv;
           vec4 modelPosition = modelMatrix * vec4(position, 1.0);
 
+          // Las ondas viajan en Z positivo (hacia la camara)
+          // Esto da la sensacion de que el agua avanza hacia ti
           float elevation =
-            sin(modelPosition.x * u_waveFreq + u_time * u_waveSpeed) *
-            sin(modelPosition.z * u_waveFreq * 0.8 + u_time * u_waveSpeed * 0.6) *
+            sin(modelPosition.x * u_waveFreq + u_time * 0.3) *
+            sin(modelPosition.z * u_waveFreq + u_time * u_waveSpeed) *
             u_waveHeight;
 
           elevation +=
-            sin(modelPosition.x * u_waveFreq * 2.1 + u_time * u_waveSpeed * 1.3) *
-            sin(modelPosition.z * u_waveFreq * 1.4 + u_time * u_waveSpeed * 0.9) *
-            u_waveHeight * 0.4;
+            sin(modelPosition.x * u_waveFreq * 1.8 + u_time * 0.5) *
+            sin(modelPosition.z * u_waveFreq * 1.2 + u_time * u_waveSpeed * 1.4) *
+            u_waveHeight * 0.35;
 
           modelPosition.y += elevation;
           vElevation = elevation;
@@ -101,11 +109,13 @@ const WorldChase = {
       fragmentShader: `
         uniform vec3 u_depthColor;
         uniform vec3 u_surfaceColor;
+        uniform float u_time;
         varying float vElevation;
         varying vec2 vUv;
 
         void main() {
-          float mixStrength = (vElevation + 0.15) * 3.0;
+          float baseStrength = (vElevation + 0.15) * 3.0;
+          float mixStrength = baseStrength + sin((vUv.y + u_time * 0.4) * 20.0) * 0.15;
           vec3 color = mix(u_depthColor, u_surfaceColor, clamp(mixStrength, 0.0, 1.0));
           gl_FragColor = vec4(color, 0.92);
         }
@@ -151,8 +161,20 @@ const WorldChase = {
     const loader = new THREE.GLTFLoader();
     loader.load('assets/lancha.glb', (gltf) => {
       this._lancha = gltf.scene;
-      this._lancha.position.set(0, 0, -8);
-      // Ajustar escala si fuera necesario (asumimos escala nativa correcta o cercana)
+      
+      const box = new THREE.Box3().setFromObject(this._lancha);
+      const size = box.getSize(new THREE.Vector3());
+      console.log('lancha size:', size);
+      
+      const targetLength = 3.5;
+      const scaleFactor = targetLength / Math.max(size.x, size.y, size.z);
+      this._lancha.scale.setScalar(scaleFactor);
+      
+      box.setFromObject(this._lancha);
+      const center = box.getCenter(new THREE.Vector3());
+      this._lancha.position.sub(center);
+      
+      this._lancha.position.set(0, 0.5, -6);
       this.scene.add(this._lancha);
 
       // Wake (Estela)
@@ -178,7 +200,7 @@ const WorldChase = {
     loader.load('assets/walkloop.glb', (gltf) => {
       // Usar clone para no referenciar datos mutados globalmente, similar a otros mundos
       this._character = THREE.SkeletonUtils ? THREE.SkeletonUtils.clone(gltf.scene) : gltf.scene;
-      this._character.position.set(0, 0, 0); // En z=0, más cerca de cámara (z=4)
+      this._character.position.set(0, 0, 2); // Personaje mas cerca
       this._character.scale.setScalar(0.5); // Escala habitual en este proyecto
       this._character.rotation.y = Math.PI; // Mirando primero a cámara o de espalda?
       // Prompt dice "personaje la persigue desde atrás", por lo que de espaldas a la cámara:
@@ -209,7 +231,7 @@ const WorldChase = {
       uniforms: {
         tOld: { value: this._rtAccumOld.texture },
         tNew: { value: this._rtScene.texture },
-        damp: { value: 0.65 }
+        damp: { value: 0.965 }
       },
       vertexShader: `
         varying vec2 vUv;
@@ -302,16 +324,15 @@ const WorldChase = {
       // The prompt actually says: "a velocidad 0.05 por frame"
       
       if (keys.left) {
+        this._character.rotation.y = Math.PI; // Orientar izquierda de forma fija
         this._character.position.x -= speed;
-        this._character.rotation.y = Math.PI; // Orientar izquierda
+        this._character.position.x = Math.max(this._character.position.x, -4);
         isMoving = true;
       } else if (keys.right) {
+        this._character.rotation.y = 0; // Orientar derecha de forma fija
         this._character.position.x += speed;
-        this._character.rotation.y = 0; // Orientar derecha
+        this._character.position.x = Math.min(this._character.position.x, 4);
         isMoving = true;
-      } else {
-        // Mirar al frente
-        // this._character.rotation.y += (0 - this._character.rotation.y) * 0.1;
       }
 
       // Limits
