@@ -245,6 +245,11 @@ export default {
                  }
              }
         }
+        
+        // Ejecutar ruteo gráfico (ESTO FALTABA y causaba que se congelara visualmente)
+        if (this.renderer && this.scene && this.camera) {
+            this.renderer.render(this.scene, this.camera);
+        }
     },
 
     dispose() {
