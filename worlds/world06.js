@@ -162,43 +162,11 @@ const WorldChase = {
     loader.load('assets/lancha.glb', (gltf) => {
       this._lancha = gltf.scene;
       
-      const box = new THREE.Box3().setFromObject(this._lancha);
-      const size = box.getSize(new THREE.Vector3());
-      console.log('lancha size:', size);
-      
-      const targetLength = 3.5;
-      const scaleFactor = targetLength / Math.max(size.x, size.y, size.z);
-      this._lancha.scale.setScalar(scaleFactor);
-      
-      box.setFromObject(this._lancha);
-      const center = box.getCenter(new THREE.Vector3());
-      this._lancha.position.sub(center);
-      
-      // Forzar posicion directamente frente a la camara para debug
-      this._lancha.position.set(0, 1, 0);
+      this._lancha.scale.setScalar(1); // El modelo ya viene 3x mas grande
+      this._lancha.position.set(0, 0.5, -6);
       this.scene.add(this._lancha);
-      
-      // BoxHelper y logs de debug
-      const helper = new THREE.BoxHelper(this._lancha, 0xff0000);
-      this.scene.add(helper);
-      console.log('lancha position:', this._lancha.position);
-      console.log('lancha scale:', this._lancha.scale);
-      const forcedBox = new THREE.Box3().setFromObject(this._lancha);
-      console.log('lancha bbox min:', forcedBox.min, 'max:', forcedBox.max);
-      console.log('lancha en escena:', this.scene.children.includes(this._lancha));
 
-      // Forzar material visible en los meshes
-      this._lancha.traverse(child => {
-        if (child.isMesh) {
-          child.material = new THREE.MeshStandardMaterial({
-            color: 0xff6600,
-            roughness: 0.5,
-            metalness: 0.3,
-          });
-          child.visible = true;
-          child.frustumCulled = false;
-        }
-      });
+
 
       // Wake (Estela)
       const wakeGeo = new THREE.PlaneGeometry(0.5, 4);
