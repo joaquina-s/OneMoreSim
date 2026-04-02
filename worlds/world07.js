@@ -248,6 +248,7 @@ export default {
         
         // Ejecutar ruteo gráfico (ESTO FALTABA y causaba que se congelara visualmente)
         if (this.renderer && this.scene && this.camera) {
+            this.renderer.clear(); // Es mandatorio limpiar si el renderer.autoClear = false en pipelines FX
             this.renderer.render(this.scene, this.camera);
         }
     },
