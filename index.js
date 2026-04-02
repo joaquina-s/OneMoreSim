@@ -75,7 +75,7 @@ worldManager.register('2', () => import('./worlds/world-01-teatro.js').then(m =>
 worldManager.register('3', () => import('./worlds/world-02-array3d.js?v=28').then(m => m.default));
 worldManager.register('4', () => import('./worlds/world-03-tunnel.js?v=2').then(m => m.default));
 worldManager.register('5', () => import('./worlds/world-04-drawrange.js').then(m => m.default));
-worldManager.register('6', () => import('./worlds/world-05-transform.js').then(m => m.default));
+worldManager.register('6', () => import('./worlds/world06.js').then(m => m.default));
 worldManager.register('7', () => import('./worlds/world-06-bloom.js').then(m => m.default));
 worldManager.register('8', () => import('./worlds/world-07-godrays.js').then(m => m.default));
 worldManager.register('9', () => import('./worlds/world-layer.js').then(m => m.default));
@@ -257,14 +257,11 @@ const WORLD_DATA = {
               <line x1="36" y1="12" x2="24" y2="36" stroke="currentColor" stroke-width="1.5"/>`
     },
     '6': {
-        title: 'TRANSFORM',
-        desc: 'Editor 3D interactivo. Seleccioná y manipulá objetos con controles de posición, rotación y escala.',
-        accent: '#ffaa00',
-        iconSvg: `<rect x="16" y="16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"/>
-              <line x1="24" y1="4" x2="24" y2="16" stroke="currentColor" stroke-width="2"/>
-              <line x1="24" y1="32" x2="24" y2="44" stroke="currentColor" stroke-width="2"/>
-              <line x1="4" y1="24" x2="16" y2="24" stroke="currentColor" stroke-width="2"/>
-              <line x1="32" y1="24" x2="44" y2="24" stroke="currentColor" stroke-width="2"/>`
+        title: 'CHASE',
+        desc: 'Mini juego runner onírico. Persigue la lancha a gran velocidad sobre agua animada. El personaje nunca puede alcanzarla.',
+        accent: '#ffffff',
+        iconSvg: `<path d="M12 24 L36 24 M24 12 L36 24 L24 36" fill="none" stroke="currentColor" stroke-width="2"/>
+              <circle cx="12" cy="24" r="3" fill="currentColor"/>`
     },
     '7': {
         title: 'BLOOM',
