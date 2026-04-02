@@ -76,7 +76,7 @@ worldManager.register('3', () => import('./worlds/world-02-array3d.js?v=28').the
 worldManager.register('4', () => import('./worlds/world-03-tunnel.js?v=2').then(m => m.default));
 worldManager.register('5', () => import('./worlds/world-04-drawrange.js').then(m => m.default));
 worldManager.register('6', () => import('./worlds/world06.js').then(m => m.default));
-worldManager.register('7', () => import('./worlds/world-06-bloom.js').then(m => m.default));
+worldManager.register('7', () => import('./worlds/world07.js').then(m => m.default));
 worldManager.register('8', () => import('./worlds/world-07-godrays.js').then(m => m.default));
 worldManager.register('9', () => import('./worlds/world-layer.js').then(m => m.default));
 
@@ -264,12 +264,12 @@ const WORLD_DATA = {
               <circle cx="12" cy="24" r="3" fill="currentColor"/>`
     },
     '7': {
-        title: 'BLOOM',
-        desc: 'Post-processing Unreal Bloom. Objetos emisivos con halos de luz cinematográfica dinámica.',
+        title: 'GRID',
+        desc: 'Grilla irregular de videos. Haz click en una celda para alternar simultáneamente entre dos secuencias de video en bucle.',
         accent: '#ffffff',
-        iconSvg: `<circle cx="24" cy="24" r="8" fill="currentColor" opacity="0.9"/>
-              <circle cx="24" cy="24" r="14" fill="none" stroke="currentColor" stroke-width="1" opacity="0.4"/>
-              <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="0.5" opacity="0.2"/>`
+        iconSvg: `<rect x="8" y="8" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"/>
+                  <rect x="26" y="8" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"/>
+                  <rect x="8" y="26" width="32" height="14" fill="none" stroke="currentColor" stroke-width="2"/>`
     },
     '8': {
         title: 'GOD RAYS',
