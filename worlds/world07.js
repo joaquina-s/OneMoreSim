@@ -20,17 +20,17 @@ const GRID_CELLS = [
   { x: 0.86, y: 0.75, w: 0.14, h: 0.25 },
 ];
 
-function createCellMaterial(texture, cell) {
-  const mat = new THREE.MeshBasicMaterial({
-    map: texture.clone(),
-    side: THREE.FrontSide,
-  });
-  // repeat: qué fracción del video ocupa esta celda
-  mat.map.repeat.set(cell.w, cell.h);
-  // offset: desde qué punto del video empieza (Y invertido en WebGL)
-  mat.map.offset.set(cell.x, 1.0 - cell.y - cell.h);
-  mat.map.needsUpdate = true;
-  return mat;
+function applyCellUVs(geo, cell) {
+    const uvs = geo.attributes.uv;
+    for (let i = 0; i < uvs.count; i++) {
+        const u = uvs.getX(i);
+        const v = uvs.getY(i);
+        uvs.setXY(i, 
+            cell.x + u * cell.w,
+            (1.0 - cell.y - cell.h) + v * cell.h
+        );
+    }
+    return geo;
 }
 
 export default {
@@ -105,17 +105,18 @@ export default {
             const sceneCY = 1 - (cell.y + cell.h / 2) * 2;
 
             const GAP = 0.003;
-            const geo = new THREE.PlaneGeometry(sceneW - GAP, sceneH - GAP);
-            const mat = createCellMaterial(this.texture1, cell);
-            const mesh = new THREE.Mesh(geo, mat);
+            const geo = applyCellUVs(new THREE.PlaneGeometry(sceneW - GAP, sceneH - GAP), cell);
+            const mat1 = new THREE.MeshBasicMaterial({ map: this.texture1, side: THREE.FrontSide });
+            const mat2 = new THREE.MeshBasicMaterial({ map: this.texture2, side: THREE.FrontSide });
+            const mesh = new THREE.Mesh(geo, mat1);
             mesh.position.set(sceneCX, sceneCY, 0);
 
             mesh.userData = {
                 index,
                 cell,
                 showingVideo: 1,
-                mat1: mat,
-                mat2: createCellMaterial(this.texture2, cell),
+                mat1: mat1,
+                mat2: mat2,
                 transitioning: false,
                 transitionProgress: 0,
                 targetVideo: 1
@@ -238,7 +239,7 @@ export default {
                           
                           const GAP = 0.003;
                           mesh.geometry.dispose();
-                          mesh.geometry = new THREE.PlaneGeometry(sceneW - GAP, sceneH - GAP);
+                          mesh.geometry = applyCellUVs(new THREE.PlaneGeometry(sceneW - GAP, sceneH - GAP), cell);
                           mesh.position.set(sceneCX, sceneCY, 0);
                       });
                  }
