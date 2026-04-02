@@ -164,7 +164,7 @@ const WorldChase = {
       
       this._lancha.scale.setScalar(1); // El modelo ya viene 3x mas grande
       this._lancha.position.set(0, 0.5, -6);
-      this._lancha.rotation.y = Math.PI / 2; // Rotado 90 grados para mirar al horizonte
+      this._lancha.rotation.y = -Math.PI / 2; // Rotado -90 grados para mirar al horizonte verdadero
       
       // Aplicar arreglo de textura (reducir metalness y asegurar sRGB)
       this._lancha.traverse((child) => {
