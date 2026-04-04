@@ -37,10 +37,10 @@ const WorldChase = {
     const W = renderer.domElement.clientWidth;
     const H = renderer.domElement.clientHeight;
 
-    // ── FISHEYE CAMERA — FOV 120 for barrel distortion feel ──
-    this.camera = new THREE.PerspectiveCamera(120, W / H, 0.1, 300);
-    this.camera.position.set(0, 2.5, 6);
-    this.camera.lookAt(0, 1, 0);
+    // ── FISHEYE CAMERA — FOV 120, very close to character ──
+    this.camera = new THREE.PerspectiveCamera(120, W / H, 0.05, 300);
+    this.camera.position.set(0, 1.8, 4.5);
+    this.camera.lookAt(0, 1.2, 0);
     this.camera.updateProjectionMatrix();
 
     // ── SCENE ──
@@ -271,24 +271,39 @@ const WorldChase = {
       const x = positions.getX(i);
       const z = positions.getZ(i);
 
-      // xNorm: -1 far from water, +1 close to water
+      // xNorm: +1 = water edge (right), -1 = far from water (left)
       const xNorm = x / (TW / 2);
 
-      // Height base — flat near water, rising away
-      const heightBase = Math.max(0, -xNorm) * 6;
+      let finalY = 0;
 
-      // Procedural noise for irregularity
-      const noise =
-        Math.sin(x * 0.3 + z * 0.2) * 0.8 +
-        Math.sin(x * 0.7 + z * 0.5) * 0.4 +
-        Math.sin(x * 0.15 + z * 0.1) * 1.5;
+      if (xNorm > 0.3) {
+        // ZONE 1: Shoreline — flat, sinks gently below water
+        finalY = -(xNorm - 0.3) * 0.8;
+        finalY += Math.sin(x * 1.5 + z * 0.8) * 0.04;
 
-      // Mountains at far Z edges
-      const mountainFactor = Math.max(0, Math.abs(z) / (TD / 2) - 0.3);
-      const mountainHeight = mountainFactor * 8;
+      } else if (xNorm > -0.2) {
+        // ZONE 2: Beach → dune transition
+        const t = (0.3 - xNorm) / 0.5;
+        finalY = t * 1.2;
+        finalY += Math.sin(x * 0.8 + z * 0.5) * 0.3 * t;
+        finalY += Math.sin(x * 1.8 + z * 1.2) * 0.15 * t;
 
-      const finalY = heightBase + noise * 0.5 + mountainHeight;
-      positions.setY(i, Math.max(-0.1, finalY));
+      } else {
+        // ZONE 3: Dunes — soft rolling hills, not sharp mountains
+        const t = (-0.2 - xNorm) / 0.8;
+        const duneHeight = t * 2.5;
+        const duneNoise =
+          Math.sin(x * 0.25 + z * 0.15) * 1.0 +
+          Math.sin(x * 0.5  + z * 0.3 ) * 0.5 +
+          Math.sin(x * 0.1  + z * 0.08) * 1.2;
+        finalY = duneHeight + duneNoise * 0.4;
+
+        // Background dunes (far Z)
+        const bgDune = Math.max(0, Math.abs(z) / (TD / 2) - 0.4) * 3.0;
+        finalY += bgDune;
+      }
+
+      positions.setY(i, finalY);
     }
     geo.computeVertexNormals();
 
@@ -300,7 +315,7 @@ const WorldChase = {
 
     this._terrain = new THREE.Mesh(geo, mat);
     this._terrain.receiveShadow = true;
-    this._terrain.position.set(-TW / 2 - 2, 0, 0);
+    this._terrain.position.set(-TW / 2 - 8, 0, 0);
     this.scene.add(this._terrain);
   },
 
@@ -308,19 +323,20 @@ const WorldChase = {
      PALM TREES — loaded from GLBs
      ════════════════════════════════════════════ */
   _loadPalms() {
+    // Absolute positions in world space (terrain is at X ≈ -23)
     const palmPositions = [
-      { x: -3,  z: -5,  scale: 1.0,  model: 0 },
-      { x: -6,  z: -12, scale: 1.3,  model: 1 },
-      { x: -2,  z: -20, scale: 0.9,  model: 0 },
-      { x: -8,  z: -8,  scale: 1.1,  model: 1 },
-      { x: -4,  z: -28, scale: 1.4,  model: 0 },
-      { x: -7,  z: -35, scale: 0.85, model: 1 },
-      { x: -3,  z: -16, scale: 1.0,  model: 0 },
-      { x: -9,  z: -22, scale: 1.2,  model: 1 },
-      { x: -5,  z: -30, scale: 0.95, model: 0 },
-      { x: -6,  z: -3,  scale: 1.15, model: 1 },
-      { x: -2,  z: -38, scale: 1.0,  model: 0 },
-      { x: -10, z: -14, scale: 0.9,  model: 1 },
+      { x: -14, z:  -5, scale: 1.0, model: 0 },
+      { x: -18, z: -12, scale: 1.3, model: 1 },
+      { x: -13, z: -20, scale: 0.9, model: 0 },
+      { x: -20, z:  -8, scale: 1.1, model: 1 },
+      { x: -15, z: -28, scale: 1.4, model: 0 },
+      { x: -19, z: -35, scale: 0.85, model: 1 },
+      { x: -14, z: -16, scale: 1.0, model: 0 },
+      { x: -21, z: -22, scale: 1.2, model: 1 },
+      { x: -16, z: -30, scale: 0.95, model: 0 },
+      { x: -18, z:  -3, scale: 1.15, model: 1 },
+      { x: -13, z: -38, scale: 1.0, model: 0 },
+      { x: -22, z: -14, scale: 0.9, model: 1 },
     ];
 
     const loader = new THREE.GLTFLoader();
@@ -330,7 +346,6 @@ const WorldChase = {
 
     const placePalms = () => {
       if (!palm1Proto || !palm2Proto || placed) return;
-      if (!this._terrain) return;
       placed = true;
 
       palmPositions.forEach(pos => {
@@ -338,28 +353,57 @@ const WorldChase = {
         const palm = proto.clone();
 
         palm.position.set(pos.x, 0, pos.z);
-        palm.scale.setScalar(pos.scale);
         palm.rotation.y = Math.random() * Math.PI * 2;
+
+        // Apply bounding-box-based scale so palm is ~4 units tall
+        const box = new THREE.Box3().setFromObject(palm);
+        const size = box.getSize(new THREE.Vector3());
+        const baseScale = 4.0 / Math.max(size.x, size.y, size.z, 0.01);
+        palm.scale.setScalar(baseScale * pos.scale);
 
         palm.traverse(child => {
           if (child.isMesh) {
+            child.frustumCulled = false;
+            child.visible = true;
             child.castShadow = true;
             child.receiveShadow = true;
+            // Force visible material (dark green silhouette)
+            child.material = new THREE.MeshStandardMaterial({
+              color: pos.model === 0 ? 0x2d5a1b : 0x3a6b22,
+              roughness: 0.8,
+              metalness: 0.1
+            });
           }
         });
 
-        this._terrain.add(palm);
+        // Add directly to scene, NOT to terrain
+        this.scene.add(palm);
         this._palmModels.push(palm);
+
+        // Debug BoxHelper (green wireframe)
+        const helper = new THREE.BoxHelper(palm, 0x00ff00);
+        this.scene.add(helper);
+        // Store helper ref for disposal
+        if (!this._palmHelpers) this._palmHelpers = [];
+        this._palmHelpers.push(helper);
       });
+
+      console.log('CHASE: placed', this._palmModels.length, 'palms in scene');
     };
 
     loader.load('assets/palm1.glb', (gltf) => {
       palm1Proto = gltf.scene;
+      const box = new THREE.Box3().setFromObject(palm1Proto);
+      const size = box.getSize(new THREE.Vector3());
+      console.log('palm1 raw size:', size.x.toFixed(2), size.y.toFixed(2), size.z.toFixed(2));
       placePalms();
     }, undefined, (e) => console.warn('palm1 load error:', e));
 
     loader.load('assets/palm2.glb', (gltf) => {
       palm2Proto = gltf.scene;
+      const box = new THREE.Box3().setFromObject(palm2Proto);
+      const size = box.getSize(new THREE.Vector3());
+      console.log('palm2 raw size:', size.x.toFixed(2), size.y.toFixed(2), size.z.toFixed(2));
       placePalms();
     }, undefined, (e) => console.warn('palm2 load error:', e));
   },
@@ -407,7 +451,7 @@ const WorldChase = {
     });
 
     this._foam = new THREE.Mesh(geo, this._foamMat);
-    this._foam.position.set(-2, 0.05, 0);
+    this._foam.position.set(-8, 0.05, 0);
     this.scene.add(this._foam);
   },
 
@@ -552,10 +596,12 @@ const WorldChase = {
     this._accumScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this._accumMat));
 
     // Final pass: Vignette (dark blue tint) + Barrel distortion (fisheye)
+    // Zoom compensation (0.75) ensures barrel distortion never samples
+    // outside texture bounds — no black corners
     this._finalMat = new THREE.ShaderMaterial({
       uniforms: {
         tDiffuse: { value: this._rtAccumNew.texture },
-        uBarrelStrength: { value: 0.35 }
+        uBarrelStrength: { value: 0.22 }
       },
       vertexShader: `
         varying vec2 vUv;
@@ -566,19 +612,13 @@ const WorldChase = {
         uniform float uBarrelStrength;
         varying vec2 vUv;
         void main() {
-          // Barrel distortion (fisheye)
+          // Barrel distortion with zoom compensation — no black edges
           vec2 uv = vUv * 2.0 - 1.0;
           float r = length(uv);
-          uv *= 1.0 + uBarrelStrength * r * r;
+          uv *= (1.0 + uBarrelStrength * r * r) * 0.75;
           uv = uv * 0.5 + 0.5;
 
-          // Out of bounds → black
-          if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
-            gl_FragColor = vec4(0.01, 0.03, 0.08, 1.0);
-            return;
-          }
-
-          vec4 color = texture2D(tDiffuse, uv);
+          vec4 color = texture2D(tDiffuse, clamp(uv, 0.0, 1.0));
 
           // Vignette — dark blue-black tint for night atmosphere
           vec2 vigUv = vUv * 2.0 - 1.0;
@@ -612,6 +652,20 @@ const WorldChase = {
       this._terrain.position.z += this._TERRAIN_SPEED;
       if (this._terrain.position.z > this._TERRAIN_DEPTH / 2) {
         this._terrain.position.z -= this._TERRAIN_DEPTH;
+      }
+    }
+
+    // 2b. Palm trees scroll independently (not children of terrain)
+    if (this._palmModels && this._palmModels.length > 0) {
+      this._palmModels.forEach(palm => {
+        palm.position.z += this._TERRAIN_SPEED;
+        if (palm.position.z > this._TERRAIN_DEPTH / 2) {
+          palm.position.z -= this._TERRAIN_DEPTH;
+        }
+      });
+      // Update debug helpers
+      if (this._palmHelpers) {
+        this._palmHelpers.forEach(h => h.update());
       }
     }
 
@@ -694,7 +748,7 @@ const WorldChase = {
     this._renderer.setRenderTarget(this._rtScene);
     this._renderer.clear();
     this.camera.position.x += ((this._character ? this._character.position.x * 0.5 : 0) - this.camera.position.x) * 0.05;
-    this.camera.position.y = 2.5 + Math.sin(time * 30.0) * 0.015;
+    this.camera.position.y = 1.8 + Math.sin(time * 30.0) * 0.015;
     this._renderer.render(this.scene, this.camera);
 
     // b. Accumulate (rtScene + rtAccumOld) -> rtAccumNew
