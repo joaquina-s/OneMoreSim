@@ -379,6 +379,76 @@ button {
 #header-logo {
     width: calc(29.75% + 64px);
     flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+#header-logo-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+/* Imagen A1 ocupa todo el panel */
+#header-logo-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Botones encima de A1 — sectores 2 y 3 de 3 */
+#header-logo-buttons {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 66.66%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    z-index: 2;
+}
+
+.header-logo-btn-slot {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+}
+
+.header-logo-btn {
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 150ms, transform 150ms;
+    pointer-events: auto;
+}
+
+.header-logo-btn:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+}
+
+.header-logo-btn:active {
+    transform: scale(0.97);
+}
+
+.header-logo-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    pointer-events: none;
 }
 
 #header-map {
@@ -697,7 +767,10 @@ button {
     grid-template-columns: 78px 1fr;
     gap: 6px;
     padding: 8px;
-    background: linear-gradient(135deg, var(--steel-bg) 0%, var(--steel-panel) 100%);
+    background-image: url('assets/tex/B1.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     border-right: 1px solid var(--color-border);
     box-shadow: var(--bevel);
     pointer-events: auto;
@@ -713,6 +786,10 @@ button {
     height: 100%;
     gap: 0;
     padding: 4px 0;
+    background-image: url('assets/tex/B1.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .texture-btn {
@@ -774,6 +851,16 @@ button {
     border-right: 1px solid rgba(125, 133, 180, 0.15);
     border-left:  1px solid rgba(0, 0, 0, 0.4);
     z-index: 1;
+    background-image: url('assets/tex/B3.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Ocultar el antiguo track de imágenes del divider */
+#vertical-divider .divider-img-track,
+#vertical-divider .divider-img {
+    display: none;
 }
 
 .divider-img-track {
@@ -897,7 +984,11 @@ button {
     align-items: stretch;
     justify-content: space-around;
     padding: 4px 4px;
-    background: linear-gradient(0deg, #0c0d18 0%, #10122a 100%);
+    background-image: url('assets/tex/buttonsWBG.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: transparent;
     border-top: 1px solid var(--color-border);
     pointer-events: auto;
     gap: 2px;
@@ -908,7 +999,7 @@ button {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 120px;
+    width: 132px;
     height: calc(100% - 8px);
     padding: 0;
     border-radius: 2px;
