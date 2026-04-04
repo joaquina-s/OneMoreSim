@@ -1,23 +1,90 @@
 // worlds/world07.js
 
 const GRID_CELLS = [
-  // Fila 1 (alto: 45% de pantalla) — 3 celdas de anchos distintos
-  { x: 0.00, y: 0.00, w: 0.28, h: 0.45 },
-  { x: 0.28, y: 0.00, w: 0.44, h: 0.45 },
-  { x: 0.72, y: 0.00, w: 0.28, h: 0.45 },
 
-  // Fila 2 (alto: 30% de pantalla) — 4 celdas
-  { x: 0.00, y: 0.45, w: 0.18, h: 0.30 },
-  { x: 0.18, y: 0.45, w: 0.36, h: 0.30 },
-  { x: 0.54, y: 0.45, w: 0.26, h: 0.30 },
-  { x: 0.80, y: 0.45, w: 0.20, h: 0.30 },
+  // ── FILA 1 (y: 0.00 → 0.13, alto: 0.13) — orilla superior, celdas pequeñas ──
+  { x: 0.000, y: 0.00, w: 0.083, h: 0.13 },
+  { x: 0.083, y: 0.00, w: 0.065, h: 0.13 },
+  { x: 0.148, y: 0.00, w: 0.075, h: 0.13 },
+  { x: 0.223, y: 0.00, w: 0.060, h: 0.13 },
+  { x: 0.283, y: 0.00, w: 0.090, h: 0.13 },
+  { x: 0.373, y: 0.00, w: 0.070, h: 0.13 },
+  { x: 0.443, y: 0.00, w: 0.080, h: 0.13 },
+  { x: 0.523, y: 0.00, w: 0.065, h: 0.13 },
+  { x: 0.588, y: 0.00, w: 0.090, h: 0.13 },
+  { x: 0.678, y: 0.00, w: 0.070, h: 0.13 },
+  { x: 0.748, y: 0.00, w: 0.075, h: 0.13 },
+  { x: 0.823, y: 0.00, w: 0.085, h: 0.13 },
+  { x: 0.908, y: 0.00, w: 0.092, h: 0.13 },
 
-  // Fila 3 (alto: 25% de pantalla) — 5 celdas pequeñas
-  { x: 0.00, y: 0.75, w: 0.22, h: 0.25 },
-  { x: 0.22, y: 0.75, w: 0.16, h: 0.25 },
-  { x: 0.38, y: 0.75, w: 0.30, h: 0.25 },
-  { x: 0.68, y: 0.75, w: 0.18, h: 0.25 },
-  { x: 0.86, y: 0.75, w: 0.14, h: 0.25 },
+  // ── FILA 2 (y: 0.13 → 0.26, alto: 0.13) — transición superior ──
+  { x: 0.000, y: 0.13, w: 0.070, h: 0.13 },
+  { x: 0.070, y: 0.13, w: 0.090, h: 0.13 },
+  { x: 0.160, y: 0.13, w: 0.110, h: 0.13 },
+  { x: 0.270, y: 0.13, w: 0.130, h: 0.13 },
+  { x: 0.400, y: 0.13, w: 0.120, h: 0.13 },
+  { x: 0.520, y: 0.13, w: 0.130, h: 0.13 },
+  { x: 0.650, y: 0.13, w: 0.110, h: 0.13 },
+  { x: 0.760, y: 0.13, w: 0.090, h: 0.13 },
+  { x: 0.850, y: 0.13, w: 0.080, h: 0.13 },
+  { x: 0.930, y: 0.13, w: 0.070, h: 0.13 },
+
+  // ── FILA 3 (y: 0.26 → 0.42, alto: 0.16) — zona centro-superior ──
+  { x: 0.000, y: 0.26, w: 0.080, h: 0.16 },
+  { x: 0.080, y: 0.26, w: 0.120, h: 0.16 },
+  { x: 0.200, y: 0.26, w: 0.160, h: 0.16 },
+  { x: 0.360, y: 0.26, w: 0.180, h: 0.16 },
+  { x: 0.540, y: 0.26, w: 0.160, h: 0.16 },
+  { x: 0.700, y: 0.26, w: 0.120, h: 0.16 },
+  { x: 0.820, y: 0.26, w: 0.100, h: 0.16 },
+  { x: 0.920, y: 0.26, w: 0.080, h: 0.16 },
+
+  // ── FILA 4 (y: 0.42 → 0.62, alto: 0.20) — CENTRO, celdas más grandes ──
+  { x: 0.000, y: 0.42, w: 0.090, h: 0.20 },
+  { x: 0.090, y: 0.42, w: 0.150, h: 0.20 },
+  { x: 0.240, y: 0.42, w: 0.200, h: 0.20 },
+  { x: 0.440, y: 0.42, w: 0.220, h: 0.20 },
+  { x: 0.660, y: 0.42, w: 0.180, h: 0.20 },
+  { x: 0.840, y: 0.42, w: 0.090, h: 0.20 },
+  { x: 0.930, y: 0.42, w: 0.070, h: 0.20 },
+
+  // ── FILA 5 (y: 0.62 → 0.78, alto: 0.16) — zona centro-inferior ──
+  { x: 0.000, y: 0.62, w: 0.080, h: 0.16 },
+  { x: 0.080, y: 0.62, w: 0.110, h: 0.16 },
+  { x: 0.190, y: 0.62, w: 0.160, h: 0.16 },
+  { x: 0.350, y: 0.62, w: 0.180, h: 0.16 },
+  { x: 0.530, y: 0.62, w: 0.160, h: 0.16 },
+  { x: 0.690, y: 0.62, w: 0.130, h: 0.16 },
+  { x: 0.820, y: 0.62, w: 0.100, h: 0.16 },
+  { x: 0.920, y: 0.62, w: 0.080, h: 0.16 },
+
+  // ── FILA 6 (y: 0.78 → 0.90, alto: 0.12) — transición inferior ──
+  { x: 0.000, y: 0.78, w: 0.075, h: 0.12 },
+  { x: 0.075, y: 0.78, w: 0.090, h: 0.12 },
+  { x: 0.165, y: 0.78, w: 0.110, h: 0.12 },
+  { x: 0.275, y: 0.78, w: 0.130, h: 0.12 },
+  { x: 0.405, y: 0.78, w: 0.120, h: 0.12 },
+  { x: 0.525, y: 0.78, w: 0.110, h: 0.12 },
+  { x: 0.635, y: 0.78, w: 0.100, h: 0.12 },
+  { x: 0.735, y: 0.78, w: 0.090, h: 0.12 },
+  { x: 0.825, y: 0.78, w: 0.085, h: 0.12 },
+  { x: 0.910, y: 0.78, w: 0.090, h: 0.12 },
+
+  // ── FILA 7 (y: 0.90 → 1.00, alto: 0.10) — orilla inferior, celdas pequeñas ──
+  { x: 0.000, y: 0.90, w: 0.067, h: 0.10 },
+  { x: 0.067, y: 0.90, w: 0.075, h: 0.10 },
+  { x: 0.142, y: 0.90, w: 0.083, h: 0.10 },
+  { x: 0.225, y: 0.90, w: 0.070, h: 0.10 },
+  { x: 0.295, y: 0.90, w: 0.080, h: 0.10 },
+  { x: 0.375, y: 0.90, w: 0.075, h: 0.10 },
+  { x: 0.450, y: 0.90, w: 0.085, h: 0.10 },
+  { x: 0.535, y: 0.90, w: 0.070, h: 0.10 },
+  { x: 0.605, y: 0.90, w: 0.080, h: 0.10 },
+  { x: 0.685, y: 0.90, w: 0.075, h: 0.10 },
+  { x: 0.760, y: 0.90, w: 0.080, h: 0.10 },
+  { x: 0.840, y: 0.90, w: 0.073, h: 0.10 },
+  { x: 0.913, y: 0.90, w: 0.087, h: 0.10 },
+
 ];
 
 function applyCellUVs(geo, cell) {
@@ -73,14 +140,14 @@ export default {
 
         // Videos setup
         this.vid1 = document.createElement('video');
-        this.vid1.src = 'assets/videos/Seq01.mp4'; 
+        this.vid1.src = 'assets/videos/mar_1.mp4';
         this.vid1.loop = true;
         this.vid1.muted = true;
         this.vid1.playsInline = true;
         this.vid1.play().catch(e => console.warn("video1 play error", e));
 
         this.vid2 = document.createElement('video');
-        this.vid2.src = 'assets/videos/Seq02.mp4'; 
+        this.vid2.src = 'assets/videos/mar_2.mp4';
         this.vid2.loop = true;
         this.vid2.muted = true;
         this.vid2.playsInline = true;
@@ -182,7 +249,7 @@ export default {
                 this.hoveredCell = intersects[0].object.parent;
                 if (!this.hoveredCell.userData.transitioning) {
                     const shownMat = this.hoveredCell.userData.showingVideo === 1 ? this.hoveredCell.userData.mat1 : this.hoveredCell.userData.mat2;
-                    shownMat.opacity = 0.4; // Fuerte mezcla con el blanco de fondo (efecto glow)
+                    shownMat.opacity = 0.2; // Hover sutil — 50% más transparente
                 }
                 this.hoveredCell.scale.set(1.03, 1.03, 1.0); // Leve pop-out efecto glow
                 this.worldCanvas.style.cursor = 'pointer';
