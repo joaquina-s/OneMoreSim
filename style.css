@@ -792,30 +792,61 @@ button {
     background-repeat: no-repeat;
 }
 
+/* ── Texture buttons — PNG image swap ── */
 .texture-btn {
-    width: 60px;
-    height: 60px;
-    border-radius: 6px;
-    background: var(--btn-color, #333);
-    border: 2px solid var(--color-border);
-    box-shadow: var(--bevel);
-    transition: all 0.2s ease-out;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    background: none;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
+    transition: transform 120ms ease;
 }
 
 .texture-btn:hover {
-    border-color: var(--color-accent);
-    box-shadow: var(--bevel), 0 0 10px rgba(125, 133, 180, 0.4);
-    transform: scale(1.08);
+    transform: scale(1.06);
 }
 
-.texture-btn.active {
-    border-color: var(--color-accent);
-    box-shadow:
-        inset 0 0 8px rgba(125, 133, 180, 0.3),
-        0 0 15px rgba(125, 133, 180, 0.5),
-        0 0 30px rgba(125, 133, 180, 0.2);
+.texture-btn:active {
+    transform: scale(0.97);
 }
+
+/* Both images overlap — positioned absolute inside the button */
+.texture-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: opacity 150ms ease;
+}
+
+/* Default: show normal, hide hover */
+.texture-btn .btn-normal { opacity: 1; }
+.texture-btn .btn-hover  { opacity: 0; }
+
+/* Hover: swap */
+.texture-btn:hover .btn-normal { opacity: 0; }
+.texture-btn:hover .btn-hover  { opacity: 1; }
+
+/* Active: swap (same as hover) */
+.texture-btn.active .btn-normal { opacity: 0; }
+.texture-btn.active .btn-hover  { opacity: 1; }
+
+/* Hover while active: keep hover image */
+.texture-btn.active:hover .btn-normal { opacity: 0; }
+.texture-btn.active:hover .btn-hover  { opacity: 1; }
 
 #character-display {
     position: relative;
