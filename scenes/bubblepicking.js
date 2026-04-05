@@ -169,8 +169,8 @@ function buildRooms(scene) {
     const floorMat = new THREE.MeshStandardMaterial({
         map: floorTex, roughness: 0.8, metalness: 0.2
     });
-    // Circular floor — radius = diagonal/2 so the edge touches the wall corners
-    const floorRadius = Math.sqrt(25 * 25 + 25 * 25); // ~35.36
+    // Circular floor — radius matches the rectangular wall boundary
+    const floorRadius = 25;
     const floor = new THREE.Mesh(new THREE.CircleGeometry(floorRadius, 64), floorMat);
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
@@ -461,16 +461,19 @@ function createPlayer(scene) {
         clone.scale.set(4.25, 4.25, 4.25); // 5 * 0.85 = 4.25 (15% smaller than previous 5)
         clone.position.set(0, 0, 0);
 
-        // Apply materials
+        // Preserve original GLB textures, only ensure skinning is enabled
         clone.traverse(child => {
             if (child.isMesh) {
-                child.material = new THREE.MeshStandardMaterial({
-                    color: 0x7d85b4,
-                    emissive: 0x2a2d4a,
-                    roughness: 0.8,
-                    metalness: 0.2,
-                    skinning: true
-                });
+                if (Array.isArray(child.material)) {
+                    child.material = child.material.map(m => {
+                        const mat = m.clone();
+                        mat.skinning = true;
+                        return mat;
+                    });
+                } else if (child.material) {
+                    child.material = child.material.clone();
+                    child.material.skinning = true;
+                }
                 child.castShadow = true;
             }
         });
@@ -628,32 +631,38 @@ export const bubblepicking = {
 
         // Scene
         bpScene = new THREE.Scene();
-        bpScene.background = new THREE.Color(0x050510);
-        bpScene.fog = new THREE.FogExp2(0x050510, 0.015);
+        bpScene.background = new THREE.Color(0x010814);
+        bpScene.fog = new THREE.FogExp2(0x020d1f, 0.018);
         this.scene = bpScene;
 
-        // Camera
+        // Camera — fisheye (FOV 120) like WorldChase
         bpCamera = new THREE.PerspectiveCamera(
-            75, window.innerWidth / window.innerHeight, 0.1, 1000
+            120, window.innerWidth / window.innerHeight, 0.1, 1000
         );
         this.camera = bpCamera;
 
-        // Lighting
-        ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        // Lighting — luminous night sky (inspired by WorldChase)
+        // 1. Deep blue ambient
+        ambientLight = new THREE.AmbientLight(0x0a1a3f, 0.8);
         bpScene.add(ambientLight);
 
-        dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
+        // 2. Moonlight — directional, white-blue, with shadows
+        dirLight = new THREE.DirectionalLight(0xc8d8ff, 1.8);
         dirLight.castShadow = deviceProfile.useShadows;
         dirLight.shadow.mapSize.width = deviceProfile.shadowMapSize;
         dirLight.shadow.mapSize.height = deviceProfile.shadowMapSize;
         dirLight.shadow.camera.near = 0.5;
-        dirLight.shadow.camera.far = 50;
-        const d = 20;
+        dirLight.shadow.camera.far = 80;
+        const d = 30;
         dirLight.shadow.camera.left = -d;
         dirLight.shadow.camera.right = d;
         dirLight.shadow.camera.top = d;
         dirLight.shadow.camera.bottom = -d;
         bpScene.add(dirLight);
+
+        // 3. Hemisphere for warm/cool split
+        const hemiLight = new THREE.HemisphereLight(0x0a1a4a, 0x001133, 0.6);
+        bpScene.add(hemiLight);
 
         // Build rooms and simulations
         buildRooms(bpScene);
@@ -711,15 +720,13 @@ export const bubblepicking = {
         playerGroup.position.x = Math.cos(orbitAngle) * orbitRadius;
         playerGroup.position.z = Math.sin(orbitAngle) * orbitRadius;
 
-        // Fixed rotation: only face left or right along the orbit tangent
+        // Fixed flip: face right or left without continuous spin along orbit
         if (keys.left) {
             lastFacingRight = false;
         } else if (keys.right) {
             lastFacingRight = true;
         }
-        // Tangent angle: perpendicular to the radius vector
-        const tangentAngle = orbitAngle + Math.PI / 2;
-        playerGroup.rotation.y = lastFacingRight ? tangentAngle + Math.PI : tangentAngle;
+        playerGroup.rotation.y = lastFacingRight ? Math.PI : 0;
 
         // ── Walk animation control ──
         if (walkAction) {
@@ -735,10 +742,10 @@ export const bubblepicking = {
         }
 
         // ── Camera ──
-        const cameraDistance = 18;
+        const cameraDistance = 20;
         bpCamera.position.x = playerGroup.position.x + Math.cos(orbitAngle) * cameraDistance;
         bpCamera.position.z = playerGroup.position.z + Math.sin(orbitAngle) * cameraDistance;
-        bpCamera.position.y = 6;
+        bpCamera.position.y = 14;
 
         bpCamera.lookAt(
             playerGroup.position.x,
