@@ -203,7 +203,7 @@ function buildRooms(scene) {
             transparent: true, opacity: 0.15, side: THREE.DoubleSide
         });
 
-        const wT = 0.5, wH = 10, rs = 24.5; // slightly smaller to add gap between walls
+        const wT = 0.5, wH = 10, rs = 24.5;
         roomWalls[room.id] = [];
 
         const addWall = (w, h, d, px, pz, mat) => {
@@ -215,28 +215,18 @@ function buildRooms(scene) {
             roomWalls[room.id].push(wall);
         };
 
-        // Determine which walls are inner (near center 0) vs outer (at scene edge ±25)
-        const zNear = room.cz - rs / 2; // e.g. -25 or 0
-        const zFar  = room.cz + rs / 2; // e.g. 0 or 25
+        const zNear = room.cz - rs / 2;
+        const zFar  = room.cz + rs / 2;
         const xNear = room.cx - rs / 2;
         const xFar  = room.cx + rs / 2;
 
-        // Z-walls (horizontal, span along X)
-        addWall(rs, wH, wT, room.cx, zNear, Math.abs(zNear) > 12 ? outerWallMat : innerWallMat);
-        addWall(rs, wH, wT, room.cx, zFar,  Math.abs(zFar)  > 12 ? outerWallMat : innerWallMat);
-        // X-walls (vertical, span along Z)
-        addWall(wT, wH, rs, xNear, room.cz, Math.abs(xNear) > 12 ? outerWallMat : innerWallMat);
-        addWall(wT, wH, rs, xFar,  room.cz, Math.abs(xFar)  > 12 ? outerWallMat : innerWallMat);
+        // Only add inner textured walls — skip outer translucent edge walls
+        if (Math.abs(zNear) <= 12) addWall(rs, wH, wT, room.cx, zNear, innerWallMat);
+        if (Math.abs(zFar)  <= 12) addWall(rs, wH, wT, room.cx, zFar,  innerWallMat);
+        if (Math.abs(xNear) <= 12) addWall(wT, wH, rs, xNear, room.cz, innerWallMat);
+        if (Math.abs(xFar)  <= 12) addWall(wT, wH, rs, xFar,  room.cz, innerWallMat);
     });
-
-    // Cross Dividers
-    const crossMat = new THREE.MeshStandardMaterial({ color: 0x222222, transparent: true, opacity: 0.3 });
-    const wall1 = new THREE.Mesh(new THREE.BoxGeometry(50, 10, 0.5), crossMat);
-    wall1.position.set(0, 5, 0);
-    scene.add(wall1);
-    const wall2 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 10, 50), crossMat);
-    wall2.position.set(0, 5, 0);
-    scene.add(wall2);
+    // Cross dividers removed
 }
 
 // ═══════════════════════════════════════════════
@@ -707,45 +697,42 @@ export const bubblepicking = {
         // ── Movement ──
         const isMoving = keys.left || keys.right;
 
-        if (keys.left) velocity += 0.0003;    // 50% slower than previous 0.0006
-        if (keys.right) velocity -= 0.0003;
+        if (keys.left) velocity += 0.00024;   // 20% slower
+        if (keys.right) velocity -= 0.00024;
 
         if (!isMoving) {
             velocity *= 0.95;
         }
 
-        velocity = Math.max(-0.004, Math.min(0.004, velocity)); // 50% of previous 0.008
+        velocity = Math.max(-0.0032, Math.min(0.0032, velocity)); // 20% slower max
         orbitAngle += velocity;
 
         playerGroup.position.x = Math.cos(orbitAngle) * orbitRadius;
         playerGroup.position.z = Math.sin(orbitAngle) * orbitRadius;
 
-        // Fixed flip: face right or left without continuous spin along orbit
-        if (keys.left) {
-            lastFacingRight = false;
-        } else if (keys.right) {
-            lastFacingRight = true;
+        // Orient character along orbit tangent — no spinning while moving
+        if (Math.abs(velocity) > 0.00005) {
+            const sign = velocity > 0 ? 1 : -1;
+            const dx = -Math.sin(orbitAngle) * sign;
+            const dz =  Math.cos(orbitAngle) * sign;
+            playerGroup.rotation.y = Math.atan2(dx, dz);
         }
-        playerGroup.rotation.y = lastFacingRight ? Math.PI : 0;
 
         // ── Walk animation control ──
         if (walkAction) {
-            if (isMoving) {
-                walkAction.paused = false;
-            } else {
-                walkAction.paused = true;
-            }
+            walkAction.paused = !isMoving;
+            walkAction.timeScale = 0.4; // 60% slower
         }
 
         if (playerMixer) {
             playerMixer.update(0.016);
         }
 
-        // ── Camera ──
-        const cameraDistance = 20;
+        // ── Camera — closer to character ──
+        const cameraDistance = 9;
         bpCamera.position.x = playerGroup.position.x + Math.cos(orbitAngle) * cameraDistance;
         bpCamera.position.z = playerGroup.position.z + Math.sin(orbitAngle) * cameraDistance;
-        bpCamera.position.y = 14;
+        bpCamera.position.y = 6;
 
         bpCamera.lookAt(
             playerGroup.position.x,
