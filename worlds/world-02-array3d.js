@@ -47,10 +47,10 @@ export default {
     this.scene.background = new THREE.Color(0x06080f);
     this.scene.fog = new THREE.Fog(0x06080f, 18, 40);
 
-    // ── Camera — 120° FOV, top-down close view of formation ──
-    this.camera = new THREE.PerspectiveCamera(120, W / H, 0.1, 100);
-    this.camera.position.set(0, 10, 4);
-    this.camera.lookAt(0, 0, 0);
+    // ── Camera — FOV 60, close 3/4 view filling the formation ──
+    this.camera = new THREE.PerspectiveCamera(60, W / H, 0.1, 100);
+    this.camera.position.set(0, 5, 7);
+    this.camera.lookAt(0, 1, 0);
 
     // ── Lighting ──
     this.scene.add(new THREE.AmbientLight(0x334466, 2.0));
