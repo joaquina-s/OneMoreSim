@@ -47,10 +47,10 @@ export default {
     this.scene.background = new THREE.Color(0x06080f);
     this.scene.fog = new THREE.Fog(0x06080f, 18, 40);
 
-    // ── Camera — fixed, frames the full 10×5 formation ──
-    this.camera = new THREE.PerspectiveCamera(60, W / H, 0.1, 100);
-    this.camera.position.set(0, 3, 15);
-    this.camera.lookAt(0, 1.5, 0);
+    // ── Camera — 120° FOV, top-down close view of formation ──
+    this.camera = new THREE.PerspectiveCamera(120, W / H, 0.1, 100);
+    this.camera.position.set(0, 10, 4);
+    this.camera.lookAt(0, 0, 0);
 
     // ── Lighting ──
     this.scene.add(new THREE.AmbientLight(0x334466, 2.0));
@@ -144,21 +144,29 @@ export default {
         hoveredId = hits[0].object.userData.instanceId;
       }
 
-      // Update hover states — only freeze/unfreeze animation, preserve texture
+      // Update hover states — freeze animation + electric blue glow
       if (this._lastHovered !== hoveredId) {
           // Restore previous
           if (this._lastHovered !== -1 && this._lastHovered !== undefined) {
               const prevInst = this._instances[this._lastHovered];
               if (prevInst) {
                   prevInst.mixer.timeScale = 1.0;
+                  prevInst.origEmissive.forEach(o => {
+                      if (o.mat.emissive) o.mat.emissive.copy(o.emissive);
+                      o.mat.emissiveIntensity = o.intensity;
+                  });
               }
           }
 
-          // Apply new hover — freeze animation only
+          // Apply new hover — freeze + electric blue emissive
           if (hoveredId !== -1 && hoveredId !== undefined) {
               const newInst = this._instances[hoveredId];
               if (newInst) {
                   newInst.mixer.timeScale = 0.0;
+                  newInst.origEmissive.forEach(o => {
+                      if (o.mat.emissive) o.mat.emissive.setHex(0x00aaff);
+                      o.mat.emissiveIntensity = 2.0;
+                  });
               }
               document.body.style.cursor = 'pointer';
           } else {
@@ -234,6 +242,21 @@ export default {
                 }
             }
         });
+
+        // Store original emissive per mesh for hover restore
+        const origEmissive = [];
+        clone.traverse(child => {
+            if (child.isMesh && child.material) {
+                const mats = Array.isArray(child.material) ? child.material : [child.material];
+                mats.forEach(m => {
+                    origEmissive.push({
+                        mat: m,
+                        emissive: m.emissive ? m.emissive.clone() : new THREE.Color(0),
+                        intensity: m.emissiveIntensity || 0
+                    });
+                });
+            }
+        });
       
         const row = Math.floor(i / 10);
         const col = i % 10;
@@ -256,7 +279,8 @@ export default {
             id: i,
             group: clone,
             mixer: mixer,
-            meshes: []
+            meshes: [],
+            origEmissive
         };
       
         // Map meshes for individual raycast tagging
