@@ -1,5 +1,5 @@
 // scenes/bubblepicking.js
-// BubblePicking world — 4 themed rooms with walkloop character,
+// BubblePicking world — 4 themed rooms with walk character,
 // ascending bubbles, floating images, and bubble-picking mechanics.
 // Uses global THREE (r128 via CDN script tags).
 
@@ -13,7 +13,7 @@ let ambientLight = null;
 let dirLight = null;
 
 let playerGroup = null;   // THREE.Group containing the GLB clone
-let playerMixer = null;   // AnimationMixer for the walkloop
+let playerMixer = null;   // AnimationMixer for the walk character
 let walkAction = null;    // AnimationAction
 let orbitAngle = 0;
 let velocity = 0;
@@ -441,7 +441,7 @@ function initRoom4(scene) {
 }
 
 // ═══════════════════════════════════════════════
-// Player Character (walkloop.glb)
+// Player Character (walk.glb)
 // ═══════════════════════════════════════════════
 
 function createPlayer(scene) {
@@ -450,7 +450,7 @@ function createPlayer(scene) {
     scene.add(playerGroup);
 
     const loader = new THREE.GLTFLoader();
-    loader.load('assets/walkloop.glb', (gltf) => {
+    loader.load('assets/walk.glb', (gltf) => {
         let clone;
         if (THREE.SkeletonUtils && THREE.SkeletonUtils.clone) {
             clone = THREE.SkeletonUtils.clone(gltf.scene);
@@ -484,7 +484,7 @@ function createPlayer(scene) {
             walkAction.play();
             walkAction.paused = true; // Start idle
         }
-    }, undefined, (e) => console.error("BubblePicking: Error loading walkloop.glb", e));
+    }, undefined, (e) => console.error("BubblePicking: Error loading walk.glb", e));
 }
 
 // ═══════════════════════════════════════════════

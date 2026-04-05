@@ -539,7 +539,7 @@ const WorldChase = {
      ════════════════════════════════════════════ */
   _loadCharacter() {
     const loader = new THREE.GLTFLoader();
-    loader.load('assets/walkloop.glb', (gltf) => {
+    loader.load('assets/walk.glb', (gltf) => {
       this._character = THREE.SkeletonUtils ? THREE.SkeletonUtils.clone(gltf.scene) : gltf.scene;
       this._character.position.set(0, 0, 2);
       this._character.scale.setScalar(0.5);
