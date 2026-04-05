@@ -47,10 +47,12 @@ export default {
     this.scene.background = new THREE.Color(0x06080f);
     this.scene.fog = new THREE.Fog(0x06080f, 18, 40);
 
-    // ── Camera — FOV 60, close 3/4 view filling the formation ──
+    // ── Camera — FOV 60, pulled back, 20° extra X tilt for diagonal feel ──
     this.camera = new THREE.PerspectiveCamera(60, W / H, 0.1, 100);
-    this.camera.position.set(0, 5, 7);
+    this.camera.position.set(0, 6, 10);
     this.camera.lookAt(0, 1, 0);
+    // Extra 20° downward pitch so characters fill top of screen
+    this.camera.rotateX(-THREE.MathUtils.degToRad(20));
 
     // ── Lighting ──
     this.scene.add(new THREE.AmbientLight(0x334466, 2.0));
