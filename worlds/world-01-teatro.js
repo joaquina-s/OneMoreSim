@@ -17,7 +17,7 @@ const WorldTeatro = {
   _btnVolver: null,
   _loadingText: null,
   _isSeated: false,
-  _initialCameraPos: new THREE.Vector3(6, 5, 10),
+  _initialCameraPos: new THREE.Vector3(4, 3.5, 10),
   _initialTargetPos: new THREE.Vector3(0, 1.0, 0),
 
   init(renderer, _composer) {
@@ -35,7 +35,7 @@ const WorldTeatro = {
     const W = renderer.domElement.clientWidth;
     const H = renderer.domElement.clientHeight;
 
-    this.camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 100);
+    this.camera = new THREE.PerspectiveCamera(100, W / H, 0.1, 100);
     this.camera.position.copy(this._initialCameraPos);
 
     this._orbitControls = new THREE.OrbitControls(this.camera, renderer.domElement);
@@ -266,8 +266,8 @@ const WorldTeatro = {
     meshes.forEach(mesh => {
       if (!mesh.material) return;
       if (glowing) {
-        mesh.material.emissive.set(0xffcc44);
-        mesh.material.emissiveIntensity = 0.7;
+        mesh.material.emissive.set(0x00aaff);
+        mesh.material.emissiveIntensity = 2.0;
       } else {
         const orig = this._chairOriginalEmissive.get(mesh);
         if (orig) {
