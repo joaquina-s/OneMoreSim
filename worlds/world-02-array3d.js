@@ -194,7 +194,7 @@ export default {
     // ── Load GLB ──
     const loader = new THREE.GLTFLoader();
     loader.load(
-      'assets/walkloop.glb',
+      'assets/walk.glb',
       (gltf) => { this._setupRealInstances(gltf); },
       undefined,
       (err) => {
