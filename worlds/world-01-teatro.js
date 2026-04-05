@@ -17,7 +17,7 @@ const WorldTeatro = {
   _btnVolver: null,
   _loadingText: null,
   _isSeated: false,
-  _initialCameraPos: new THREE.Vector3(4, 3.5, 10),
+  _initialCameraPos: new THREE.Vector3(3, 2.5, 7),
   _initialTargetPos: new THREE.Vector3(0, 1.0, 0),
 
   init(renderer, _composer) {
@@ -238,6 +238,12 @@ const WorldTeatro = {
     };
 
     this._handlers.up = (e) => {
+      // GOD VIEW button: handle here as fallback in case click event is swallowed
+      if (e.target && e.target.closest && e.target.closest('#btn-volver-teatro')) {
+        this._onVolver();
+        this._dragStart = null;
+        return;
+      }
       if (!this._isDragging && this._dragStart) {
         try { this._onClick(e); } catch (err) { console.warn("CLICK ERROR:", err.message); }
       }
