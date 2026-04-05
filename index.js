@@ -7,7 +7,7 @@ import { getTime } from './core/clock.js';
 import { WorldManager } from './core/worldManager.js';
 import { deviceProfile } from './core/deviceProfile.js';
 import { ResizeManager } from './core/resizeManager.js';
-import { bubblepicking } from './scenes/bubblepicking.js';
+import { bubblepicking } from './scenes/bubblepicking.js?v=2';
 import { createPlaceholder } from './worlds/world-placeholder.js';
 import { uiSound } from './audio/uiSounds.js';
 import Spectrogram from './audio/Spectrogram.js';
