@@ -37,10 +37,10 @@ const WorldChase = {
     const W = renderer.domElement.clientWidth;
     const H = renderer.domElement.clientHeight;
 
-    // ── FISHEYE CAMERA — FOV 120, very close to character ──
+    // ── FISHEYE CAMERA — FOV 120, tight chase POV ──
     this.camera = new THREE.PerspectiveCamera(120, W / H, 0.05, 300);
-    this.camera.position.set(0, 1.8, 4.5);
-    this.camera.lookAt(0, 1.2, 0);
+    this.camera.position.set(0, 1.4, 3.0);
+    this.camera.lookAt(0, 1.0, 0);
     this.camera.updateProjectionMatrix();
 
     // ── SCENE ──
@@ -601,7 +601,7 @@ const WorldChase = {
     this._finalMat = new THREE.ShaderMaterial({
       uniforms: {
         tDiffuse: { value: this._rtAccumNew.texture },
-        uBarrelStrength: { value: 0.22 }
+        uBarrelStrength: { value: 0.50 }
       },
       vertexShader: `
         varying vec2 vUv;
@@ -615,7 +615,7 @@ const WorldChase = {
           // Barrel distortion with zoom compensation — no black edges
           vec2 uv = vUv * 2.0 - 1.0;
           float r = length(uv);
-          uv *= (1.0 + uBarrelStrength * r * r) * 0.75;
+          uv *= (1.0 + uBarrelStrength * r * r) * 0.65;
           uv = uv * 0.5 + 0.5;
 
           vec4 color = texture2D(tDiffuse, clamp(uv, 0.0, 1.0));
@@ -747,8 +747,8 @@ const WorldChase = {
     // a. Render scene -> rtScene
     this._renderer.setRenderTarget(this._rtScene);
     this._renderer.clear();
-    this.camera.position.x += ((this._character ? this._character.position.x * 0.5 : 0) - this.camera.position.x) * 0.05;
-    this.camera.position.y = 1.8 + Math.sin(time * 30.0) * 0.015;
+    this.camera.position.x += ((this._character ? this._character.position.x * 0.4 : 0) - this.camera.position.x) * 0.08;
+    this.camera.position.y = 1.4 + Math.sin(time * 30.0) * 0.015;
     this._renderer.render(this.scene, this.camera);
 
     // b. Accumulate (rtScene + rtAccumOld) -> rtAccumNew
