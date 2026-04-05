@@ -80,7 +80,7 @@ export default {
         const W = window.innerWidth;
         const H = window.innerHeight;
         this.camera = new THREE.PerspectiveCamera(60, W / H, 0.1, 100);
-        this.camera.position.set(0, 0, 2.5); // Much closer to the egg
+        this.camera.position.set(0, 0, 1.2); // Very close to the egg
 
         // ── Controls ──
         this._orbitControls = new THREE.OrbitControls(this.camera, renderer.domElement);
