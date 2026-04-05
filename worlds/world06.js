@@ -545,6 +545,20 @@ const WorldChase = {
       this._character.scale.setScalar(0.5);
       this._character.rotation.y = Math.PI;
 
+      // Apply emissive material so character is visible against the dark ocean
+      this._character.traverse(child => {
+        if (child.isMesh) {
+          child.material = new THREE.MeshStandardMaterial({
+            color: 0x7d85b4,
+            emissive: 0x2a2d4a,
+            roughness: 0.8,
+            metalness: 0.2,
+            skinning: true
+          });
+          child.castShadow = true;
+        }
+      });
+
       this.scene.add(this._character);
 
       this._mixer = new THREE.AnimationMixer(this._character);
