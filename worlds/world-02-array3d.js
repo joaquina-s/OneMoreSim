@@ -47,16 +47,19 @@ export default {
     this.scene.background = new THREE.Color(0x06080f);
     this.scene.fog = new THREE.Fog(0x06080f, 18, 40);
 
-    // ── Camera ──
-    this.camera = new THREE.PerspectiveCamera(55, W / H, 0.1, 100);
-    this.camera.position.set(0, 3, 12);
-    this.camera.lookAt(0, 1, 0);
+    // ── Camera — fixed, frames the full 10×5 formation ──
+    this.camera = new THREE.PerspectiveCamera(60, W / H, 0.1, 100);
+    this.camera.position.set(0, 3, 15);
+    this.camera.lookAt(0, 1.5, 0);
 
     // ── Lighting ──
-    this.scene.add(new THREE.AmbientLight(0x334466, 1.5));
-    const dirLight = new THREE.DirectionalLight(0x7d85b4, 1.2);
+    this.scene.add(new THREE.AmbientLight(0x334466, 2.0));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
     dirLight.position.set(5, 10, 5);
     this.scene.add(dirLight);
+    const fillLight = new THREE.DirectionalLight(0x7d85b4, 0.8);
+    fillLight.position.set(-5, 3, 8);
+    this.scene.add(fillLight);
 
     // ── Floor ──
     const floorGeo = new THREE.PlaneGeometry(30, 60);
@@ -72,29 +75,20 @@ export default {
     this._raycaster = new THREE.Raycaster();
     this._mouse = new THREE.Vector2();
 
-    // ── OrbitControls ──
+    // ── OrbitControls — disabled, camera is fixed ──
     this._orbitControls = new THREE.OrbitControls(this.camera, renderer.domElement);
-    this._orbitControls.enableDamping   = true;
-    this._orbitControls.dampingFactor   = 0.06;
-    this._orbitControls.enableZoom      = false;
-    this._orbitControls.enablePan       = false;
-    this._orbitControls.minPolarAngle   = Math.PI * 0.1;
-    this._orbitControls.maxPolarAngle   = Math.PI * 0.55;
-    this._orbitControls.autoRotate      = true;
-    this._orbitControls.autoRotateSpeed = 0.3;
-    this._orbitControls.target.set(0, 1, 0);
+    this._orbitControls.enabled       = false;
+    this._orbitControls.enableZoom    = false;
+    this._orbitControls.enablePan     = false;
+    this._orbitControls.enableRotate  = false;
+    this._orbitControls.autoRotate    = false;
+    this._orbitControls.target.set(0, 1.5, 0);
 
     // ── Event handlers ──
-    this._handlers.down = () => {
-      if (!this._active) return;
-      if (this._orbitControls) this._orbitControls.autoRotate = false;
-    };
+    this._handlers.down = () => {};
 
     this._handlers.up = (e) => {
       if (!this._active) return;
-      
-      // Auto-rotate restore
-      setTimeout(() => { if (this._orbitControls && this._active) this._orbitControls.autoRotate = true; }, 3000);
 
       // Igniting only when clicking directly on one of the 50 characters
       if (e.target.closest('#world-nav') || e.target.closest('#character-panel')) return;
@@ -150,37 +144,27 @@ export default {
         hoveredId = hits[0].object.userData.instanceId;
       }
 
-      // Update hover states
+      // Update hover states — only freeze/unfreeze animation, preserve texture
       if (this._lastHovered !== hoveredId) {
           // Restore previous
           if (this._lastHovered !== -1 && this._lastHovered !== undefined) {
               const prevInst = this._instances[this._lastHovered];
               if (prevInst) {
-                  prevInst.group.scale.set(1, 1, 1);
-                  prevInst.mixer.timeScale = 1.0; // Unfreeze
-                  prevInst.meshes.forEach(m => {
-                      if (m.material.emissive) m.material.emissive.setHex(0x2a2d4a);
-                      if (m.material.color) m.material.color.setHex(0x7d85b4);
-                  });
+                  prevInst.mixer.timeScale = 1.0;
               }
           }
-          
-          // Apply new hover
+
+          // Apply new hover — freeze animation only
           if (hoveredId !== -1 && hoveredId !== undefined) {
               const newInst = this._instances[hoveredId];
               if (newInst) {
-                  newInst.group.scale.set(1.08, 1.08, 1.08); // Scale slightly
-                  newInst.mixer.timeScale = 0.0; // Freeze animation strictly
-                  newInst.meshes.forEach(m => {
-                      if (m.material.emissive) m.material.emissive.setHex(0xaaddff); // Super bright flash
-                      if (m.material.color) m.material.color.setHex(0xffffff);
-                  });
+                  newInst.mixer.timeScale = 0.0;
               }
               document.body.style.cursor = 'pointer';
           } else {
               document.body.style.cursor = 'default';
           }
-          
+
           this._lastHovered = hoveredId;
       }
     };
@@ -212,17 +196,10 @@ export default {
 
     const clip = gltf.animations[0];
     const baseScene = gltf.scene;
-    
-    // Normalize and prepare materials on the base template to ensure standard interactions
+
+    // Ensure shadows on the base template — do NOT replace materials (preserve GLB textures)
     baseScene.traverse(child => {
         if (child.isMesh) {
-            child.material = new THREE.MeshStandardMaterial({
-                color: 0x7d85b4,
-                emissive: 0x2a2d4a,
-                roughness: 0.8,
-                metalness: 0.2,
-                skinning: true // Crucial for SkinnedMesh animations
-            });
             child.castShadow = true;
             child.receiveShadow = true;
         }
@@ -246,6 +223,17 @@ export default {
             console.error("THREE.SkeletonUtils not found! Ensure it is included in index.html.");
             return;
         }
+
+        // Clone materials per instance so hover on one doesn't affect others
+        clone.traverse(child => {
+            if (child.isMesh && child.material) {
+                if (Array.isArray(child.material)) {
+                    child.material = child.material.map(m => m.clone());
+                } else {
+                    child.material = child.material.clone();
+                }
+            }
+        });
       
         const row = Math.floor(i / 10);
         const col = i % 10;
@@ -346,22 +334,11 @@ export default {
     if (dt > 0.1) dt = 0.016; 
     this._lastTime = time;
 
-    const ADVANCE_SPEED = 1.2;
-    const LOOP_DEPTH = 30; // 30 units total depth
-    const START_Z = -15;
-
+    // Only update animation mixers — characters stay in place (in-place animation only)
     for (let i = 0; i < this._instances.length; i++) {
         const inst = this._instances[i];
         if (inst && inst.mixer) {
             inst.mixer.update(dt);
-        }
-        
-        // Physically translate them forward to match the "marching" intent
-        if (inst && inst.group) {
-            inst.group.position.z += ADVANCE_SPEED * dt;
-            if (inst.group.position.z > START_Z + LOOP_DEPTH) {
-                inst.group.position.z -= LOOP_DEPTH;
-            }
         }
     }
 
