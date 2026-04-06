@@ -44,15 +44,15 @@ export default {
 
     // ── Scene ──
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x06080f);
-    this.scene.fog = new THREE.Fog(0x06080f, 18, 40);
+    this.scene.background = new THREE.Color(0x020612);
+    this.scene.fog = new THREE.Fog(0x00061a, 10, 32);
 
-    // ── Camera — FOV 60, pulled back, 20° extra X tilt for diagonal feel ──
-    this.camera = new THREE.PerspectiveCamera(60, W / H, 0.1, 100);
+    // ── Camera — FOV 50, pulled back, 28° extra X tilt for lower angle ──
+    this.camera = new THREE.PerspectiveCamera(50, W / H, 0.1, 100);
     this.camera.position.set(0, 6, 10);
-    this.camera.lookAt(0, 1, 0);
-    // Extra 20° downward pitch so characters fill top of screen
-    this.camera.rotateX(-THREE.MathUtils.degToRad(20));
+    this.camera.lookAt(0, 0.5, 0);
+    // Extra 28° downward pitch for lower camera angle
+    this.camera.rotateX(-THREE.MathUtils.degToRad(28));
 
     // ── Lighting ──
     this.scene.add(new THREE.AmbientLight(0x334466, 2.0));
@@ -182,7 +182,6 @@ export default {
     // Attach to document globally to guarantee capture despite DOM overlays
     document.addEventListener('pointerdown', this._handlers.down);
     document.addEventListener('pointerup',   this._handlers.up);
-    document.addEventListener('touchend',    this._handlers.up, {passive: false}); // mobile click support
     document.addEventListener('pointermove', this._handlers.pointermove);
 
     // ── Load GLB ──
@@ -215,8 +214,8 @@ export default {
         }
     });
 
-    const hitboxGeo = new THREE.CylinderGeometry(0.5, 0.5, 2.5, 8);
-    hitboxGeo.translate(0, 1.25, 0); // elevate from feet to body center
+    const hitboxGeo = new THREE.CylinderGeometry(0.38, 0.38, 1.6, 8);
+    hitboxGeo.translate(0, 0.8, 0); // elevate from feet to mid-body
     const hitboxMat = new THREE.MeshBasicMaterial({
         color: 0x00ff00,
         transparent: true,
@@ -379,9 +378,12 @@ export default {
     this._active = false;
     if (this._handlers) {
       if (this._handlers.down)        document.removeEventListener('pointerdown', this._handlers.down);
+      if (this._handlers.up)          document.removeEventListener('pointerup',   this._handlers.up);
+      if (this._handlers.up)          document.removeEventListener('touchend',    this._handlers.up);
       if (this._handlers.click)       document.removeEventListener('click',       this._handlers.click);
       if (this._handlers.click)       document.removeEventListener('touchstart',  this._handlers.click);
       if (this._handlers.pointermove) document.removeEventListener('pointermove', this._handlers.pointermove);
+      this._handlers = {};
       document.body.style.cursor = 'default';
     }
 
