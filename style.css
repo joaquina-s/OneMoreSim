@@ -637,7 +637,7 @@ button {
     line-height: 1;
     white-space: nowrap;
     /* Hyper-condensed tall — JS handles reveal */
-    transform: scaleX(0.62) scaleY(2.1);
+    transform: scaleX(0.62) scaleY(1.6);
     transform-origin: left center;
     /* Black outline */
     -webkit-text-stroke: 0.6px #000;
@@ -654,7 +654,7 @@ button {
     font-size: clamp(12px, 2.8vh, 30px);
     line-height: 1;
     color: #ffffff;
-    transform: scaleY(2.1);
+    transform: scaleY(1.6);
     transform-origin: center center;
     display: inline-block;
     text-shadow:
