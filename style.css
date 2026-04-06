@@ -219,9 +219,9 @@ button {
    ════════════════════════════════════════════════ */
 
 #intro-overlay {
-    position: absolute;
+    position: fixed;
     inset: 0;
-    z-index: 3;
+    z-index: 200;
     display: none;
     align-items: center;
     justify-content: center;
@@ -1089,6 +1089,29 @@ button {
     width: min(220px, 16vw);
     height: auto;
     filter: brightness(0.9) contrast(1.1);
+    mix-blend-mode: screen;
+}
+
+/* World 03 — charBW standing at bottom, centered on divider right edge */
+#world-03-overlay {
+    position: fixed;
+    bottom: 0;
+    z-index: 150;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+    transform: translateX(-50%);
+}
+
+#world-03-overlay.visible {
+    opacity: 1;
+}
+
+#char-bw-img {
+    display: block;
+    height: min(88vh, 820px);
+    width: auto;
+    filter: brightness(0.92) contrast(1.05);
     mix-blend-mode: screen;
 }
 

@@ -568,6 +568,35 @@ function fadeOutWorldTexts() {
 }
 
 // ───────────────────────────────────────────────
+// World 03 charBW overlay positioning
+// ───────────────────────────────────────────────
+function positionWorld03Overlay() {
+    const divider = document.getElementById('vertical-divider');
+    const overlay = document.getElementById('world-03-overlay');
+    if (!divider || !overlay) return;
+    // Center the image on the right edge of the character panel (= left edge of divider)
+    const rect = divider.getBoundingClientRect();
+    overlay.style.left = rect.left + 'px';
+}
+
+function showWorld03Overlay() {
+    positionWorld03Overlay();
+    const ov = document.getElementById('world-03-overlay');
+    if (ov) ov.classList.add('visible');
+}
+
+function hideWorld03Overlay() {
+    const ov = document.getElementById('world-03-overlay');
+    if (ov) ov.classList.remove('visible');
+}
+
+// Reposition on resize
+window.addEventListener('resize', () => {
+    const ov = document.getElementById('world-03-overlay');
+    if (ov && ov.classList.contains('visible')) positionWorld03Overlay();
+});
+
+// ───────────────────────────────────────────────
 // World Button PNG Hover + Active Image Swap
 // ───────────────────────────────────────────────
 
@@ -599,6 +628,13 @@ document.querySelectorAll('.world-btn').forEach(btn => {
         // Show world-00 overlay only on world 0
         const ov = document.getElementById('world-00-overlay');
         if (ov) ov.classList.toggle('visible', btn.dataset.world === '0');
+
+        // Show world-03 charBW overlay only on world 3
+        if (btn.dataset.world === '3') {
+            showWorld03Overlay();
+        } else {
+            hideWorld03Overlay();
+        }
 
         // Update active class and images
         document.querySelectorAll('.world-btn').forEach(b => b.classList.remove('active'));
