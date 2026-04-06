@@ -338,8 +338,8 @@ function typeWorldDesc(text) {
             el.textContent += text[i++];
             const ch = text[i - 1];
             // Pause after punctuation; vary base speed 50–170ms
-            const base = 50 + Math.random() * 120;
-            const pause = /[.,!?)]/.test(ch) ? base + 250 + Math.random() * 350 : base;
+            const base = 25 + Math.random() * 60;
+            const pause = /[.,!?)]/.test(ch) ? base + 125 + Math.random() * 175 : base;
             _typeTimer = setTimeout(next, pause);
         }
     }

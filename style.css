@@ -623,7 +623,7 @@ button {
     height: 100%;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     overflow: hidden;
     gap: 0;
 }
@@ -638,7 +638,7 @@ button {
     white-space: nowrap;
     /* Hyper-condensed tall — JS handles reveal */
     transform: scaleX(0.62) scaleY(2.1);
-    transform-origin: center center;
+    transform-origin: left center;
     /* Black outline */
     -webkit-text-stroke: 0.6px #000;
     text-shadow:
@@ -698,9 +698,10 @@ button {
     height: 26px;
     display: flex;
     align-items: center;
+    justify-content: center;
     padding: 0 10px;
     font-family: 'Roboto Condensed', monospace;
-    font-size: 9px;
+    font-size: 18px;
     font-weight: 300;
     letter-spacing: 1.8px;
     color: rgba(255, 255, 255, 0.2);
@@ -710,6 +711,8 @@ button {
     overflow: hidden;
     text-overflow: ellipsis;
     transition: color 0.3s, background 0.3s;
+    -webkit-text-stroke: 0.5px #000;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
 }
 
 .track-item.active {
@@ -723,7 +726,7 @@ button {
 .track-item.active::before {
     content: '▶';
     margin-right: 6px;
-    font-size: 7px;
+    font-size: 10px;
     color: #001eff;
     text-shadow: 0 0 6px #001eff;
     flex-shrink: 0;
