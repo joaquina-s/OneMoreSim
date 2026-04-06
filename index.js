@@ -223,7 +223,7 @@ const WORLD_DATA = {
     },
     '1': {
         title: 'BUBBLEPICKING',
-        desc: 'Recorre 4 salas, recoge burbujas y absorbe imágenes flotantes.',
+        desc: 'The story that went round and round went back to its beginning.',
         accent: '#88ccff',
         iconSvg: `<circle cx="16" cy="16" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
               <circle cx="16" cy="16" r="4" fill="currentColor" opacity="0.4"/>
@@ -231,7 +231,7 @@ const WORLD_DATA = {
     },
     '2': {
         title: 'TEATRO',
-        desc: 'Un mundo cinemático. Haz click en una de las sillas de la audiencia para sentarte.',
+        desc: 'I feel bad for anybody that has to be around us because we only talk to each other.',
         accent: '#8899cc',
         iconSvg: `<rect x="8" y="10" width="32" height="18" fill="none" stroke="currentColor" stroke-width="2"/>
                   <line x1="16" y1="36" x2="16" y2="28" stroke="currentColor" stroke-width="2"/>
@@ -240,7 +240,7 @@ const WORLD_DATA = {
     },
     '3': {
         title: 'PROCESIÓN',
-        desc: '50 figuras avanzan en formación. Cada una desfasada del ciclo colectivo.',
+        desc: 'I just love transitional spaces. It feels like everyone has something to say in here.',
         accent: '#8899cc',
         iconSvg: `<circle cx="12" cy="24" r="3" fill="currentColor"/>
                   <circle cx="20" cy="24" r="3" fill="currentColor"/>
@@ -253,7 +253,7 @@ const WORLD_DATA = {
     },
     '4': {
         title: 'BAÑERA',
-        desc:  'Dos huevos luminosos en una bañera. El agua es un campo de palabras que ondula.',
+        desc: 'Warm water made us spill words into the tub and now they\'re just floating there, all tangled up.',
         accent: '#88ccff',
         iconSvg: `<rect x="6" y="22" width="36" height="14" rx="7"
                     fill="none" stroke="currentColor" stroke-width="2"/>
@@ -279,14 +279,14 @@ const WORLD_DATA = {
     },
     '6': {
         title: 'CHASE',
-        desc: 'Mini juego runner onírico. Persigue la lancha a gran velocidad sobre agua animada. El personaje nunca puede alcanzarla.',
+        desc: 'She\'s blurred, a smooth presence you\'d chase forever.',
         accent: '#ffffff',
         iconSvg: `<path d="M12 24 L36 24 M24 12 L36 24 L24 36" fill="none" stroke="currentColor" stroke-width="2"/>
               <circle cx="12" cy="24" r="3" fill="currentColor"/>`
     },
     '7': {
         title: 'GRID',
-        desc: 'Grilla irregular de videos. Haz click en una celda para alternar simultáneamente entre dos secuencias de video en bucle.',
+        desc: 'Whenever I remember something, it\'s always a little different. It comes with this residual aura.',
         accent: '#ffffff',
         iconSvg: `<rect x="8" y="8" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"/>
                   <rect x="26" y="8" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"/>
@@ -308,7 +308,7 @@ const WORLD_DATA = {
     },
     '9': {
         title: 'LAYER',
-        desc:  'Veintiséis planos transparentes apilados en profundidad. De frente parece flat.',
+        desc: '(( hey image, you look trapped there))',
         accent: '#8899cc',
         iconSvg: `<rect x="4" y="20" width="24" height="4" rx="1"
                     fill="none" stroke="currentColor" stroke-width="2"/>
