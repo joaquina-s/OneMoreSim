@@ -190,6 +190,7 @@ function enterExperience() {
                 if (introOverlay) {
                     introOverlay.style.display = 'flex';
                     introOverlay.style.opacity = '0';
+                    introOverlay.style.pointerEvents = 'auto';
                     gsap.to(introOverlay, { opacity: 1, duration: 0.8, delay: 0.2 });
                 }
 
@@ -217,10 +218,11 @@ document.getElementById('enter-button-img').addEventListener('click', () => {
 // ───────────────────────────────────────────────
 document.getElementById('intro-enter-btn').addEventListener('click', () => {
     uiSound.enter();
-    gsap.to('#intro-overlay', {
+    const introOverlay = document.getElementById('intro-overlay');
+    if (introOverlay) introOverlay.style.pointerEvents = 'none'; // Immediately stop blocking clicks
+    gsap.to(introOverlay, {
         opacity: 0, duration: 0.4,
         onComplete: () => {
-            const introOverlay = document.getElementById('intro-overlay');
             if (introOverlay) introOverlay.style.display = 'none';
         }
     });
