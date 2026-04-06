@@ -34,6 +34,16 @@
         inset -1px -1px 0 rgba(138, 156, 181, 0.06);
 
     --glow-accent: 0 0 12px rgba(125, 133, 180, 0.25);
+
+    /* ── Viewport-scaled layout tokens (reference: 2560×1600) ──
+       Heights scale with vh (ref = 1600px), widths with vw (ref = 2560px).
+       min() caps the value so it never exceeds the original design size.     */
+    --h-header:   min(126px, 7.875vh);      /* 126/1600 */
+    --h-footer:   min(259px, 16.1875vh);    /* 259/1600 */
+    --h-worldnav: min(92px,  5.75vh);       /* 92/1600  */
+    --w-divider:  min(64px,  2.5vw);        /* 64/2560  */
+    --w-charbtn:  min(78px,  3.046875vw);   /* 78/2560  */
+    --w-worldbtn: min(152px, 5.9375vw);     /* 152/2560 */
 }
 
 
@@ -329,8 +339,8 @@ button {
         "char    divider canvas"
         "char    divider worlds"
         "footer  footer  footer";
-    grid-template-columns: 29.75% 64px 1fr;
-    grid-template-rows: 126px 1fr auto 259px;
+    grid-template-columns: 29.75% var(--w-divider) 1fr;
+    grid-template-rows: var(--h-header) 1fr auto var(--h-footer);
 }
 
 #ui-shell.visible {
@@ -353,12 +363,6 @@ button {
     }
 }
 
-@media (max-width: 1024px) {
-    #hud-footer {
-        height: 100px;
-    }
-}
-
 @media (max-width: 768px) {
     #vertical-divider {
         display: none;
@@ -369,42 +373,6 @@ button {
             "header"
             "canvas"
             "worlds"
-            "footer";
-        grid-template-rows: 60px 1fr auto 160px;
-    }
-    #hud-footer {
-        height: 160px;
-        gap: 2px;
-        padding: 2px;
-    }
-}
-
-@media (max-width: 480px) {
-    .image-panel:nth-child(4),
-    .image-panel:nth-child(5) {
-        display: none;
-    }
-    .image-panel {
-        flex: 1;
-    }
-}
-
-@media (max-width: 1024px) {
-    #hud-footer {
-        height: 130px;
-    }
-}
-
-@media (max-width: 768px) {
-    #vertical-divider {
-        display: none;
-    }
-    #ui-shell {
-        grid-template-columns: 1fr;
-        grid-template-areas:
-            "header"
-            "canvas"
-            "nav"
             "footer";
         grid-template-rows: 60px 1fr auto 160px;
     }
@@ -447,7 +415,7 @@ button {
 }
 
 #hud-header {
-    height: 126px;
+    height: var(--h-header);
     grid-area: header;
     border-bottom: 2px solid #2d2d4a;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
@@ -455,7 +423,7 @@ button {
 }
 
 #hud-footer {
-    height: 259px;
+    height: var(--h-footer);
     grid-area: footer;
     border-top: 2px solid #2d2d4a;
     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.5);
@@ -484,7 +452,7 @@ button {
 }
 
 #header-logo {
-    width: calc(29.75% + 64px);
+    width: calc(29.75% + var(--w-divider));
     flex-shrink: 0;
     position: relative;
     overflow: hidden;
@@ -871,7 +839,7 @@ button {
 #character-panel {
     grid-area: char;
     display: grid;
-    grid-template-columns: 78px 1fr;
+    grid-template-columns: var(--w-charbtn) 1fr;
     gap: 6px;
     padding: 8px;
     background-image: url('assets/tex/B1.png');
@@ -889,7 +857,7 @@ button {
     flex-direction: column;
     justify-content: space-evenly;
     align-items: center;
-    width: 78px;
+    width: var(--w-charbtn);
     height: 100%;
     gap: 0;
     padding: 4px 0;
@@ -981,7 +949,7 @@ button {
    ════════════════════════════════════════════════ */
 #vertical-divider {
     grid-area: divider;
-    width: 64px;
+    width: var(--w-divider);
     height: 100%;
     overflow: hidden;
     position: relative;
@@ -1130,14 +1098,14 @@ button {
     border-top: 1px solid var(--color-border);
     pointer-events: auto;
     gap: 2px;
-    min-height: 92px;
+    min-height: var(--h-worldnav);
 }
 
 .world-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 152px;
+    width: var(--w-worldbtn);
     height: calc(100% - 8px);
     padding: 0;
     border-radius: 2px;
@@ -1229,7 +1197,7 @@ button {
 }
 
 #footer-top-left {
-    width: calc(29.75% + 64px);
+    width: calc(29.75% + var(--w-divider));
     flex-shrink: 0;
     position: relative;
     overflow: hidden;
