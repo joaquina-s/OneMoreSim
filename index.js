@@ -176,6 +176,10 @@ function enterExperience() {
                     b.classList.toggle('active', b.dataset.texture === '0');
                 });
                 initParallaxMap();
+
+                // Show world-00 overlay (we start at world 0)
+                const ov = document.getElementById('world-00-overlay');
+                if (ov) ov.classList.add('visible');
             });
         }
     });
@@ -212,7 +216,7 @@ document.getElementById('intro-enter-btn').addEventListener('click', () => {
 const WORLD_DATA = {
     '0': {
         title: 'HUEVO',
-        desc: 'Origen inmersivo 00. Huevo central proyectando rayos de luz.',
+        desc: 'Here is where the sea was. now just different memories scattered and an egg keeping systems together',
         accent: '#8899cc',
         iconSvg: `<path d="M16 26 C8 24 8 16 16 6 C24 16 24 24 16 26 Z" fill="none" stroke="currentColor" stroke-width="2"/>
                   <circle cx="16" cy="18" r="3" fill="currentColor"/>`
@@ -561,6 +565,10 @@ document.querySelectorAll('.world-btn').forEach(btn => {
         worldManager.activate(btn.dataset.world);
         updateWorldInfo(btn.dataset.world);
         updateParallaxMap(parseInt(btn.dataset.world, 10));
+
+        // Show world-00 overlay only on world 0
+        const ov = document.getElementById('world-00-overlay');
+        if (ov) ov.classList.toggle('visible', btn.dataset.world === '0');
 
         // Update active class and images
         document.querySelectorAll('.world-btn').forEach(b => b.classList.remove('active'));
