@@ -205,6 +205,113 @@ button {
 
 
 /* ════════════════════════════════════════════════
+   INTRO WELCOME OVERLAY
+   ════════════════════════════════════════════════ */
+
+#intro-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+#intro-blur-bg {
+    position: absolute;
+    inset: 0;
+    backdrop-filter: blur(14px) brightness(0.7);
+    -webkit-backdrop-filter: blur(14px) brightness(0.7);
+    background: rgba(0, 4, 18, 0.45);
+    z-index: 0;
+}
+
+#intro-godrays {
+    position: absolute;
+    /* extend past edges so rotation doesn't show corners */
+    inset: -60%;
+    width: 220%;
+    height: 220%;
+    background: repeating-conic-gradient(
+        rgba(190, 215, 255, 0.045) 0deg,
+        transparent 6deg,
+        transparent 20deg,
+        rgba(190, 215, 255, 0.028) 26deg,
+        transparent 32deg,
+        transparent 46deg,
+        rgba(190, 215, 255, 0.02) 52deg,
+        transparent 58deg
+    );
+    filter: blur(6px);
+    animation: raysRotate 40s linear infinite;
+    z-index: 1;
+    pointer-events: none;
+}
+
+@keyframes raysRotate {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+#intro-center-glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+        ellipse 60% 55% at 50% 50%,
+        rgba(160, 200, 255, 0.18) 0%,
+        rgba(80,  130, 255, 0.08) 35%,
+        transparent 70%
+    );
+    z-index: 2;
+    pointer-events: none;
+}
+
+#intro-content {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+}
+
+#intro-welcome-img {
+    display: block;
+    max-width: min(680px, 80vw);
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 0 24px rgba(180, 210, 255, 0.55))
+            drop-shadow(0 0 64px rgba(140, 180, 255, 0.25));
+}
+
+#intro-enter-btn {
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: enterGlowPulse 1.8s ease-in-out infinite;
+}
+
+#intro-enter-btn img {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 320px;
+    max-height: 120px;
+    object-fit: contain;
+    pointer-events: none;
+}
+
+#intro-enter-btn:hover {
+    animation: enterGlowPulseHover 0.6s ease-in-out infinite;
+}
+
+/* ════════════════════════════════════════════════
    UI SHELL — CSS GRID
    ════════════════════════════════════════════════ */
 

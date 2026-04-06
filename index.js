@@ -99,21 +99,14 @@ if (landingVideo) {
 // Transition: Landing → Carousel (ENTRAR button)
 // ───────────────────────────────────────────────
 
-document.getElementById('enter-button-img').addEventListener('click', () => {
-    uiSound.enter();
-
-    // Fade out del landing-ui
-    gsap.to('#landing-ui', { opacity: 0, duration: 0.5 });
-
-    // Fade out del video y overlay
-    gsap.to('#landing-video', { opacity: 0, duration: 0.8, delay: 0.3 });
-    gsap.to('#landing-overlay', { opacity: 0, duration: 0.8, delay: 0.3 });
-
+// ───────────────────────────────────────────────
+// Enter the main experience (called from intro screen)
+// ───────────────────────────────────────────────
+function enterExperience() {
     // Fade out del container completo
     gsap.to('#landing-container', {
         opacity: 0,
         duration: 0.8,
-        delay: 0.3,
         onComplete: () => {
             // Ocultar landing
             document.getElementById('landing-container').style.display = 'none';
@@ -186,6 +179,30 @@ document.getElementById('enter-button-img').addEventListener('click', () => {
             });
         }
     });
+}
+
+// ───────────────────────────────────────────────
+// First ENTRAR: show intro welcome screen
+// ───────────────────────────────────────────────
+document.getElementById('enter-button-img').addEventListener('click', () => {
+    uiSound.enter();
+
+    // Fade out landing UI
+    gsap.to('#landing-ui', { opacity: 0, duration: 0.5 });
+
+    // Show intro overlay
+    const introOverlay = document.getElementById('intro-overlay');
+    introOverlay.style.display = 'flex';
+    introOverlay.style.opacity = '0';
+    gsap.to(introOverlay, { opacity: 1, duration: 0.8, delay: 0.3 });
+});
+
+// ───────────────────────────────────────────────
+// Second ENTRAR: enter the experience
+// ───────────────────────────────────────────────
+document.getElementById('intro-enter-btn').addEventListener('click', () => {
+    uiSound.enter();
+    gsap.to('#intro-overlay', { opacity: 0, duration: 0.4, onComplete: enterExperience });
 });
 
 // ───────────────────────────────────────────────
