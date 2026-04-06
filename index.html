@@ -222,35 +222,35 @@
 
         <!-- WORLD NAV -->
         <nav id="world-nav">
-            <button class="world-btn active" data-world="0">
-                <img src="assets/tex/Buttons/worldBH1.png" alt="HUEVO" class="world-btn-img" />
+            <button class="world-btn active" data-world="0" data-btn="1">
+                <img src="assets/tex/Buttons/worldBH1.png" alt="01Core_Unit" class="world-btn-img" />
             </button>
-            <button class="world-btn" data-world="1">
-                <img src="assets/tex/Buttons/worldB2.png" alt="BUBBLES" class="world-btn-img" />
+            <button class="world-btn" data-world="7" data-btn="2">
+                <img src="assets/tex/Buttons/worldB2.png" alt="02Ambient_Human_presence" class="world-btn-img" />
             </button>
-            <button class="world-btn" data-world="2">
-                <img src="assets/tex/Buttons/worldB3.png" alt="TEATRO" class="world-btn-img" />
+            <button class="world-btn" data-world="2" data-btn="3">
+                <img src="assets/tex/Buttons/worldB3.png" alt="03Presentation_Club" class="world-btn-img" />
             </button>
-            <button class="world-btn" data-world="3">
-                <img src="assets/tex/Buttons/worldB4.png" alt="PROCESIÓN" class="world-btn-img" />
+            <button class="world-btn" data-world="9" data-btn="4">
+                <img src="assets/tex/Buttons/worldB4.png" alt="04Inner_World" class="world-btn-img" />
             </button>
-            <button class="world-btn" data-world="4">
-                <img src="assets/tex/Buttons/worldB5.png" alt="BAÑERA" class="world-btn-img" />
+            <button class="world-btn" data-world="6" data-btn="5">
+                <img src="assets/tex/Buttons/worldB5.png" alt="05Aqua_Race" class="world-btn-img" />
             </button>
-            <button class="world-btn" data-world="5">
-                <img src="assets/tex/Buttons/worldB6.png" alt="NETWORK" class="world-btn-img" />
+            <button class="world-btn" data-world="3" data-btn="6">
+                <img src="assets/tex/Buttons/worldB6.png" alt="06Super_Me_Era" class="world-btn-img" />
             </button>
-            <button class="world-btn" data-world="6">
-                <img src="assets/tex/Buttons/worldB7.png" alt="TRANSFORM" class="world-btn-img" />
+            <button class="world-btn" data-world="5" data-btn="7">
+                <img src="assets/tex/Buttons/worldB7.png" alt="07" class="world-btn-img" />
             </button>
-            <button class="world-btn" data-world="7">
-                <img src="assets/tex/Buttons/worldB8.png" alt="BLOOM" class="world-btn-img" />
+            <button class="world-btn" data-world="4" data-btn="8">
+                <img src="assets/tex/Buttons/worldB8.png" alt="08Fetal_Situation" class="world-btn-img" />
             </button>
-            <button class="world-btn" data-world="8">
-                <img src="assets/tex/Buttons/worldB9.png" alt="GOD RAYS" class="world-btn-img" />
+            <button class="world-btn" data-world="1" data-btn="9">
+                <img src="assets/tex/Buttons/worldB9.png" alt="09Bubblepicking" class="world-btn-img" />
             </button>
-            <button class="world-btn" data-world="9">
-                <img src="assets/tex/Buttons/worldB10.png" alt="LAYER" class="world-btn-img" />
+            <button class="world-btn" data-world="8" data-btn="10">
+                <img src="assets/tex/Buttons/worldB10.png" alt="10" class="world-btn-img" />
             </button>
         </nav>
 
@@ -270,9 +270,7 @@
                     </div>
                     <div class="world-info-text">
                         <div class="world-info-title" id="world-info-title">CAROUSEL</div>
-                        <div class="world-info-desc" id="world-info-desc">
-                            Explora cuatro habitaciones interactivas con simulaciones atmosféricas únicas.
-                        </div>
+                        <span class="world-info-desc" id="world-info-desc"></span><span id="world-text-cursor">█</span>
                     </div>
                 </div>
             </div>
@@ -291,8 +289,10 @@
                     <img src="assets/panel-02.png" alt="Panel 2" class="panel-img" />
                     <div class="panel-border-overlay"></div>
                 </div>
-                <div class="image-panel" id="img-panel-2">
-                    <img src="assets/panel-03.png" alt="Panel 3" class="panel-img" />
+                <div class="image-panel" id="world-tracker-panel">
+                    <div id="world-track-viewport">
+                        <div id="world-track-list"></div>
+                    </div>
                     <div class="panel-border-overlay"></div>
                 </div>
                 <div class="image-panel" id="img-panel-3">

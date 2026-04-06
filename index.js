@@ -180,6 +180,10 @@ function enterExperience() {
                 // Show world-00 overlay (we start at world 0)
                 const ov = document.getElementById('world-00-overlay');
                 if (ov) ov.classList.add('visible');
+
+                // Init world tracker playlist panel
+                initWorldTracker();
+                updateWorldTracker('0');
             });
         }
     });
@@ -215,14 +219,14 @@ document.getElementById('intro-enter-btn').addEventListener('click', () => {
 
 const WORLD_DATA = {
     '0': {
-        title: 'HUEVO',
+        title: '01Core_Unit',
         desc: 'Here is where the sea was. now just different memories scattered and an egg keeping systems together',
         accent: '#8899cc',
         iconSvg: `<path d="M16 26 C8 24 8 16 16 6 C24 16 24 24 16 26 Z" fill="none" stroke="currentColor" stroke-width="2"/>
                   <circle cx="16" cy="18" r="3" fill="currentColor"/>`
     },
     '1': {
-        title: 'BUBBLEPICKING',
+        title: '09Bubblepicking',
         desc: 'The story that went round and round went back to its beginning.',
         accent: '#88ccff',
         iconSvg: `<circle cx="16" cy="16" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
@@ -230,7 +234,7 @@ const WORLD_DATA = {
               <circle cx="16" cy="10" r="2" fill="currentColor" opacity="0.6"/>`
     },
     '2': {
-        title: 'TEATRO',
+        title: '03Presentation_Club',
         desc: 'I feel bad for anybody that has to be around us because we only talk to each other.',
         accent: '#8899cc',
         iconSvg: `<rect x="8" y="10" width="32" height="18" fill="none" stroke="currentColor" stroke-width="2"/>
@@ -239,7 +243,7 @@ const WORLD_DATA = {
                   <line x1="8" y1="36" x2="40" y2="36" stroke="currentColor" stroke-width="2"/>`
     },
     '3': {
-        title: 'PROCESIÓN',
+        title: '06Super_Me_Era',
         desc: 'I just love transitional spaces. It feels like everyone has something to say in here.',
         accent: '#8899cc',
         iconSvg: `<circle cx="12" cy="24" r="3" fill="currentColor"/>
@@ -252,7 +256,7 @@ const WORLD_DATA = {
                   <circle cx="36" cy="16" r="3" fill="currentColor" opacity="0.5"/>`
     },
     '4': {
-        title: 'BAÑERA',
+        title: '08Fetal_Situation',
         desc: 'Warm water made us spill words into the tub and now they\'re just floating there, all tangled up.',
         accent: '#88ccff',
         iconSvg: `<rect x="6" y="22" width="36" height="14" rx="7"
@@ -267,7 +271,7 @@ const WORLD_DATA = {
                     stroke="currentColor" stroke-width="2"/>`
     },
     '5': {
-        title: 'NETWORK',
+        title: '07',
         desc: 'Red neuronal animada con nodos y conexiones que se escriben progresivamente en tiempo real.',
         accent: '#8899cc',
         iconSvg: `<circle cx="12" cy="12" r="3" fill="currentColor"/>
@@ -278,14 +282,14 @@ const WORLD_DATA = {
               <line x1="36" y1="12" x2="24" y2="36" stroke="currentColor" stroke-width="1.5"/>`
     },
     '6': {
-        title: 'CHASE',
+        title: '05Aqua_Race',
         desc: 'She\'s blurred, a smooth presence you\'d chase forever.',
         accent: '#ffffff',
         iconSvg: `<path d="M12 24 L36 24 M24 12 L36 24 L24 36" fill="none" stroke="currentColor" stroke-width="2"/>
               <circle cx="12" cy="24" r="3" fill="currentColor"/>`
     },
     '7': {
-        title: 'GRID',
+        title: '02Ambient_Human_presence',
         desc: 'Whenever I remember something, it\'s always a little different. It comes with this residual aura.',
         accent: '#ffffff',
         iconSvg: `<rect x="8" y="8" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"/>
@@ -293,7 +297,7 @@ const WORLD_DATA = {
                   <rect x="8" y="26" width="32" height="14" fill="none" stroke="currentColor" stroke-width="2"/>`
     },
     '8': {
-        title: 'GOD RAYS',
+        title: '10',
         desc: 'Rayos de luz volumétrica con MorphTargets. Geometrías que se transforman entre formas en tiempo real.',
         accent: '#ff8800',
         iconSvg: `<circle cx="24" cy="24" r="5" fill="currentColor"/>
@@ -307,7 +311,7 @@ const WORLD_DATA = {
               <line x1="10" y1="10" x2="17" y2="17" stroke="currentColor" stroke-width="2"/>`
     },
     '9': {
-        title: 'LAYER',
+        title: '04Inner_World',
         desc: '(( hey image, you look trapped there))',
         accent: '#8899cc',
         iconSvg: `<rect x="4" y="20" width="24" height="4" rx="1"
@@ -319,40 +323,70 @@ const WORLD_DATA = {
     }
 };
 
+// ── Typewriter with variable speed (handwriting feel) ──
+let _typeTimer = null;
+function typeWorldDesc(text) {
+    const el = document.getElementById('world-info-desc');
+    const cursor = document.getElementById('world-text-cursor');
+    if (!el) return;
+    if (_typeTimer) clearTimeout(_typeTimer);
+    el.textContent = '';
+    if (cursor) cursor.style.opacity = '1';
+    let i = 0;
+    function next() {
+        if (i < text.length) {
+            el.textContent += text[i++];
+            const ch = text[i - 1];
+            // Pause after punctuation; vary base speed 50–170ms
+            const base = 50 + Math.random() * 120;
+            const pause = /[.,!?)]/.test(ch) ? base + 250 + Math.random() * 350 : base;
+            _typeTimer = setTimeout(next, pause);
+        }
+    }
+    next();
+}
+
 function updateWorldInfo(worldId) {
     const data = WORLD_DATA[worldId] || WORLD_DATA['0'];
-
-    // Update CSS variable
     document.documentElement.style.setProperty('--world-accent', data.accent);
-
-    // Update icon
-    const iconContainer = document.getElementById('world-icon-svg');
-    if (iconContainer) iconContainer.innerHTML = data.iconSvg;
-
-    // Update title with fade
-    const titleEl = document.getElementById('world-info-title');
-    if (titleEl) {
-        titleEl.style.opacity = '0';
-        setTimeout(() => {
-            titleEl.textContent = data.title;
-            titleEl.style.transition = 'opacity 300ms';
-            titleEl.style.opacity = '1';
-        }, 150);
-    }
-
-    // Update description with typing effect
-    const descEl = document.getElementById('world-info-desc');
-    if (descEl) {
-        descEl.style.animation = 'none';
-        descEl.textContent = data.desc;
-        // force reflow
-        void descEl.offsetHeight;
-        descEl.style.animation = 'typing 0.8s steps(60) forwards';
-    }
-
-    // Update footer
     const footerWorldId = document.getElementById('footer-world-id');
     if (footerWorldId) footerWorldId.textContent = String(worldId).padStart(2, '0');
+    typeWorldDesc(data.desc);
+    updateWorldTracker(worldId);
+}
+
+// ── World Tracker (car-stereo playlist panel) ──
+const WORLD_ORDER = ['0','7','2','9','6','3','5','4','1','8'];
+const WORLD_DISPLAY_NAMES = {
+    '0': '01  Core_Unit',
+    '7': '02  Ambient_Human_presence',
+    '2': '03  Presentation_Club',
+    '9': '04  Inner_World',
+    '6': '05  Aqua_Race',
+    '3': '06  Super_Me_Era',
+    '5': '07',
+    '4': '08  Fetal_Situation',
+    '1': '09  Bubblepicking',
+    '8': '10'
+};
+const TRACK_ITEM_H = 26; // px — must match CSS
+
+function initWorldTracker() {
+    const list = document.getElementById('world-track-list');
+    if (!list) return;
+    list.innerHTML = WORLD_ORDER.map(id =>
+        `<div class="track-item" data-world-track="${id}">${WORLD_DISPLAY_NAMES[id]}</div>`
+    ).join('');
+}
+
+function updateWorldTracker(worldId) {
+    const list = document.getElementById('world-track-list');
+    if (!list) return;
+    list.querySelectorAll('.track-item').forEach(item =>
+        item.classList.toggle('active', item.dataset.worldTrack === worldId)
+    );
+    const idx = WORLD_ORDER.indexOf(worldId);
+    list.style.transform = `translateY(-${idx * TRACK_ITEM_H}px)`;
 }
 
 // ───────────────────────────────────────────────
@@ -537,23 +571,19 @@ function fadeOutWorldTexts() {
 // World Button PNG Hover + Active Image Swap
 // ───────────────────────────────────────────────
 
-// Map data-world index to file number (0→1, 1→2 ... 9→10)
-function worldBtnNormalSrc(worldIdx) {
-    return `assets/tex/Buttons/worldB${Number(worldIdx) + 1}.png`;
+// Use data-btn (visual position 1-10) for image file, not data-world
+function worldBtnNormalSrc(btn) {
+    return `assets/tex/Buttons/worldB${btn.dataset.btn}.png`;
 }
-function worldBtnHoverSrc(worldIdx) {
-    return `assets/tex/Buttons/worldBH${Number(worldIdx) + 1}.png`;
+function worldBtnHoverSrc(btn) {
+    return `assets/tex/Buttons/worldBH${btn.dataset.btn}.png`;
 }
 
 function updateWorldBtnImages() {
     document.querySelectorAll('.world-btn').forEach(b => {
         const img = b.querySelector('.world-btn-img');
         if (!img) return;
-        if (b.classList.contains('active')) {
-            img.src = worldBtnHoverSrc(b.dataset.world);
-        } else {
-            img.src = worldBtnNormalSrc(b.dataset.world);
-        }
+        img.src = b.classList.contains('active') ? worldBtnHoverSrc(b) : worldBtnNormalSrc(b);
     });
 }
 
@@ -583,7 +613,7 @@ document.querySelectorAll('.world-btn').forEach(btn => {
         worldManager.preload(btn.dataset.world);
         // Swap to hover image
         const img = btn.querySelector('.world-btn-img');
-        if (img) img.src = worldBtnHoverSrc(btn.dataset.world);
+        if (img) img.src = worldBtnHoverSrc(btn);
     }, 50));
 
     btn.addEventListener('mouseleave', () => {
@@ -591,7 +621,7 @@ document.querySelectorAll('.world-btn').forEach(btn => {
         // Swap back to normal if not active
         if (!btn.classList.contains('active')) {
             const img = btn.querySelector('.world-btn-img');
-            if (img) img.src = worldBtnNormalSrc(btn.dataset.world);
+            if (img) img.src = worldBtnNormalSrc(btn);
         }
     });
 
