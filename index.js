@@ -184,33 +184,46 @@ function enterExperience() {
                 // Init world tracker playlist panel
                 initWorldTracker();
                 updateWorldTracker('0');
+
+                // Now show the welcome intro overlay ON TOP of the main UI
+                const introOverlay = document.getElementById('intro-overlay');
+                if (introOverlay) {
+                    introOverlay.style.display = 'flex';
+                    introOverlay.style.opacity = '0';
+                    gsap.to(introOverlay, { opacity: 1, duration: 0.8, delay: 0.2 });
+                }
+
+                // Background-preload all other worlds so switching is instant
+                const preloadIds = ['7','2','9','6','3','5','4','1','8'];
+                preloadIds.forEach((id, i) => {
+                    setTimeout(() => worldManager.preload(id), 800 + i * 400);
+                });
             });
         }
     });
 }
 
 // ───────────────────────────────────────────────
-// First ENTRAR: show intro welcome screen
+// First ENTRAR: fade landing and enter the experience
+// (welcome overlay appears on top of ui-shell after world 0 loads)
 // ───────────────────────────────────────────────
 document.getElementById('enter-button-img').addEventListener('click', () => {
     uiSound.enter();
-
-    // Fade out landing UI
-    gsap.to('#landing-ui', { opacity: 0, duration: 0.5 });
-
-    // Show intro overlay
-    const introOverlay = document.getElementById('intro-overlay');
-    introOverlay.style.display = 'flex';
-    introOverlay.style.opacity = '0';
-    gsap.to(introOverlay, { opacity: 1, duration: 0.8, delay: 0.3 });
+    enterExperience();
 });
 
 // ───────────────────────────────────────────────
-// Second ENTRAR: enter the experience
+// Second ENTRAR (on welcome overlay): dismiss it
 // ───────────────────────────────────────────────
 document.getElementById('intro-enter-btn').addEventListener('click', () => {
     uiSound.enter();
-    gsap.to('#intro-overlay', { opacity: 0, duration: 0.4, onComplete: enterExperience });
+    gsap.to('#intro-overlay', {
+        opacity: 0, duration: 0.4,
+        onComplete: () => {
+            const introOverlay = document.getElementById('intro-overlay');
+            if (introOverlay) introOverlay.style.display = 'none';
+        }
+    });
 });
 
 // ───────────────────────────────────────────────
@@ -617,44 +630,49 @@ function updateWorldBtnImages() {
 }
 
 document.querySelectorAll('.world-btn').forEach(btn => {
+    // Debounced preload — only the expensive operation needs debouncing
+    const debouncedPreload = debounce(() => worldManager.preload(btn.dataset.world), 60);
+
     // Click → activate
     btn.addEventListener('click', () => {
-        fadeOutWorldTexts(); // Start fading text overlays on transition
+        fadeOutWorldTexts();
         uiSound.switchWorld();
-        worldManager.activate(btn.dataset.world);
+
+        // Set active state immediately for instant visual feedback
+        document.querySelectorAll('.world-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateWorldBtnImages();
+
+        // Activate world; sync images again once worldManager finishes
+        // (handles case where a previous transition was in-flight)
+        worldManager.activate(btn.dataset.world).then(updateWorldBtnImages);
         updateWorldInfo(btn.dataset.world);
         updateParallaxMap(parseInt(btn.dataset.world, 10));
 
-        // Show world-00 overlay only on world 0
+        // World-specific overlays
         const ov = document.getElementById('world-00-overlay');
         if (ov) ov.classList.toggle('visible', btn.dataset.world === '0');
 
-        // Show world-03 charBW overlay only on world 3
         if (btn.dataset.world === '3') {
             showWorld03Overlay();
         } else {
             hideWorld03Overlay();
         }
-
-        // Update active class and images
-        document.querySelectorAll('.world-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        updateWorldBtnImages();
     });
 
-    // Desktop: preload on hover + swap image (debounced)
-    btn.addEventListener('mouseenter', debounce(() => {
+    // Desktop hover — image swap is immediate (no debounce) to avoid stale timer
+    btn.addEventListener('mouseenter', () => {
         uiSound.hover();
         if (cursor) cursor.classList.add('hover');
-        worldManager.preload(btn.dataset.world);
-        // Swap to hover image
-        const img = btn.querySelector('.world-btn-img');
-        if (img) img.src = worldBtnHoverSrc(btn);
-    }, 50));
+        if (!btn.classList.contains('active')) {
+            const img = btn.querySelector('.world-btn-img');
+            if (img) img.src = worldBtnHoverSrc(btn);
+        }
+        debouncedPreload();
+    });
 
     btn.addEventListener('mouseleave', () => {
         if (cursor) cursor.classList.remove('hover');
-        // Swap back to normal if not active
         if (!btn.classList.contains('active')) {
             const img = btn.querySelector('.world-btn-img');
             if (img) img.src = worldBtnNormalSrc(btn);
