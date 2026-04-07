@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>One More Sim</title>
-    <link rel="stylesheet" href="style.css?v=7">
+    <link rel="stylesheet" href="style.css?v=8">
     <link
         href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@100;200;300;400;700&display=swap"
         rel="stylesheet">
@@ -257,7 +257,7 @@
                     </div>
                     <div class="world-info-text">
                         <div class="world-info-title" id="world-info-title">CAROUSEL</div>
-                        <span class="world-info-desc" id="world-info-desc"></span><span id="world-text-cursor">█</span>
+                        <span class="world-info-desc-wrap"><span class="world-info-desc" id="world-info-desc"></span><span id="world-text-cursor">█</span></span>
                     </div>
                 </div>
             </div>
@@ -332,7 +332,10 @@
         <div id="intro-center-glow"></div>
         <div id="intro-content">
             <img src="assets/UIText/welcome.png" id="intro-welcome-img" alt="Welcome"/>
-            <button id="intro-enter-btn">
+            <div id="intro-loading-bar-wrap">
+                <div id="intro-loading-bar"></div>
+            </div>
+            <button id="intro-enter-btn" style="display:none;">
                 <img src="assets/buttonEnter.png" alt="Enter"/>
             </button>
         </div>
@@ -381,7 +384,7 @@
         </div>
     </div>
 
-    <script type="module" src="index.js?v=8"></script>
+    <script type="module" src="index.js?v=9"></script>
 </body>
 
 </html>
