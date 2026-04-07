@@ -1969,17 +1969,19 @@ button {
     gap: 0;
 }
 
-/* ── Beat indicator bars ── */
+/* ── Beat indicator bars (vertical stack) ── */
 #beat-indicators {
     display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    gap: 3px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
     padding-right: 6px;
+    width: var(--w-charbtn);
+    flex-shrink: 0;
 }
 
 .beat-bar {
-    width: var(--w-charbtn);
+    flex: 1;
     background: rgba(10, 14, 30, 0.6);
     border: 1px solid rgba(40, 50, 90, 0.5);
     border-radius: 2px;
@@ -1995,11 +1997,11 @@ button {
         inset 0 0 6px rgba(80, 160, 255, 0.5);
 }
 
-/* ── Layer toggle buttons ── */
+/* ── Layer toggle buttons (same size as left-panel texture btns) ── */
 #layer-toggles {
     display: flex;
     flex-direction: row;
-    align-items: stretch;
+    align-items: center;
     gap: 0;
 }
 
@@ -2012,12 +2014,15 @@ button {
     background: none;
     border: none;
     cursor: pointer;
-    height: 100%;
+    width: var(--w-charbtn);
+    height: var(--w-charbtn);
+    flex-shrink: 0;
 }
 
 .layer-toggle-btn img {
+    width: 100%;
     height: 100%;
-    width: auto;
+    object-fit: contain;
     display: block;
 }
 
