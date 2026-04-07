@@ -11,6 +11,7 @@ import { bubblepicking } from './scenes/bubblepicking.js?v=2';
 import { createPlaceholder } from './worlds/world-placeholder.js';
 import { uiSound } from './audio/uiSounds.js';
 import Spectrogram from './audio/Spectrogram.js';
+import LayeredMusic from './audio/LayeredMusic.js';
 
 // ───────────────────────────────────────────────
 // Input State — shared across all modules
@@ -860,227 +861,66 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // ───────────────────────────────────────────────
-// Audio Spectrogram Initialization
+// Layered Music System + Spectrogram
 // ───────────────────────────────────────────────
-const spectrogramContainer = document.getElementById('spectrogram-container');
-if (spectrogramContainer) {
-    const spectrogram = new Spectrogram(spectrogramContainer);
-    spectrogram.init('assets/main-track-ALL.mp3');
-}
+const layeredMusic = new LayeredMusic();
 
-class Minesweeper {
-    constructor(gridEl, counterEl, timerEl, statusEl, resetBtn) {
-        this.ROWS  = 6
-        this.COLS  = 6
-        this.MINES = 5
+// Init music on first user click (autoplay policy)
+let _musicInited = false;
+async function ensureMusicInit() {
+    if (_musicInited) return;
+    _musicInited = true;
+    try {
+        await layeredMusic.init(120); // BPM of the nostalgia tracks
+        layeredMusic.play();
 
-        this.gridEl    = gridEl
-        this.counterEl = counterEl
-        this.timerEl   = timerEl
-        this.statusEl  = statusEl
-        this.resetBtn  = resetBtn
-
-        this.board      = []
-        this.gameOver   = false
-        this.gameWon    = false
-        this.firstClick = true
-        this.timerVal   = 0
-        this.timerInt   = null
-        this.flagCount  = 0
-
-        this.resetBtn.addEventListener('click', () => this.init())
-        this.init()
-    }
-
-    init() {
-        clearInterval(this.timerInt)
-        this.gameOver   = false
-        this.gameWon    = false
-        this.firstClick = true
-        this.timerVal   = 0
-        this.flagCount  = 0
-        this.timerEl.textContent   = '0'
-        this.counterEl.textContent = this.MINES
-        this.statusEl.textContent  = ''
-
-        this.board = []
-        for (let r = 0; r < this.ROWS; r++) {
-            this.board[r] = []
-            for (let c = 0; c < this.COLS; c++) {
-                this.board[r][c] = { mine: false, revealed: false, flagged: false, adj: 0 }
-            }
+        // Multi-layer coloured spectrogram (one colour per layer)
+        const spectrogramContainer = document.getElementById('spectrogram-container');
+        if (spectrogramContainer) {
+            const layerAnalysers = layeredMusic.getLayerAnalysers();
+            const layerColors = {
+                principal: [40,  50,  120],  // deep indigo (base)
+                synth:     [125, 133, 180],  // steel-violet  (#7d85b4)
+                bass:      [45,  47,  96],   // dark violet   (#2d2f60)
+                perc:      [136, 153, 204],  // muted blue    (#8899cc)
+                voice:     [136, 204, 255],  // bright cyan   (#88ccff)
+            };
+            const spectrogram = new Spectrogram(spectrogramContainer);
+            spectrogram.initMultiLayer(layerAnalysers, layerColors);
         }
 
-        this._render()
-    }
+        // Beat indicator bars
+        layeredMusic.onBeat((beatIdx) => {
+            document.querySelectorAll('.beat-bar').forEach((bar, i) => {
+                bar.classList.toggle('active', i === beatIdx);
+            });
+        });
 
-    _placeMines(safeRow, safeCol) {
-        let placed = 0
-        while (placed < this.MINES) {
-            const r = Math.floor(Math.random() * this.ROWS)
-            const c = Math.floor(Math.random() * this.COLS)
-            const isSafe = Math.abs(r - safeRow) <= 1 && Math.abs(c - safeCol) <= 1
-            if (!this.board[r][c].mine && !isSafe) {
-                this.board[r][c].mine = true
-                placed++
-            }
+        // Volume slider
+        const volSlider = document.getElementById('volume-slider');
+        if (volSlider) {
+            volSlider.addEventListener('input', () => {
+                layeredMusic.setVolume(parseInt(volSlider.value, 10) / 100);
+            });
         }
-        for (let r = 0; r < this.ROWS; r++) {
-            for (let c = 0; c < this.COLS; c++) {
-                if (!this.board[r][c].mine) {
-                    this.board[r][c].adj = this._countAdj(r, c)
-                }
-            }
-        }
-    }
 
-    _countAdj(row, col) {
-        let count = 0
-        for (let dr = -1; dr <= 1; dr++) {
-            for (let dc = -1; dc <= 1; dc++) {
-                const r = row + dr, c = col + dc
-                if (r >= 0 && r < this.ROWS && c >= 0 && c < this.COLS) {
-                    if (this.board[r][c].mine) count++
-                }
-            }
-        }
-        return count
-    }
+        // Layer toggle buttons
+        document.querySelectorAll('.layer-toggle-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const layerKey = btn.dataset.layer;
+                const nowMuted = layeredMusic.toggleMute(layerKey);
+                btn.dataset.on = nowMuted ? 'false' : 'true';
+            });
+        });
 
-    _reveal(row, col) {
-        const cell = this.board[row][col]
-        if (cell.revealed || cell.flagged) return
-        cell.revealed = true
-        if (!cell.mine && cell.adj === 0) {
-            for (let dr = -1; dr <= 1; dr++) {
-                for (let dc = -1; dc <= 1; dc++) {
-                    const r = row + dr, c = col + dc
-                    if (r >= 0 && r < this.ROWS && c >= 0 && c < this.COLS) {
-                        this._reveal(r, c)
-                    }
-                }
-            }
-        }
-    }
-
-    _checkWin() {
-        for (let r = 0; r < this.ROWS; r++) {
-            for (let c = 0; c < this.COLS; c++) {
-                const cell = this.board[r][c]
-                if (!cell.mine && !cell.revealed) return false
-            }
-        }
-        return true
-    }
-
-    _startTimer() {
-        this.timerInt = setInterval(() => {
-            this.timerVal++
-            this.timerEl.textContent = this.timerVal
-        }, 1000)
-    }
-
-    _render() {
-        this.gridEl.innerHTML = ''
-
-        for (let r = 0; r < this.ROWS; r++) {
-            for (let c = 0; c < this.COLS; c++) {
-                const cell = this.board[r][c]
-                const el   = document.createElement('div')
-                el.className = 'ms-cell'
-
-                if (cell.revealed) {
-                    el.classList.add('ms-revealed')
-                    if (cell.mine) {
-                        el.classList.add('ms-mine-revealed')
-                        const img = document.createElement('img')
-                        img.src = 'assets/huwvv.png'
-                        img.alt = '🥚'
-                        el.appendChild(img)
-                    } else if (cell.adj > 0) {
-                        el.textContent = cell.adj
-                        el.classList.add(`ms-n${cell.adj}`)
-                    }
-                } else if (cell.flagged) {
-                    el.classList.add('ms-flagged')
-                    el.textContent = '♥'
-                    el.style.color  = '#cc2244'
-                    el.style.fontSize = '11px'
-                }
-
-                el.addEventListener('click', (e) => {
-                    e.stopPropagation()
-                    if (this.gameOver || this.gameWon) return
-                    if (cell.flagged) return
-
-                    if (this.firstClick) {
-                        this.firstClick = false
-                        this._placeMines(r, c)
-                        this._startTimer()
-                    }
-
-                    if (cell.mine) {
-                        this.gameOver = true
-                        clearInterval(this.timerInt)
-                        for (let rr = 0; rr < this.ROWS; rr++) {
-                            for (let cc = 0; cc < this.COLS; cc++) {
-                                if (this.board[rr][cc].mine) this.board[rr][cc].revealed = true
-                            }
-                        }
-                        this.statusEl.textContent = 'GAME OVER'
-                        this.statusEl.style.color = '#cc2244'
-                    } else {
-                        this._reveal(r, c)
-                        if (this._checkWin()) {
-                            this.gameWon = true
-                            clearInterval(this.timerInt)
-                            this.statusEl.textContent = 'YOU WIN ♥'
-                            this.statusEl.style.color = '#1a6a1a'
-                        }
-                    }
-                    this._render()
-                })
-
-                el.addEventListener('contextmenu', (e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    if (this.gameOver || this.gameWon || cell.revealed) return
-
-                    cell.flagged = !cell.flagged
-                    this.flagCount += cell.flagged ? 1 : -1
-                    this.counterEl.textContent = Math.max(0, this.MINES - this.flagCount)
-                    this._render()
-                })
-
-                this.gridEl.appendChild(el)
-            }
-        }
+    } catch (e) {
+        console.error('LayeredMusic init failed:', e);
+        _musicInited = false;
     }
 }
 
-function initMinesweepers() {
-    const leftGrid    = document.getElementById('ms-left-grid')
-    const leftCounter = document.getElementById('ms-left-counter')
-    const leftTimer   = document.getElementById('ms-left-timer')
-    const leftStatus  = document.getElementById('ms-left-status')
-    const leftReset   = document.getElementById('ms-left-reset')
-
-    if (leftGrid) {
-        window._msLeft = new Minesweeper(leftGrid, leftCounter, leftTimer, leftStatus, leftReset)
-    }
-
-    const rightGrid    = document.getElementById('ms-right-grid')
-    const rightCounter = document.getElementById('ms-right-counter')
-    const rightTimer   = document.getElementById('ms-right-timer')
-    const rightStatus  = document.getElementById('ms-right-status')
-    const rightReset   = document.getElementById('ms-right-reset')
-
-    if (rightGrid) {
-        window._msRight = new Minesweeper(rightGrid, rightCounter, rightTimer, rightStatus, rightReset)
-    }
-}
-
-initMinesweepers();
+// Trigger music init on first click anywhere
+document.addEventListener('click', ensureMusicInit, { once: true });
 
 loop();
 

@@ -1945,213 +1945,136 @@ button {
 }
 
 /* ══════════════════════════════════════════
-   BUSCAMINAS — estilo fiel a panel-01.png
-   Colores extraídos por pixel sampling
+   SOUND BAR — layered music controls
 ══════════════════════════════════════════ */
 
-/* Panel contenedor — marco exterior con relieve */
-.minesweeper-panel {
-  display: flex !important;
-  flex: 0 0 auto !important;
-  aspect-ratio: 1;
-  height: 100%;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
-  padding: 0;
-  gap: 0;
-  cursor: default;
-  overflow: hidden;
-  border-radius: 0;
-
-  /* Gradiente base extraído de panel-01 */
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E"),
-    linear-gradient(160deg,
-      #bac2f1 0%,
-      #8890c4 25%,
-      #666e9c 55%,
-      #3a3e6d 100%
-    );
-
-  box-shadow:
-    inset 2px 2px 0 rgba(255, 255, 255, 0.45),
-    inset 3px 3px 6px rgba(255, 255, 255, 0.15),
-    inset -2px -2px 0 rgba(20, 15, 50, 0.55),
-    inset -3px -3px 8px rgba(20, 15, 50, 0.3),
-    0 4px 12px rgba(80, 70, 140, 0.5),
-    0 2px 4px rgba(40, 30, 80, 0.6);
+/* Sound bar takes same width as spectrogram (footer-top-left) */
+#sound-bar {
+    flex: 0 0 calc(29.75% + var(--w-divider)) !important;
+    cursor: default;
+}
+#sound-bar:hover {
+    transform: none;
+    filter: none;
 }
 
-/* Header con contador, reset y timer */
-.ms-header {
-  display: flex;
-  width: 100%;
-  justify-content: space-between;
-  align-items: center;
-  padding: 2px 4px;
-  flex-shrink: 0;
+#sound-bar-controls {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    padding: 3px 6px;
+    gap: 0;
 }
 
-/* Contador de minas y timer — estilo display LCD */
-.ms-counter,
-.ms-timer {
-  font-family: 'Roboto Condensed', sans-serif;
-  font-size: 10px;
-  font-weight: bold;
-  color: #dae2ff;
-  background: linear-gradient(180deg, #2a2e50 0%, #1a1e3a 100%);
-  padding: 1px 5px;
-  border-radius: 2px;
-  min-width: 22px;
-  text-align: center;
-  letter-spacing: 1px;
-  box-shadow:
-    inset 1px 1px 0 rgba(0,0,0,0.5),
-    inset -1px -1px 0 rgba(255,255,255,0.08),
-    0 1px 3px rgba(0,0,0,0.4);
+/* ── Beat indicator bars ── */
+#beat-indicators {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 3px;
+    padding-right: 6px;
 }
 
-/* Botón reset */
-.ms-reset {
-  font-size: 12px;
-  background: linear-gradient(135deg, #b3beef 0%, #8890c4 60%, #666e9c 100%);
-  border: none;
-  color: #1a1e3a;
-  width: 20px;
-  height: 20px;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow:
-    inset 2px 2px 0 rgba(255,255,255,0.5),
-    inset -1px -1px 0 rgba(20,15,50,0.5),
-    0 2px 4px rgba(40,30,80,0.4);
-  transition: transform 80ms, box-shadow 80ms;
-}
-.ms-reset:hover {
-  background: linear-gradient(135deg, #c4cefc 0%, #9aa0d4 60%, #7780ac 100%);
-}
-.ms-reset:active {
-  transform: scale(0.88);
-  box-shadow:
-    inset 1px 1px 0 rgba(20,15,50,0.4),
-    inset -2px -2px 0 rgba(255,255,255,0.2);
+.beat-bar {
+    width: var(--w-charbtn);
+    background: rgba(10, 14, 30, 0.6);
+    border: 1px solid rgba(40, 50, 90, 0.5);
+    border-radius: 2px;
+    transition: background 0.08s, box-shadow 0.08s;
 }
 
-/* Grilla 6×6 — marco interior con relieve invertido */
-.ms-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  grid-template-rows: repeat(6, 1fr);
-  gap: 1px;
-  max-width: 100%;
-  max-height: 100%;
-  aspect-ratio: 1;
-  margin: 0;
-  flex: 1;
-  min-height: 0;
-  padding: 0;
-  border-radius: 0;
-  background: #dae2ff;
-  box-shadow:
-    inset 2px 2px 4px rgba(20,15,50,0.45),
-    inset -1px -1px 2px rgba(255,255,255,0.3);
+.beat-bar.active {
+    background: rgba(0, 80, 255, 0.7);
+    border-color: #0050ff;
+    box-shadow:
+        0 0 8px rgba(0, 80, 255, 0.7),
+        0 0 20px rgba(0, 60, 255, 0.4),
+        inset 0 0 6px rgba(80, 160, 255, 0.5);
 }
 
-/* Celda individual sin revelar */
-.ms-cell {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 9px;
-  font-family: 'Roboto Condensed', sans-serif;
-  font-weight: bold;
-  cursor: pointer;
-  user-select: none;
-  border-radius: 3px;
-  transition: filter 60ms;
-
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='60' height='60' filter='url(%23n)' opacity='0.12'/%3E%3C/svg%3E"),
-    linear-gradient(135deg,
-      #b3beef 0%,
-      #8890c4 45%,
-      #a6b5dc 100%
-    );
-
-  box-shadow:
-    inset 2px 2px 0 rgba(255,255,255,0.55),
-    inset 1px 1px 3px rgba(255,255,255,0.2),
-    inset -2px -2px 0 rgba(20,15,60,0.45),
-    inset -1px -1px 2px rgba(20,15,60,0.2);
-
-  color: #1a1e3a;
+/* ── Layer toggle buttons ── */
+#layer-toggles {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0;
 }
 
-/* Hover — levemente más claro */
-.ms-cell:hover:not(.ms-revealed):not(.ms-flagged) {
-  filter: brightness(1.12);
+.layer-toggle-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    height: 100%;
 }
 
-/* Celda revelada — hundida, sin relieve */
-.ms-cell.ms-revealed {
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='60' height='60' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E"),
-    linear-gradient(135deg, #7880b0 0%, #666e9c 100%);
-  box-shadow:
-    inset 2px 2px 3px rgba(20,15,60,0.5),
-    inset -1px -1px 0 rgba(255,255,255,0.1);
-  cursor: default;
+.layer-toggle-btn img {
+    height: 100%;
+    width: auto;
+    display: block;
 }
 
-/* Números con colores legibles sobre el fondo azul-violeta */
-.ms-cell.ms-n1 { color: #dae2ff; text-shadow: 0 0 4px rgba(180,190,255,0.8); }
-.ms-cell.ms-n2 { color: #88ffcc; text-shadow: 0 0 4px rgba(100,255,180,0.6); }
-.ms-cell.ms-n3 { color: #ff9999; text-shadow: 0 0 4px rgba(255,100,100,0.6); }
-.ms-cell.ms-n4 { color: #ffdd88; text-shadow: 0 0 4px rgba(255,200,80,0.6); }
-.ms-cell.ms-n5 { color: #ff88cc; text-shadow: 0 0 4px rgba(255,100,180,0.6); }
-.ms-cell.ms-n6 { color: #88ddff; text-shadow: 0 0 4px rgba(100,200,255,0.6); }
+/* Show ON image by default, hide OFF */
+.layer-toggle-btn .layer-btn-off { display: none; }
+.layer-toggle-btn .layer-btn-on  { display: block; }
 
-/* Bandera ♥ */
-.ms-cell.ms-flagged {
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='60' height='60' filter='url(%23n)' opacity='0.12'/%3E%3C/svg%3E"),
-    linear-gradient(135deg, #b3beef 0%, #8890c4 45%, #a6b5dc 100%);
-  box-shadow:
-    inset 2px 2px 0 rgba(255,255,255,0.55),
-    inset -2px -2px 0 rgba(20,15,60,0.45);
-  color: #ff4477;
-  font-size: 11px;
-  text-shadow: 0 0 6px rgba(255,50,100,0.7);
+/* When muted: show OFF, hide ON */
+.layer-toggle-btn[data-on="false"] .layer-btn-off { display: block; }
+.layer-toggle-btn[data-on="false"] .layer-btn-on  { display: none; }
+
+.layer-toggle-btn:hover {
+    filter: brightness(1.25);
 }
 
-/* Mina revelada (huevo) — usa imagen */
-.ms-cell.ms-mine-revealed {
-  background: linear-gradient(135deg, #c06070 0%, #904050 100%);
-  box-shadow:
-    inset 2px 2px 3px rgba(20,0,10,0.5),
-    inset -1px -1px 0 rgba(255,150,150,0.15);
-}
-.ms-cell.ms-mine-revealed img {
-  width: 72%;
-  height: 72%;
-  object-fit: contain;
-  filter: drop-shadow(0 0 3px rgba(255,100,100,0.6));
+/* ── Volume slider (vertical) ── */
+#volume-slider-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 6px;
+    margin-left: auto;
 }
 
-/* Status win/loss */
-.ms-status {
-  font-family: 'Roboto Condensed', sans-serif;
-  font-size: 8px;
-  letter-spacing: 1px;
-  text-align: center;
-  min-height: 10px;
-  flex-shrink: 0;
-  color: #dae2ff;
-  text-shadow: 0 0 6px rgba(180,190,255,0.6);
+#volume-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    writing-mode: vertical-lr;
+    direction: rtl;
+    width: 6px;
+    height: 100%;
+    background: linear-gradient(to top, #0a0e1e 0%, #0040cc 50%, #0060ff 100%);
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+    border: 1px solid rgba(40, 60, 120, 0.5);
+}
+
+#volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 8px;
+    background: #c8cce8;
+    border-radius: 2px;
+    cursor: pointer;
+    box-shadow: 0 0 4px rgba(0, 80, 255, 0.5);
+}
+
+#volume-slider::-moz-range-thumb {
+    width: 14px;
+    height: 8px;
+    background: #c8cce8;
+    border-radius: 2px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 0 4px rgba(0, 80, 255, 0.5);
 }
 
 .image-panel {

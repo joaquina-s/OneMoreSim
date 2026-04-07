@@ -261,16 +261,45 @@
                     </div>
                 </div>
             </div>
-            <!-- FILA INFERIOR: Minesweepers + Image Panels -->
+            <!-- FILA INFERIOR: Sound bar (same width as spectrogram) + Image Panels -->
             <div id="footer-bottom-row">
-                <div class="image-panel minesweeper-panel" id="minesweeper-left">
-                    <div class="ms-header">
-                        <span class="ms-counter" id="ms-left-counter">5</span>
-                        <button class="ms-reset" id="ms-left-reset" title="Nuevo juego">⟳</button>
-                        <span class="ms-timer" id="ms-left-timer">0</span>
+                <!-- Sound control bar — same width as spectrogram -->
+                <div class="image-panel" id="sound-bar">
+                    <img src="assets/panel-02.png" alt="" class="panel-img" />
+                    <div id="sound-bar-controls">
+                        <!-- 4 beat indicator bars -->
+                        <div id="beat-indicators">
+                            <div class="beat-bar" data-beat="0"></div>
+                            <div class="beat-bar" data-beat="1"></div>
+                            <div class="beat-bar" data-beat="2"></div>
+                            <div class="beat-bar" data-beat="3"></div>
+                        </div>
+                        <!-- 4 layer toggle buttons -->
+                        <div id="layer-toggles">
+                            <button class="layer-toggle-btn" data-layer="synth" data-on="true" title="Synth">
+                                <img class="layer-btn-on"  src="assets/tex/Buttons/SynthOn.png" alt="Synth On"/>
+                                <img class="layer-btn-off" src="assets/tex/Buttons/SynthOff.png" alt="Synth Off"/>
+                            </button>
+                            <button class="layer-toggle-btn" data-layer="bass" data-on="true" title="Bass">
+                                <img class="layer-btn-on"  src="assets/tex/Buttons/BassOn.png" alt="Bass On"/>
+                                <img class="layer-btn-off" src="assets/tex/Buttons/BassOff.png" alt="Bass Off"/>
+                            </button>
+                            <button class="layer-toggle-btn" data-layer="perc" data-on="true" title="Percussion">
+                                <img class="layer-btn-on"  src="assets/tex/Buttons/PercOn.png" alt="Perc On"/>
+                                <img class="layer-btn-off" src="assets/tex/Buttons/PercOff.png" alt="Perc Off"/>
+                            </button>
+                            <button class="layer-toggle-btn" data-layer="voice" data-on="true" title="Voice">
+                                <img class="layer-btn-on"  src="assets/tex/Buttons/VoiceOn.png" alt="Voice On"/>
+                                <img class="layer-btn-off" src="assets/tex/Buttons/VoiceOff.png" alt="Voice Off"/>
+                            </button>
+                        </div>
+                        <!-- Volume slider (vertical) -->
+                        <div id="volume-slider-wrap">
+                            <input type="range" id="volume-slider" min="0" max="100" value="70"
+                                   orient="vertical" title="Volume"/>
+                        </div>
                     </div>
-                    <div class="ms-grid" id="ms-left-grid"></div>
-                    <div class="ms-status" id="ms-left-status"></div>
+                    <div class="panel-border-overlay"></div>
                 </div>
                 <div class="image-panel" id="img-panel-1">
                     <img src="assets/panel-02.png" alt="Panel 2" class="panel-img" />
@@ -285,15 +314,6 @@
                 <div class="image-panel" id="img-panel-3">
                     <img src="assets/panel-04.png" alt="Panel 4" class="panel-img" />
                     <div class="panel-border-overlay"></div>
-                </div>
-                <div class="image-panel minesweeper-panel" id="minesweeper-right">
-                    <div class="ms-header">
-                        <span class="ms-counter" id="ms-right-counter">5</span>
-                        <button class="ms-reset" id="ms-right-reset" title="Nuevo juego">⟳</button>
-                        <span class="ms-timer" id="ms-right-timer">0</span>
-                    </div>
-                    <div class="ms-grid" id="ms-right-grid"></div>
-                    <div class="ms-status" id="ms-right-status"></div>
                 </div>
             </div>
         </div>
