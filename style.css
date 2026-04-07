@@ -1969,40 +1969,43 @@ button {
     gap: 0;
 }
 
-/* ── Beat indicator bars (vertical stack) ── */
+/* ── Beat indicator bars (vertical stack, half height) ── */
 #beat-indicators {
     display: flex;
     flex-direction: column;
     justify-content: center;
     gap: 2px;
-    padding-right: 6px;
+    padding-right: 10px;
     width: var(--w-charbtn);
+    height: 50%;
+    align-self: center;
     flex-shrink: 0;
 }
 
 .beat-bar {
     flex: 1;
     background: rgba(10, 14, 30, 0.6);
-    border: 1px solid rgba(40, 50, 90, 0.5);
+    border: 2px solid #000000;
     border-radius: 2px;
     transition: background 0.08s, box-shadow 0.08s;
 }
 
 .beat-bar.active {
     background: rgba(0, 80, 255, 0.7);
-    border-color: #0050ff;
+    border-color: #000000;
     box-shadow:
         0 0 8px rgba(0, 80, 255, 0.7),
         0 0 20px rgba(0, 60, 255, 0.4),
         inset 0 0 6px rgba(80, 160, 255, 0.5);
 }
 
-/* ── Layer toggle buttons (same size as left-panel texture btns) ── */
+/* ── Layer toggle buttons (15% larger than left-panel btns) ── */
 #layer-toggles {
     display: flex;
     flex-direction: row;
     align-items: center;
     gap: 0;
+    margin-left: 4px;
 }
 
 .layer-toggle-btn {
@@ -2014,8 +2017,8 @@ button {
     background: none;
     border: none;
     cursor: pointer;
-    width: var(--w-charbtn);
-    height: var(--w-charbtn);
+    width: calc(var(--w-charbtn) * 1.15);
+    height: calc(var(--w-charbtn) * 1.15);
     flex-shrink: 0;
 }
 
