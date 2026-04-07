@@ -239,6 +239,8 @@ document.getElementById('enter-button-img').addEventListener('click', () => {
 // ───────────────────────────────────────────────
 document.getElementById('intro-enter-btn').addEventListener('click', () => {
     uiSound.enter();
+    // Start music on enter
+    if (_musicInited) layeredMusic.play();
     const introOverlay = document.getElementById('intro-overlay');
     if (introOverlay) introOverlay.style.pointerEvents = 'none'; // Immediately stop blocking clicks
     gsap.to(introOverlay, {
@@ -892,7 +894,7 @@ async function ensureMusicInit() {
     _musicInited = true;
     try {
         await layeredMusic.init(120); // BPM of the nostalgia tracks
-        layeredMusic.play();
+        // Don't play yet — music starts when user clicks ENTER on welcome screen
 
         // Multi-layer coloured spectrogram (one colour per layer)
         const spectrogramContainer = document.getElementById('spectrogram-container');
@@ -939,8 +941,8 @@ async function ensureMusicInit() {
     }
 }
 
-// Trigger music init on first click anywhere
-document.addEventListener('click', ensureMusicInit, { once: true });
+// Music is pre-initialized during welcome screen preload.
+// Playback starts when user clicks ENTER on the welcome overlay.
 
 loop();
 

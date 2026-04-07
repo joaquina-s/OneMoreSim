@@ -165,9 +165,6 @@
             </div>
         </div>
 
-        <!-- CUSTOM CURSOR -->
-        <div id="custom-cursor"></div>
-
         <!-- MAIN CANVAS AREA — Three.js canvas is inserted here -->
         <div id="canvas-area">
             <!-- Corner Decorations -->
@@ -341,6 +338,9 @@
         </div>
     </div>
 
+    <!-- CUSTOM CURSOR — at body level so it's above all overlays -->
+    <div id="custom-cursor"></div>
+
     <!-- Mobile: Texture FAB + Drawer -->
     <button id="texture-fab" aria-label="Character textures">
         <span class="fab-swatch"></span>
@@ -384,7 +384,7 @@
         </div>
     </div>
 
-    <script type="module" src="index.js?v=9"></script>
+    <script type="module" src="index.js?v=10"></script>
 </body>
 
 </html>
