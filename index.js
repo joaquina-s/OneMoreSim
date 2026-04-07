@@ -162,8 +162,35 @@ function enterExperience() {
                 // Make canvas visible before activate
                 renderer.domElement.style.opacity = '1';
 
-                // Activar carousel en el WorldManager
+                // ── Preload everything while welcome overlay is visible ──
+                const loadingBar = document.getElementById('intro-loading-bar');
+                const enterBtn = document.getElementById('intro-enter-btn');
+                const loadingWrap = document.getElementById('intro-loading-bar-wrap');
+                const allIds = ['0','7','2','9','6','3','5','4','1','8'];
+                let loaded = 0;
+
+                // Activate world 0 first (counts as 1 loaded)
                 await worldManager.activate('0');
+                loaded++;
+                if (loadingBar) loadingBar.style.width = `${(loaded / allIds.length) * 100}%`;
+
+                // Preload remaining worlds sequentially with progress
+                const remainingIds = allIds.slice(1);
+                for (const id of remainingIds) {
+                    await worldManager.preload(id);
+                    loaded++;
+                    if (loadingBar) loadingBar.style.width = `${(loaded / allIds.length) * 100}%`;
+                }
+
+                // Also init music during preload phase
+                await ensureMusicInit();
+
+                // All loaded — hide bar, show enter button
+                if (loadingWrap) loadingWrap.style.display = 'none';
+                if (enterBtn) {
+                    enterBtn.style.display = 'flex';
+                    gsap.fromTo(enterBtn, { opacity: 0 }, { opacity: 1, duration: 0.6 });
+                }
 
                 // Fade in del carousel canvas y container
                 gsap.fromTo('#carousel-container',
@@ -193,12 +220,6 @@ function enterExperience() {
                 // Init world tracker playlist panel
                 initWorldTracker();
                 updateWorldTracker('0');
-
-                // Background-preload all other worlds so switching is instant
-                const preloadIds = ['7','2','9','6','3','5','4','1','8'];
-                preloadIds.forEach((id, i) => {
-                    setTimeout(() => worldManager.preload(id), 800 + i * 400);
-                });
             });
         }
     });
