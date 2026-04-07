@@ -66,7 +66,7 @@ body {
     background-color: var(--color-bg);
     font-family: 'Averia Libre', sans-serif;
     font-weight: 400;
-    letter-spacing: 0.02em;
+    letter-spacing: -0.06em;
     color: var(--color-text);
 }
 
@@ -660,7 +660,7 @@ button {
     font-size: clamp(12px, 2.8vh, 30px);
     font-weight: 200;
     color: #ffffff;
-    letter-spacing: 0.04em;
+    letter-spacing: -0.05em;
     line-height: 1;
     white-space: nowrap;
     /* Black outline — 30% thinner */
@@ -724,7 +724,7 @@ button {
     font-family: 'Averia Libre', monospace;
     font-size: 18px;
     font-weight: 300;
-    letter-spacing: 1.8px;
+    letter-spacing: -0.5px;
     color: rgba(255, 255, 255, 0.2);
     border-bottom: 1px solid rgba(255, 255, 255, 0.04);
     text-transform: uppercase;
@@ -741,7 +741,7 @@ button {
     font-weight: 600;
     background: rgba(0, 30, 255, 0.18);
     border-left: 2px solid #001eff;
-    letter-spacing: 2px;
+    letter-spacing: -0.5px;
 }
 
 .track-item.active::before {
@@ -776,7 +776,7 @@ button {
     z-index: 1;
     font-family: 'Averia Libre', sans-serif;
     font-size: 10px;
-    letter-spacing: 3px;
+    letter-spacing: -0.5px;
     color: #5a7a94;
     text-transform: uppercase;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
@@ -807,7 +807,7 @@ button {
 .minimap-label {
     font-family: 'Averia Libre', sans-serif;
     font-size: 8px;
-    letter-spacing: 3px;
+    letter-spacing: -0.5px;
     color: rgba(125, 133, 180, 0.4);
     text-transform: uppercase;
     align-self: flex-start;
@@ -878,7 +878,7 @@ button {
     font-family: 'Averia Libre', sans-serif;
     font-size: 11px;
     color: #6a6a8a;
-    letter-spacing: 1px;
+    letter-spacing: -0.5px;
     white-space: nowrap;
 }
 
@@ -891,7 +891,7 @@ button {
 .footer-tag {
     font-family: 'Averia Libre', sans-serif;
     font-size: 9px;
-    letter-spacing: 2px;
+    letter-spacing: -0.5px;
     color: #3a3a5a;
     text-transform: uppercase;
 }
@@ -900,7 +900,7 @@ button {
     font-family: 'Averia Libre', sans-serif;
     font-size: 11px;
     color: var(--color-accent);
-    letter-spacing: 1px;
+    letter-spacing: -0.5px;
 }
 
 /* ── Footer Panel F3 ── */
@@ -919,7 +919,7 @@ button {
     font-family: var(--font-ui);
     font-size: 10px;
     color: #2a5f3f;
-    letter-spacing: 2px;
+    letter-spacing: -0.5px;
     text-align: right;
     width: 100%;
 }
@@ -1293,7 +1293,7 @@ button {
 .world-label {
     font-size: 9px;
     font-family: var(--font-ui);
-    letter-spacing: 1px;
+    letter-spacing: -0.5px;
     text-transform: uppercase;
     line-height: 1;
     white-space: nowrap;
@@ -1416,7 +1416,7 @@ button {
     font-family: 'Averia Libre', sans-serif;
     font-size: 10px;
     color: rgba(125, 133, 180, 0.2);
-    letter-spacing: 2px;
+    letter-spacing: -0.5px;
     pointer-events: none;
     z-index: 0;
 }
@@ -1454,7 +1454,7 @@ button {
 .world-label {
     font-size: 9px;
     font-family: var(--font-ui);
-    letter-spacing: 1px;
+    letter-spacing: -0.5px;
     text-transform: uppercase;
     line-height: 1;
     white-space: nowrap;
@@ -1479,13 +1479,13 @@ button {
 
 .footer-controls {
     color: var(--color-text-dim);
-    letter-spacing: 2px;
+    letter-spacing: -0.5px;
 }
 
 #hud-coords {
     font-family: var(--font-ui);
     color: var(--color-accent-dim);
-    letter-spacing: 1px;
+    letter-spacing: -0.5px;
 }
 
 #hud-fps {
@@ -1561,7 +1561,7 @@ button {
     font-family: var(--font-display);
     font-size: 12px;
     color: var(--color-accent);
-    letter-spacing: 3px;
+    letter-spacing: -0.5px;
     margin-bottom: 16px;
     text-align: center;
 }
@@ -1610,7 +1610,7 @@ button {
     font-family: var(--font-display);
     font-size: 14px;
     color: var(--color-accent);
-    letter-spacing: 4px;
+    letter-spacing: -0.5px;
     text-shadow: 0 0 10px rgba(125, 133, 180, 0.4);
     animation: loaderPulse 1.5s ease-in-out infinite;
 }
@@ -1688,7 +1688,7 @@ button {
     font-family: var(--font-display);
     font-size: 18px;
     color: var(--color-text);
-    letter-spacing: 6px;
+    letter-spacing: -0.5px;
     text-shadow: 0 0 10px rgba(200, 223, 240, 0.3);
 }
 
@@ -1696,7 +1696,7 @@ button {
     font-family: var(--font-display);
     font-size: 24px;
     color: var(--color-accent);
-    letter-spacing: 8px;
+    letter-spacing: -0.5px;
     text-shadow: 0 0 16px rgba(125, 133, 180, 0.5);
     animation: placeholderPulse 2s ease-in-out infinite;
 }
@@ -1705,7 +1705,7 @@ button {
     font-family: var(--font-ui);
     font-size: 12px;
     color: var(--color-text-dim);
-    letter-spacing: 3px;
+    letter-spacing: -0.5px;
 }
 
 @keyframes placeholderPulse {
@@ -1913,7 +1913,7 @@ button {
     right: 8px;
     font-family: 'Averia Libre', sans-serif;
     font-size: 8px;
-    letter-spacing: 2px;
+    letter-spacing: -0.5px;
     color: rgba(0, 100, 160, 0.5);
     z-index: 2;
     pointer-events: none;
