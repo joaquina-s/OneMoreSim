@@ -174,16 +174,17 @@ function enterExperience() {
                 loaded++;
                 if (loadingBar) loadingBar.style.width = `${(loaded / allIds.length) * 100}%`;
 
-                // Preload remaining worlds sequentially with progress
+                // Preload remaining worlds in parallel for speed
                 const remainingIds = allIds.slice(1);
-                for (const id of remainingIds) {
-                    await worldManager.preload(id);
-                    loaded++;
-                    if (loadingBar) loadingBar.style.width = `${(loaded / allIds.length) * 100}%`;
-                }
-
-                // Also init music during preload phase
-                await ensureMusicInit();
+                const preloadPromises = remainingIds.map(id =>
+                    worldManager.preload(id).then(() => {
+                        loaded++;
+                        if (loadingBar) loadingBar.style.width = `${(loaded / allIds.length) * 100}%`;
+                    })
+                );
+                // Also init music in parallel with world preloads
+                preloadPromises.push(ensureMusicInit());
+                await Promise.all(preloadPromises);
 
                 // All loaded — hide bar, show enter button
                 if (loadingWrap) loadingWrap.style.display = 'none';
@@ -478,7 +479,7 @@ const PMAP_NODES = [
             label.setAttribute('dy', '-8');
             label.setAttribute('font-size', '7');
             label.setAttribute('fill', 'rgba(136,153,204,0.7)');
-            label.setAttribute('font-family', 'Roboto Condensed, sans-serif');
+            label.setAttribute('font-family', 'Averia Libre, sans-serif');
             label.textContent = node.world;
 
             g.appendChild(circle);
