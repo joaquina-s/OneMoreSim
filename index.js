@@ -122,6 +122,14 @@ function enterExperience() {
             keys.left = false;
             keys.right = false;
 
+            // Show welcome overlay IMMEDIATELY so user never sees bare UI
+            const introOverlay = document.getElementById('intro-overlay');
+            if (introOverlay) {
+                introOverlay.style.display = 'flex';
+                introOverlay.style.opacity = '1';
+                introOverlay.style.pointerEvents = 'auto';
+            }
+
             // 1. Show ui-shell FIRST so the CSS grid lays out
             uiShell.style.display = 'grid';
             uiShell.classList.add('visible');
@@ -185,15 +193,6 @@ function enterExperience() {
                 // Init world tracker playlist panel
                 initWorldTracker();
                 updateWorldTracker('0');
-
-                // Now show the welcome intro overlay ON TOP of the main UI
-                const introOverlay = document.getElementById('intro-overlay');
-                if (introOverlay) {
-                    introOverlay.style.display = 'flex';
-                    introOverlay.style.opacity = '0';
-                    introOverlay.style.pointerEvents = 'auto';
-                    gsap.to(introOverlay, { opacity: 1, duration: 0.8, delay: 0.2 });
-                }
 
                 // Background-preload all other worlds so switching is instant
                 const preloadIds = ['7','2','9','6','3','5','4','1','8'];
