@@ -2,6 +2,9 @@
 // Custom volumetric God Rays shader and WebGL morph targets replaced by a GLB.
 // 100% compatible with Three.js r128.
 
+// Reusable temp vector for per-frame screen projection (avoids GC pressure)
+const _screenPos = new THREE.Vector3();
+
 // ── God Rays Shader (Volumetric Light / Radial Blur) ──
 const GodRaysShader = {
     defines: {
@@ -186,14 +189,13 @@ export default {
 
         // ── God Rays Light Position Calculation ──
         // Project 3D sun position to 2D screen space coordinates
-        const screenPos = new THREE.Vector3();
-        screenPos.setFromMatrixPosition(this._sunMesh.matrixWorld);
-        screenPos.project(this.camera);
+        _screenPos.setFromMatrixPosition(this._sunMesh.matrixWorld);
+        _screenPos.project(this.camera);
 
         // Map from [-1, 1] to [0, 1]
         this._godRaysPass.uniforms.lightPositionOnScreen.value.set(
-            (screenPos.x + 1) / 2,
-            (screenPos.y + 1) / 2
+            (_screenPos.x + 1) / 2,
+            (_screenPos.y + 1) / 2
         );
 
         // Render with local composer manually

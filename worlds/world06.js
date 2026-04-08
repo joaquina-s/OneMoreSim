@@ -379,31 +379,17 @@ const WorldChase = {
         // Add directly to scene, NOT to terrain
         this.scene.add(palm);
         this._palmModels.push(palm);
-
-        // Debug BoxHelper (green wireframe)
-        const helper = new THREE.BoxHelper(palm, 0x00ff00);
-        this.scene.add(helper);
-        // Store helper ref for disposal
-        if (!this._palmHelpers) this._palmHelpers = [];
-        this._palmHelpers.push(helper);
       });
 
-      console.log('CHASE: placed', this._palmModels.length, 'palms in scene');
     };
 
     loader.load('assets/palm1.glb', (gltf) => {
       palm1Proto = gltf.scene;
-      const box = new THREE.Box3().setFromObject(palm1Proto);
-      const size = box.getSize(new THREE.Vector3());
-      console.log('palm1 raw size:', size.x.toFixed(2), size.y.toFixed(2), size.z.toFixed(2));
       placePalms();
     }, undefined, (e) => console.warn('palm1 load error:', e));
 
     loader.load('assets/palm2.glb', (gltf) => {
       palm2Proto = gltf.scene;
-      const box = new THREE.Box3().setFromObject(palm2Proto);
-      const size = box.getSize(new THREE.Vector3());
-      console.log('palm2 raw size:', size.x.toFixed(2), size.y.toFixed(2), size.z.toFixed(2));
       placePalms();
     }, undefined, (e) => console.warn('palm2 load error:', e));
   },
@@ -677,10 +663,6 @@ const WorldChase = {
           palm.position.z -= this._TERRAIN_DEPTH;
         }
       });
-      // Update debug helpers
-      if (this._palmHelpers) {
-        this._palmHelpers.forEach(h => h.update());
-      }
     }
 
     // 3. Foam synced with terrain
