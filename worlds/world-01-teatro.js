@@ -109,7 +109,7 @@ const WorldTeatro = {
 
     // ── LOAD GLB ──
     const loader = new THREE.GLTFLoader();
-    loader.load('assets/teatro.glb', (gltf) => {
+    loader.load('assets/3D/teatro.glb', (gltf) => {
       // Remove loading indicator
       if (this._loadingText) { this._loadingText.remove(); this._loadingText = null; }
 

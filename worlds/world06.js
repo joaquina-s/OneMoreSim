@@ -383,12 +383,12 @@ const WorldChase = {
 
     };
 
-    loader.load('assets/palm1.glb', (gltf) => {
+    loader.load('assets/3D/palm1.glb', (gltf) => {
       palm1Proto = gltf.scene;
       placePalms();
     }, undefined, (e) => console.warn('palm1 load error:', e));
 
-    loader.load('assets/palm2.glb', (gltf) => {
+    loader.load('assets/3D/palm2.glb', (gltf) => {
       palm2Proto = gltf.scene;
       placePalms();
     }, undefined, (e) => console.warn('palm2 load error:', e));
@@ -475,7 +475,7 @@ const WorldChase = {
      ════════════════════════════════════════════ */
   _loadLancha() {
     const loader = new THREE.GLTFLoader();
-    loader.load('assets/lancha.glb', (gltf) => {
+    loader.load('assets/3D/lancha.glb', (gltf) => {
       this._lancha = gltf.scene;
 
       this._lancha.scale.setScalar(1);
@@ -525,7 +525,7 @@ const WorldChase = {
      ════════════════════════════════════════════ */
   _loadCharacter() {
     const loader = new THREE.GLTFLoader();
-    loader.load('assets/walk.glb', (gltf) => {
+    loader.load('assets/3D/walk.glb', (gltf) => {
       this._character = THREE.SkeletonUtils ? THREE.SkeletonUtils.clone(gltf.scene) : gltf.scene;
       this._character.position.set(0, 0, 2);
       this._character.scale.setScalar(0.5);
