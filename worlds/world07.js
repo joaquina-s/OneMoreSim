@@ -127,20 +127,23 @@ export default {
         );
         this.camera.position.z = 1;
 
-        // Videos setup
-        this.vid1 = document.createElement('video');
-        this.vid1.src = 'assets/videos/mar_1.mp4';
-        this.vid1.loop = true;
-        this.vid1.muted = true;
-        this.vid1.playsInline = true;
-        this.vid1.play().catch(e => console.warn("video1 play error", e));
-
-        this.vid2 = document.createElement('video');
-        this.vid2.src = 'assets/videos/mar_2.mp4';
-        this.vid2.loop = true;
-        this.vid2.muted = true;
-        this.vid2.playsInline = true;
-        this.vid2.play().catch(e => console.warn("video2 play error", e));
+        // Videos setup — ensure both play reliably
+        const makeVideo = (src) => {
+            const v = document.createElement('video');
+            v.src = src;
+            v.loop = true;
+            v.muted = true;
+            v.playsInline = true;
+            v.crossOrigin = 'anonymous';
+            v.preload = 'auto';
+            // Try play immediately; if it fails, retry on canplaythrough
+            const tryPlay = () => v.play().catch(() => {});
+            tryPlay();
+            v.addEventListener('canplaythrough', tryPlay, { once: true });
+            return v;
+        };
+        this.vid1 = makeVideo('assets/videos/mar_1.mp4');
+        this.vid2 = makeVideo('assets/videos/mar_2.mp4');
 
         this.texture1 = new THREE.VideoTexture(this.vid1);
         this.texture1.minFilter = THREE.LinearFilter;
