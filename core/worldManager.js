@@ -124,18 +124,6 @@ export class WorldManager {
                 this._worldName.textContent = WorldManager.WORLD_NAMES[id] || `WORLD ${id}`;
             }
 
-            // 8.5 Flash the world number in the center of the screen
-            const flashEl = document.getElementById('world-flash');
-            if (flashEl) {
-                flashEl.textContent = '0' + id;
-                if (window.gsap) {
-                    gsap.fromTo(flashEl,
-                        { scale: 3, opacity: 1 },
-                        { scale: 1, opacity: 0, duration: 0.8, ease: 'power4.out' }
-                    );
-                }
-            }
-
             // 9. Hide loader, fade in canvas
             this._hideLoader();
             await this._gsapTo(canvas, { opacity: 1, duration: 0.5 });
