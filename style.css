@@ -191,29 +191,6 @@ button {
     }
 }
 
-@keyframes titlePulse {
-    0% {
-        opacity: 0.8;
-        text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
-    }
-
-    100% {
-        opacity: 1;
-        text-shadow: 0 0 25px rgba(255, 255, 255, 0.8);
-    }
-}
-
-@keyframes buttonPulse {
-    0% {
-        transform: scale(1);
-    }
-
-    100% {
-        transform: scale(1.03);
-    }
-}
-
-
 /* ════════════════════════════════════════════════
    INTRO WELCOME OVERLAY
    ════════════════════════════════════════════════ */
@@ -561,63 +538,6 @@ button {
     display: block;
 }
 
-/* ── Old panel sizing — kept for compatibility ── */
-.panel-h1 { width: 22%; gap: 4px; }
-.panel-h2 { width: 44%; justify-content: flex-start; gap: 16px; padding: 12px 20px; }
-.panel-h3 { width: 17%; flex-direction: column; gap: 6px; overflow: hidden; position: relative; }
-.panel-h4 { width: 17%; flex-direction: column; gap: 6px; }
-
-/* ── Footer Panel Sizes ── */
-.panel-f1 {
-    width: 8%;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.panel-f2 {
-    width: 75%;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    padding: 8px 20px;
-    gap: 6px;
-}
-
-.panel-f3 {
-    width: 17%;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 10px;
-}
-
-/* ── Sub-cells (Panel H1) ── */
-.hud-subcell {
-    flex: 1;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-right: 1px solid #2d2d4a;
-}
-
-.hud-subcell:last-child {
-    border-right: none;
-}
-
-/* ── HUD Icons ── */
-.hud-icon {
-    width: 36px;
-    height: 36px;
-    color: #5a5a8f;
-    transition: color 300ms;
-}
-
-.hud-icon-sm {
-    width: 20px;
-    height: 20px;
-    color: #6a6a8a;
-}
-
 /* ── Panel H2: World Info — Console Blue ── */
 
 /* Icon and title are hidden — only the desc text is shown */
@@ -797,133 +717,6 @@ button {
     );
     background-size: 8px 8px;
 }
-
-#minimap-svg {
-    width: 100%;
-    height: calc(100% - 16px);
-    overflow: visible;
-}
-
-.minimap-label {
-    font-family: 'Averia Libre', sans-serif;
-    font-size: 8px;
-    letter-spacing: -0.5px;
-    color: rgba(125, 133, 180, 0.4);
-    text-transform: uppercase;
-    align-self: flex-start;
-    padding-left: 2px;
-    margin-bottom: 2px;
-}
-
-.map-node {
-    transition: fill 300ms, r 300ms;
-    cursor: default;
-}
-
-.map-node.active {
-    fill: #7d85b4;
-    r: 6;
-    filter: drop-shadow(0 0 4px #7d85b4);
-}
-
-.map-label {
-    font-family: 'Averia Libre', sans-serif;
-    font-size: 5px;
-    fill: rgba(125, 133, 180, 0.5);
-    pointer-events: none;
-}
-
-#minimap-character {
-    transition: transform 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-/* ── Footer Panel F2 ── */
-.footer-icons-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-}
-
-.footer-icon-btn {
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #6a6a8a;
-    cursor: pointer;
-    border-radius: 3px;
-    transition: color 200ms, background 200ms;
-}
-
-.footer-icon-btn:hover {
-    color: var(--color-accent);
-    background: rgba(125, 133, 180, 0.08);
-}
-
-.footer-icon-btn svg {
-    width: 16px;
-    height: 16px;
-}
-
-.footer-separator {
-    width: 1px;
-    height: 20px;
-    background: #2d2d4a;
-    flex-shrink: 0;
-}
-
-.footer-status-text {
-    font-family: 'Averia Libre', sans-serif;
-    font-size: 11px;
-    color: #6a6a8a;
-    letter-spacing: -0.5px;
-    white-space: nowrap;
-}
-
-.footer-info-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.footer-tag {
-    font-family: 'Averia Libre', sans-serif;
-    font-size: 9px;
-    letter-spacing: -0.5px;
-    color: #3a3a5a;
-    text-transform: uppercase;
-}
-
-.footer-value {
-    font-family: 'Averia Libre', sans-serif;
-    font-size: 11px;
-    color: var(--color-accent);
-    letter-spacing: -0.5px;
-}
-
-/* ── Footer Panel F3 ── */
-.footer-grid-decoration {
-    width: 100%;
-    flex: 1;
-    color: #3a3a5a;
-}
-
-.footer-grid-decoration svg {
-    width: 100%;
-    height: 100%;
-}
-
-.hud-fps {
-    font-family: var(--font-ui);
-    font-size: 10px;
-    color: #2a5f3f;
-    letter-spacing: -0.5px;
-    text-align: right;
-    width: 100%;
-}
-
 
 /* ════════════════════════════════════════════════
    CHARACTER PANEL
@@ -1744,15 +1537,6 @@ button {
         display: none;
     }
 
-    .panel-h3,
-    .panel-h4 {
-        width: 12%;
-    }
-
-    .panel-h2 {
-        width: 54%;
-    }
-
     .world-label {
         display: none;
     }
@@ -1804,29 +1588,6 @@ button {
 
     #hud-footer {
         height: 144px;
-    }
-
-    .panel-h1,
-    .panel-h3,
-    .panel-h4 {
-        display: none;
-    }
-
-    .panel-h2 {
-        width: 100%;
-    }
-
-    .panel-f1,
-    .panel-f3 {
-        display: none;
-    }
-
-    .panel-f2 {
-        width: 100%;
-    }
-
-    .footer-info-row {
-        display: none;
     }
 
     #character-panel {

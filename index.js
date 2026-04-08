@@ -388,8 +388,6 @@ function typeWorldDesc(text) {
 function updateWorldInfo(worldId) {
     const data = WORLD_DATA[worldId] || WORLD_DATA['0'];
     document.documentElement.style.setProperty('--world-accent', data.accent);
-    const footerWorldId = document.getElementById('footer-world-id');
-    if (footerWorldId) footerWorldId.textContent = String(worldId).padStart(2, '0');
     typeWorldDesc(data.desc);
     updateWorldTracker(worldId);
 }
@@ -802,55 +800,6 @@ renderer.domElement.addEventListener('touchend', (e) => {
 }, { passive: true });
 
 // ───────────────────────────────────────────────
-// FPS & HUD Counters
-// ───────────────────────────────────────────────
-
-const fpsEl = document.getElementById('hud-fps');
-const coordsEl = document.getElementById('hud-coords');
-
-let fpsFrames = 0;
-let lastFpsTime = performance.now();
-let hudFrameTick = 0;
-
-function updateHUD() {
-    try {
-        // Update FPS once per second
-        fpsFrames++;
-        const now = performance.now();
-        if (now - lastFpsTime >= 1000) {
-            if (fpsEl) fpsEl.textContent = fpsFrames + ' FPS';
-            fpsFrames = 0;
-            lastFpsTime = now;
-        }
-
-        // Update coordinates every 30 frames
-        hudFrameTick++;
-        if (hudFrameTick >= 30) {
-            hudFrameTick = 0;
-            if (coordsEl) {
-                let cam = null;
-                try {
-                    cam = resizeManager.getCamera();
-                } catch (_) { }
-                if (!cam && worldManager.activeModule && worldManager.activeModule.camera) {
-                    cam = worldManager.activeModule.camera;
-                }
-                if (cam) {
-                    const fmt = (v) => {
-                        const n = Math.round(v);
-                        const s = Math.abs(n).toString().padStart(3, '0');
-                        return n < 0 ? '-' + s : s;
-                    };
-                    coordsEl.textContent = `X:${fmt(cam.position.x)} Y:${fmt(cam.position.y)} Z:${fmt(cam.position.z)}`;
-                }
-            }
-        }
-    } catch (e) {
-        console.warn('updateHUD error:', e);
-    }
-}
-
-// ───────────────────────────────────────────────
 // Animation Loop — Adaptive FPS
 // ───────────────────────────────────────────────
 
@@ -870,8 +819,6 @@ function loop() {
     if (worldManager.getActive() !== 'landing') {
         worldManager.tick(t, keys);
     }
-    
-    updateHUD();
 }
 
 // Pause when tab is hidden, resume when visible

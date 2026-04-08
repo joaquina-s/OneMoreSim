@@ -59,6 +59,9 @@ class Spectrogram {
     initFromAnalyser(analyserNode) {
         this._setupCanvas();
         this.analyser = analyserNode;
+        // Pre-allocate reusable buffers for _drawLoop
+        this._dataArray = new Uint8Array(analyserNode.frequencyBinCount);
+        this._colImage = this.ctx.createImageData(1, this.h);
         this._drawLoop();
     }
 
@@ -73,7 +76,14 @@ class Spectrogram {
             key,
             analyser: an,
             color: layerColors[key] || [0, 120, 255],
+            _dataArray: new Uint8Array(an.frequencyBinCount),
         }));
+        // Pre-allocate shared accumulators and column image for _drawLoopMulti
+        this._accR = new Float32Array(this.h);
+        this._accG = new Float32Array(this.h);
+        this._accB = new Float32Array(this.h);
+        this._colImageMulti = this.ctx.createImageData(1, this.h);
+        this._multiH = this.h;
         this._drawLoopMulti();
     }
 
@@ -182,12 +192,16 @@ class Spectrogram {
             }
         }
 
-        const bufferLength = this.analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
+        // Reuse pre-allocated buffers (fallback alloc for legacy init() path)
+        if (!this._dataArray || this._dataArray.length !== this.analyser.frequencyBinCount) {
+            this._dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+        }
+        if (!this._colImage || this._colImage.height !== this.h) {
+            this._colImage = this.ctx.createImageData(1, this.h);
+        }
+        const dataArray = this._dataArray;
         this.analyser.getByteFrequencyData(dataArray);
-
-        // Crear nueva columna de pixels en el borde derecho
-        const imageData = this.ctx.createImageData(1, this.h);
+        const imageData = this._colImage;
 
         for (let y = 0; y < this.h; y++) {
             // Cutoff at ~30% of Nyquist (around 6.6kHz) to make bass/mids fill the canvas
@@ -235,24 +249,32 @@ class Spectrogram {
             }
         }
 
-        const imageData = this.ctx.createImageData(1, this.h);
-
-        // Accumulator per pixel row — start black
-        const accR = new Float32Array(this.h);
-        const accG = new Float32Array(this.h);
-        const accB = new Float32Array(this.h);
+        // Reallocate if canvas resized
+        if (this._multiH !== this.h) {
+            this._accR = new Float32Array(this.h);
+            this._accG = new Float32Array(this.h);
+            this._accB = new Float32Array(this.h);
+            this._colImageMulti = this.ctx.createImageData(1, this.h);
+            this._multiH = this.h;
+        }
+        const imageData = this._colImageMulti;
+        const accR = this._accR;
+        const accG = this._accG;
+        const accB = this._accB;
+        accR.fill(0);
+        accG.fill(0);
+        accB.fill(0);
 
         for (const layer of this._multiLayers) {
-            const bufferLength = layer.analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
-            layer.analyser.getByteFrequencyData(dataArray);
+            layer.analyser.getByteFrequencyData(layer._dataArray);
+            const dataArray = layer._dataArray;
 
-            const [lr, lg, lb] = layer.color; // peak colour for this layer
+            const [lr, lg, lb] = layer.color;
+            const bufLen = dataArray.length;
 
             for (let y = 0; y < this.h; y++) {
-                // Same frequency mapping as single-layer: cut at ~30% Nyquist
-                const freqIndex = Math.floor((1 - y / this.h) * bufferLength * 0.3);
-                let value = (dataArray[Math.min(freqIndex, bufferLength - 1)] / 255) * 1.5;
+                const freqIndex = Math.floor((1 - y / this.h) * bufLen * 0.3);
+                let value = (dataArray[Math.min(freqIndex, bufLen - 1)] / 255) * 1.5;
                 value = Math.min(1.0, value);
 
                 // Intensity curve: slight power ramp so quiet parts stay dark

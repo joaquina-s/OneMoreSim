@@ -97,11 +97,6 @@ const WorldBanera = {
     loader.load(
       'assets/banera.glb',
       (gltf) => {
-        console.log("=== GLTF SCENE ===");
-        gltf.scene.traverse(child => {
-            console.log(child.name, child.type, child.position, child.scale);
-        });
-        
         // Add the whole scene to the base scene
         this.scene.add(gltf.scene)
         

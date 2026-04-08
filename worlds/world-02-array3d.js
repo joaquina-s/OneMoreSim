@@ -300,8 +300,6 @@ export default {
       
         this._instances.push(instanceData);
     }
-    
-    console.log('WorldParade: 50 SkinnedMeshes cloned and animated.');
   },
 
   /* ──────────── Spawn text overlay ──────────── */
@@ -342,7 +340,6 @@ export default {
 
     container.appendChild(img);
     this._spawnedTexts.push(img);
-    console.log('[WorldParade] texto spawneado:', src, 'en', randX.toFixed(1), randY.toFixed(1));
   },
 
   /* ──────────── UPDATE ──────────── */
