@@ -359,9 +359,6 @@ const WorldBanera = {
       map: this._floorTextTex,
       side: THREE.DoubleSide,
       transparent: true,
-      opacity: 0.7,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
     })
     const textGeo = new THREE.PlaneGeometry(planeW, planeH)
     this._floorTextMesh = new THREE.Mesh(textGeo, textMat)
