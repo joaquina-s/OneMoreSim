@@ -1817,54 +1817,35 @@ button {
     filter: brightness(1.25);
 }
 
-/* ── Sound status mini-tracker (same aesthetic as world tracker) ── */
+/* ── Sound status flash display (car stereo style) ── */
 #sound-status-panel {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 2px 0;
-    margin-left: 6px;
-    background: rgba(4, 5, 13, 0.6);
-    border-radius: 2px;
-}
-
-#sound-status-list {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    height: 100%;
-}
-
-.sound-status-item {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 6px;
-    font-family: 'Averia Libre', monospace;
-    font-size: 11px;
-    font-weight: 300;
-    letter-spacing: -0.5px;
-    color: rgba(255, 255, 255, 0.25);
-    white-space: nowrap;
+    margin-left: 6px;
+    min-width: calc(var(--w-charbtn) * 2.2);
+    background: rgba(4, 5, 13, 0.7);
+    border: 1px solid rgba(40, 50, 90, 0.4);
+    border-radius: 2px;
     overflow: hidden;
-    text-overflow: ellipsis;
-    text-transform: uppercase;
-    line-height: 1.6;
-    -webkit-text-stroke: 0.5px #000;
-    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-    transition: color 0.3s;
 }
 
-.sound-status-item.active {
-    color: #ffffff;
+#sound-status-text {
+    font-family: 'Averia Libre', monospace;
+    font-size: 12px;
     font-weight: 600;
+    letter-spacing: -0.5px;
+    color: #ffffff;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.15s;
+    -webkit-text-stroke: 0.4px #000;
+    text-shadow: 0 0 6px rgba(0, 80, 255, 0.6);
 }
 
-.sound-status-item.muted {
-    color: rgba(255, 68, 102, 0.5);
+#sound-status-text.visible {
+    opacity: 1;
 }
 
 /* ── Volume slider (vertical) ── */
