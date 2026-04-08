@@ -874,19 +874,21 @@ async function ensureMusicInit() {
             });
         }
 
-        // Layer toggle buttons + sound status panel
+        // Layer toggle buttons + flash status display
+        let _statusTimer = null;
+        const statusText = document.getElementById('sound-status-text');
         document.querySelectorAll('.layer-toggle-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const layerKey = btn.dataset.layer;
                 const nowMuted = layeredMusic.toggleMute(layerKey);
                 btn.dataset.on = nowMuted ? 'false' : 'true';
-                // Update sound status mini-tracker
-                const statusEl = document.querySelector(`.sound-status-item[data-layer="${layerKey}"]`);
-                if (statusEl) {
+                // Flash status text like a car stereo display
+                if (statusText) {
                     const name = layerKey.charAt(0).toUpperCase() + layerKey.slice(1);
-                    statusEl.textContent = nowMuted ? `${name}Off` : `${name}On`;
-                    statusEl.classList.toggle('muted', nowMuted);
-                    statusEl.classList.toggle('active', !nowMuted);
+                    statusText.textContent = nowMuted ? `${name}Off` : `${name}On`;
+                    statusText.classList.add('visible');
+                    clearTimeout(_statusTimer);
+                    _statusTimer = setTimeout(() => statusText.classList.remove('visible'), 1500);
                 }
             });
         });
