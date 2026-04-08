@@ -440,7 +440,7 @@ function createPlayer(scene) {
     scene.add(playerGroup);
 
     const loader = new THREE.GLTFLoader();
-    loader.load('assets/walk.glb', (gltf) => {
+    loader.load('assets/3D/walk.glb', (gltf) => {
         let clone;
         if (THREE.SkeletonUtils && THREE.SkeletonUtils.clone) {
             clone = THREE.SkeletonUtils.clone(gltf.scene);

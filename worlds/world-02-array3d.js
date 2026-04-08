@@ -187,7 +187,7 @@ export default {
     // ── Load GLB ──
     const loader = new THREE.GLTFLoader();
     loader.load(
-      'assets/walk.glb',
+      'assets/3D/walk.glb',
       (gltf) => { this._setupRealInstances(gltf); },
       undefined,
       (err) => {

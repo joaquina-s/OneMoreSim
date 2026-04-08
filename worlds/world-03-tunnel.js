@@ -95,7 +95,7 @@ const WorldBanera = {
     // ── CARGAR GLB ──
     const loader = new THREE.GLTFLoader()
     loader.load(
-      'assets/banera.glb',
+      'assets/3D/baneraLow.glb',
       (gltf) => {
         // Add the whole scene to the base scene
         this.scene.add(gltf.scene)
@@ -137,7 +137,7 @@ const WorldBanera = {
       },
       undefined,
       (err) => {
-        console.error('Error cargando banera.glb:', err)
+        console.error('Error cargando baneraLow.glb:', err)
         this._createFallback()
       }
     )

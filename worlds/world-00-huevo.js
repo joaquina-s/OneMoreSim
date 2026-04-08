@@ -145,21 +145,39 @@ export default {
 
         // ── Load GLB ──
         const loader = new THREE.GLTFLoader();
-        loader.load('assets/huevo.glb', (gltf) => {
-            this._huevoMesh = gltf.scene;
-
-            // Optional: apply video texture globally or to a specific material name
-            this._huevoMesh.traverse((child) => {
-                if (child.isMesh) {
-                    // Try to preserve original material props but map video
-                    child.material = new THREE.MeshStandardMaterial({
-                        map: this._videoTex,
-                        emissiveMap: this._videoTex,
-                        emissive: new THREE.Color(0x333333),
-                        roughness: 0.3,
-                        metalness: 0.1
-                    });
+        loader.load('assets/3D/baneraLow.glb', (gltf) => {
+            // Extract the huevo mesh from the baneraLow composition
+            let huevoObj = null;
+            gltf.scene.traverse((child) => {
+                const name = (child.name || '').toLowerCase();
+                if (name.includes('huevo') && child.isMesh) {
+                    huevoObj = child;
                 }
+            });
+
+            // Use the extracted huevo, or fallback to entire scene
+            this._huevoMesh = huevoObj ? huevoObj : gltf.scene;
+
+            // If extracted, detach from parent so we can add it independently
+            if (huevoObj && huevoObj.parent) {
+                huevoObj.parent.remove(huevoObj);
+            }
+
+            // Apply video texture to all meshes
+            const applyTarget = this._huevoMesh.isMesh ? [this._huevoMesh] : [];
+            if (!this._huevoMesh.isMesh) {
+                this._huevoMesh.traverse((child) => {
+                    if (child.isMesh) applyTarget.push(child);
+                });
+            }
+            applyTarget.forEach((mesh) => {
+                mesh.material = new THREE.MeshStandardMaterial({
+                    map: this._videoTex,
+                    emissiveMap: this._videoTex,
+                    emissive: new THREE.Color(0x333333),
+                    roughness: 0.3,
+                    metalness: 0.1
+                });
             });
 
             // Center the model properly
@@ -169,8 +187,8 @@ export default {
             this._huevoMesh.position.sub(center);
 
             this.scene.add(this._huevoMesh);
-            this._sunMesh.position.copy(center); // Or origin if egg is centered
-        }, undefined, (e) => console.error("Error loading huevo.glb", e));
+            this._sunMesh.position.copy(center);
+        }, undefined, (e) => console.error("Error loading baneraLow.glb (huevo)", e));
     },
 
     update(time, keys) {
