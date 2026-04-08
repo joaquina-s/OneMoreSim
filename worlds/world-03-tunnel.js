@@ -13,6 +13,10 @@ const WorldBanera = {
   _handlers:      {},
   _volLightMesh:  null,
   _volLightUniforms: null,
+  _floorVideo:    null,
+  _floorVideoTex: null,
+  _floorTextTex:  null,
+  _floorTextMesh: null,
 
   // ─────────────────────────────────────────
   init(renderer, composer) {
@@ -147,6 +151,9 @@ const WorldBanera = {
 
     // ── VOLUMETRIC LIGHT CONE ──
     this._createVolumetricLight()
+
+    // ── FLOOR PLANES (video + scrolling text) ──
+    this._createFloorPlanes()
 
     // ── ORBIT CONTROLS ──
     this._orbitControls = new THREE.OrbitControls(this.camera, renderer.domElement)
@@ -312,6 +319,58 @@ const WorldBanera = {
   },
 
   // ─────────────────────────────────────────
+  _createFloorPlanes() {
+    // Aspect 1024:768 → use proportional world units
+    const planeW = 3.0
+    const planeH = planeW * (768 / 1024) // ≈ 2.25
+    const floorY = -0.35 // below bathtub
+
+    // ── Plane 1: video (wtube.mp4) ──
+    this._floorVideo = document.createElement('video')
+    this._floorVideo.src = 'assets/videos/wtube.mp4'
+    this._floorVideo.loop = true
+    this._floorVideo.muted = true
+    this._floorVideo.playsInline = true
+    this._floorVideo.crossOrigin = 'anonymous'
+    this._floorVideo.play().catch(() => {})
+
+    this._floorVideoTex = new THREE.VideoTexture(this._floorVideo)
+    this._floorVideoTex.minFilter = THREE.LinearFilter
+    this._floorVideoTex.magFilter = THREE.LinearFilter
+
+    const videoMat = new THREE.MeshBasicMaterial({
+      map: this._floorVideoTex,
+      side: THREE.DoubleSide,
+      transparent: false,
+    })
+    const videoGeo = new THREE.PlaneGeometry(planeW, planeH)
+    const videoPlane = new THREE.Mesh(videoGeo, videoMat)
+    videoPlane.rotation.x = -Math.PI / 2
+    videoPlane.position.set(0, floorY, 0)
+    this.scene.add(videoPlane)
+
+    // ── Plane 2: watertext.png with scrolling UVs (on top of video) ──
+    const textLoader = new THREE.TextureLoader()
+    this._floorTextTex = textLoader.load('assets/texto/watertext.png')
+    this._floorTextTex.wrapS = THREE.RepeatWrapping
+    this._floorTextTex.wrapT = THREE.RepeatWrapping
+
+    const textMat = new THREE.MeshBasicMaterial({
+      map: this._floorTextTex,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.7,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    })
+    const textGeo = new THREE.PlaneGeometry(planeW, planeH)
+    this._floorTextMesh = new THREE.Mesh(textGeo, textMat)
+    this._floorTextMesh.rotation.x = -Math.PI / 2
+    this._floorTextMesh.position.set(0, floorY + 0.001, 0) // tiny offset to avoid z-fighting
+    this.scene.add(this._floorTextMesh)
+  },
+
+  // ─────────────────────────────────────────
   _createVolumetricLight() {
     // Inverted cone: wide at top (light source), narrow at bottom (bathtub)
     const coneH  = 7.0
@@ -419,6 +478,12 @@ const WorldBanera = {
       }
     }
 
+    // Scroll UV on floor text plane
+    if (this._floorTextTex) {
+      this._floorTextTex.offset.x = time * 0.02
+      this._floorTextTex.offset.y = time * 0.015
+    }
+
     // Volumetric light animation
     if (this._volLightUniforms) {
       this._volLightUniforms.uTime.value = time
@@ -483,6 +548,16 @@ const WorldBanera = {
     }
 
     disposeScene(this.scene)
+
+    // Floor planes
+    if (this._floorVideo) {
+      this._floorVideo.pause()
+      this._floorVideo.src = ''
+      this._floorVideo = null
+    }
+    if (this._floorVideoTex) { this._floorVideoTex.dispose(); this._floorVideoTex = null }
+    if (this._floorTextTex)  { this._floorTextTex.dispose();  this._floorTextTex = null }
+    this._floorTextMesh = null
 
     this._renderer.autoClear = true
     this.scene          = null
