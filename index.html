@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <title>One More Sim</title>
-    <link rel="stylesheet" href="style.css?v=11">
+    <link rel="stylesheet" href="style.css?v=12">
     <link
         href="https://fonts.googleapis.com/css2?family=Averia+Libre:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap"
         rel="stylesheet">
@@ -292,6 +292,15 @@
                                 <img class="layer-btn-off" src="assets/tex/Buttons/VoiceOff.png" alt="Voice Off"/>
                             </button>
                         </div>
+                        <!-- Sound status mini-tracker -->
+                        <div id="sound-status-panel">
+                            <div id="sound-status-list">
+                                <div class="sound-status-item" data-layer="synth">SynthOn</div>
+                                <div class="sound-status-item" data-layer="bass">BassOn</div>
+                                <div class="sound-status-item" data-layer="perc">PercOn</div>
+                                <div class="sound-status-item" data-layer="voice">VoiceOn</div>
+                            </div>
+                        </div>
                         <!-- Volume slider (vertical) -->
                         <div id="volume-slider-wrap">
                             <input type="range" id="volume-slider" min="0" max="100" value="70"
@@ -386,7 +395,7 @@
         </div>
     </div>
 
-    <script type="module" src="index.js?v=11"></script>
+    <script type="module" src="index.js?v=12"></script>
 </body>
 
 </html>
