@@ -1817,6 +1817,56 @@ button {
     filter: brightness(1.25);
 }
 
+/* ── Sound status mini-tracker (same aesthetic as world tracker) ── */
+#sound-status-panel {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 2px 0;
+    margin-left: 6px;
+    background: rgba(4, 5, 13, 0.6);
+    border-radius: 2px;
+}
+
+#sound-status-list {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+}
+
+.sound-status-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    font-family: 'Averia Libre', monospace;
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: -0.5px;
+    color: rgba(255, 255, 255, 0.25);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    line-height: 1.6;
+    -webkit-text-stroke: 0.5px #000;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+    transition: color 0.3s;
+}
+
+.sound-status-item.active {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.sound-status-item.muted {
+    color: rgba(255, 68, 102, 0.5);
+}
+
 /* ── Volume slider (vertical) ── */
 #volume-slider-wrap {
     display: flex;
