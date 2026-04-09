@@ -18,7 +18,7 @@ const WorldLayer = {
   camera:         null,
   _renderer:      null,
   _orbitControls: null,
-  _planes:        [],       // after load-sort: index 0 = front, index 4 = back
+  _planes:        [],
   _handlers:      {},
   _loadedCount:   0,
 
@@ -50,8 +50,8 @@ const WorldLayer = {
     const textureLoader = new THREE.TextureLoader()
 
     LAYER_FILES.forEach((filename, index) => {
-      // index 0 (1.png) = frente, más cerca de cámara (z positivo alto)
-      // index 4 (5.png) = fondo, más lejos de cámara (z negativo)
+      // index 0 (1.png) = frente → z más positivo (más cerca de cámara en z=13)
+      // index 4 (5.png) = fondo → z más negativo (más lejos de cámara)
       const t = index / (LAYER_COUNT - 1)                        // 0 → 1
       const z = LAYER_DEPTH_TOTAL / 2 - t * LAYER_DEPTH_TOTAL   // +5 → -5
 
@@ -60,31 +60,34 @@ const WorldLayer = {
         (texture) => {
           texture.premultiplyAlpha = false
 
-          // alphaTest = recorte duro. Píxeles con alfa < 0.5 se descartan
-          // completamente (no escriben depth ni color). Las figuras se ven
-          // 100 % sólidas, sin ningún blending semi-transparente.
           const mat = new THREE.MeshBasicMaterial({
             map:         texture,
-            alphaTest:   0.5,
+            transparent: true,
+            alphaTest:   0.01,
             side:        THREE.FrontSide,
-            depthWrite:  true     // depth buffer activo para oclusión correcta
+            depthWrite:  false    // sin depth write para transparencia correcta
           })
 
           const plane = new THREE.Mesh(planeGeo, mat)
           plane.position.set(0, 0, z)
-          // renderOrder inicial: front planes renderizan primero (escriben depth),
-          // back planes renderizan después (se ven solo por los huecos)
-          plane.renderOrder = index
+
+          // Para transparent + depthWrite:false, renderOrder MAYOR = se dibuja
+          // ÚLTIMO = aparece ENCIMA visualmente.
+          // 1.png (index 0, frente) necesita el renderOrder más alto.
+          plane.renderOrder = LAYER_COUNT - 1 - index
 
           this.scene.add(plane)
           this._planes.push(plane)
 
           this._loadedCount++
-          // Una vez que cargaron todos, ordenamos por z descendente
-          // para que _planes[0] = front y reasignar renderOrder correctamente
           if (this._loadedCount === LAYER_COUNT) {
+            // Ordenar _planes por z descendente: [0]=frente, [4]=fondo
             this._planes.sort((a, b) => b.position.z - a.position.z)
-            this._planes.forEach((p, i) => { p.renderOrder = i })
+            // Frente (i=0) → renderOrder alto (encima)
+            // Fondo (i=4) → renderOrder bajo (debajo)
+            this._planes.forEach((p, i) => {
+              p.renderOrder = LAYER_COUNT - 1 - i
+            })
           }
         },
         undefined,
@@ -140,7 +143,7 @@ const WorldLayer = {
       this._orbitControls.update()
     }
 
-    // Respiración sutil — separación entre layers pulsa levemente
+    // Respiración sutil
     const breathe = Math.sin(time * 0.4) * 0.04
     this._planes.forEach((plane, index) => {
       const t = index / (LAYER_COUNT - 1)
