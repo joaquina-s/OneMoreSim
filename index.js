@@ -370,11 +370,30 @@ function typeWorldDesc(text) {
     next();
 }
 
+// ── Instruction image per world (header-credits panel) ──
+const WORLD_INSTRUCTION_IMG = {
+    '0': 'assets/texto/RotateCam.png',      // 01Core_Unit
+    '7': 'assets/texto/clickCells.png',      // 02Ambient_Human_presence
+    '2': 'assets/texto/TapChair.png',        // 03Presentation_Club
+    '9': 'assets/texto/RotateCam.png',       // 04Inner_World
+    '6': 'assets/texto/Move.png',            // 05Aqua_Race
+    '3': 'assets/texto/TapNPC.png',          // 06Super_Me_Era
+    '5': 'assets/texto/RotateCam.png',       // 07
+    '4': 'assets/texto/RotateCam.png',       // 08Fetal_Situation
+    '1': 'assets/texto/Move.png'             // 09Bubblepicking
+};
+
 function updateWorldInfo(worldId) {
     const data = WORLD_DATA[worldId] || WORLD_DATA['0'];
     document.documentElement.style.setProperty('--world-accent', data.accent);
     typeWorldDesc(data.desc);
     updateWorldTracker(worldId);
+
+    // Update instruction image in header-credits panel
+    const creditsImg = document.getElementById('header-credits-img');
+    if (creditsImg) {
+        creditsImg.src = WORLD_INSTRUCTION_IMG[worldId] || 'assets/texto/RotateCam.png';
+    }
 }
 
 // ── World Tracker (car-stereo playlist panel) ──
