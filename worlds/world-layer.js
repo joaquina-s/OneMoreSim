@@ -62,10 +62,8 @@ const WorldLayer = {
 
           const mat = new THREE.MeshBasicMaterial({
             map:         texture,
-            transparent: true,
-            alphaTest:   0.01,
-            side:        THREE.FrontSide,
-            depthWrite:  false
+            transparent: false,
+            side:        THREE.FrontSide
           })
 
           const plane = new THREE.Mesh(planeGeo, mat)
