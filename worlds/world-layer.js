@@ -1,5 +1,5 @@
 const LAYER_COUNT       = 5
-const LAYER_DEPTH_TOTAL = 10      // unidades de profundidad total
+const LAYER_DEPTH_TOTAL = 4       // unidades de profundidad total (compacto)
 const PLANE_WIDTH       = 6.0     // ancho del plano en unidades Three.js
 const PLANE_HEIGHT      = PLANE_WIDTH * (768 / 1024)  // 4:3 landscape (1024×768)
 
@@ -36,8 +36,9 @@ const WorldLayer = {
     this.scene.background = new THREE.Color(0x000000)
 
     // ── CÁMARA ──
+    // Más cerca para que la imagen ocupe casi todo el viewport
     this.camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 100)
-    this.camera.position.set(0, 0, 13)
+    this.camera.position.set(0, 0, 8)
     this.camera.lookAt(0, 0, 0)
 
     // ── ILUMINACIÓN ──
@@ -50,10 +51,10 @@ const WorldLayer = {
     const textureLoader = new THREE.TextureLoader()
 
     LAYER_FILES.forEach((filename, index) => {
-      // index 0 (1.png) = frente → z más positivo (más cerca de cámara en z=13)
-      // index 4 (5.png) = fondo → z más negativo (más lejos de cámara)
+      // index 0 (1.png) = frente → z más positivo (más cerca de cámara)
+      // index 4 (5.png) = fondo → z más negativo
       const t = index / (LAYER_COUNT - 1)                        // 0 → 1
-      const z = LAYER_DEPTH_TOTAL / 2 - t * LAYER_DEPTH_TOTAL   // +5 → -5
+      const z = LAYER_DEPTH_TOTAL / 2 - t * LAYER_DEPTH_TOTAL   // +2 → -2
 
       textureLoader.load(
         `assets/layers/${filename}`,
@@ -65,15 +66,19 @@ const WorldLayer = {
             transparent: true,
             alphaTest:   0.01,
             side:        THREE.FrontSide,
-            depthWrite:  false    // sin depth write para transparencia correcta
+            depthWrite:  false
           })
 
           const plane = new THREE.Mesh(planeGeo, mat)
           plane.position.set(0, 0, z)
 
-          // Para transparent + depthWrite:false, renderOrder MAYOR = se dibuja
-          // ÚLTIMO = aparece ENCIMA visualmente.
-          // 1.png (index 0, frente) necesita el renderOrder más alto.
+          // Guardar z original y índice en userData — la animación de
+          // respiración usa estos valores, NO el índice del array _planes
+          plane.userData.zBase      = z
+          plane.userData.layerIndex = index
+
+          // renderOrder: mayor = se dibuja último = aparece encima
+          // 1.png (index 0) debe tener el más alto
           plane.renderOrder = LAYER_COUNT - 1 - index
 
           this.scene.add(plane)
@@ -81,10 +86,9 @@ const WorldLayer = {
 
           this._loadedCount++
           if (this._loadedCount === LAYER_COUNT) {
-            // Ordenar _planes por z descendente: [0]=frente, [4]=fondo
-            this._planes.sort((a, b) => b.position.z - a.position.z)
-            // Frente (i=0) → renderOrder alto (encima)
-            // Fondo (i=4) → renderOrder bajo (debajo)
+            // Ordenar por zBase (no position.z que puede estar modificado)
+            this._planes.sort((a, b) => b.userData.zBase - a.userData.zBase)
+            // Reasignar renderOrder: frente (i=0) → alto, fondo (i=4) → bajo
             this._planes.forEach((p, i) => {
               p.renderOrder = LAYER_COUNT - 1 - i
             })
@@ -98,6 +102,8 @@ const WorldLayer = {
           })
           const plane = new THREE.Mesh(planeGeo, mat)
           plane.position.set(0, 0, z)
+          plane.userData.zBase      = z
+          plane.userData.layerIndex = index
           this.scene.add(plane)
           this._planes.push(plane)
         }
@@ -143,11 +149,11 @@ const WorldLayer = {
       this._orbitControls.update()
     }
 
-    // Respiración sutil
+    // Respiración sutil — usa userData.zBase (no el índice del array)
     const breathe = Math.sin(time * 0.4) * 0.04
-    this._planes.forEach((plane, index) => {
-      const t = index / (LAYER_COUNT - 1)
-      const zBase = LAYER_DEPTH_TOTAL / 2 - t * LAYER_DEPTH_TOTAL
+    this._planes.forEach(plane => {
+      const zBase = plane.userData.zBase
+      const t = plane.userData.layerIndex / (LAYER_COUNT - 1)
       plane.position.z = zBase + breathe * (0.5 - t)
     })
 
