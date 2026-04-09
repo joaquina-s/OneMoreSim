@@ -78,7 +78,6 @@ worldManager.register('4', () => import('./worlds/world-03-tunnel.js?v=2').then(
 worldManager.register('5', () => import('./worlds/world-04-drawrange.js').then(m => m.default));
 worldManager.register('6', () => import('./worlds/world06.js').then(m => m.default));
 worldManager.register('7', () => import('./worlds/world07.js').then(m => m.default));
-worldManager.register('8', () => import('./worlds/world-07-godrays.js').then(m => m.default));
 worldManager.register('9', () => import('./worlds/world-layer.js').then(m => m.default));
 
 // ───────────────────────────────────────────────
@@ -166,7 +165,7 @@ function enterExperience() {
                 const loadingBar = document.getElementById('intro-loading-bar');
                 const enterBtn = document.getElementById('intro-enter-btn');
                 const loadingWrap = document.getElementById('intro-loading-bar-wrap');
-                const allIds = ['0','7','2','9','6','3','5','4','1','8'];
+                const allIds = ['0','7','2','9','6','3','5','4','1'];
                 let loaded = 0;
 
                 // Activate world 0 first (counts as 1 loaded)
@@ -335,20 +334,6 @@ const WORLD_DATA = {
                   <rect x="26" y="8" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"/>
                   <rect x="8" y="26" width="32" height="14" fill="none" stroke="currentColor" stroke-width="2"/>`
     },
-    '8': {
-        title: '10',
-        desc: 'Rayos de luz volumétrica con MorphTargets. Geometrías que se transforman entre formas en tiempo real.',
-        accent: '#ff8800',
-        iconSvg: `<circle cx="24" cy="24" r="5" fill="currentColor"/>
-              <line x1="24" y1="4" x2="24" y2="14" stroke="currentColor" stroke-width="2"/>
-              <line x1="38" y1="10" x2="31" y2="17" stroke="currentColor" stroke-width="2"/>
-              <line x1="44" y1="24" x2="34" y2="24" stroke="currentColor" stroke-width="2"/>
-              <line x1="38" y1="38" x2="31" y2="31" stroke="currentColor" stroke-width="2"/>
-              <line x1="24" y1="44" x2="24" y2="34" stroke="currentColor" stroke-width="2"/>
-              <line x1="10" y1="38" x2="17" y2="31" stroke="currentColor" stroke-width="2"/>
-              <line x1="4" y1="24" x2="14" y2="24" stroke="currentColor" stroke-width="2"/>
-              <line x1="10" y1="10" x2="17" y2="17" stroke="currentColor" stroke-width="2"/>`
-    },
     '9': {
         title: '04Inner_World',
         desc: '(( hey image, you look trapped there))',
@@ -393,7 +378,7 @@ function updateWorldInfo(worldId) {
 }
 
 // ── World Tracker (car-stereo playlist panel) ──
-const WORLD_ORDER = ['0','7','2','9','6','3','5','4','1','8'];
+const WORLD_ORDER = ['0','7','2','9','6','3','5','4','1'];
 const WORLD_DISPLAY_NAMES = {
     '0': '01  Core_Unit',
     '7': '02  Ambient_Human_presence',
@@ -403,8 +388,7 @@ const WORLD_DISPLAY_NAMES = {
     '3': '06  Super_Me_Era',
     '5': '07',
     '4': '08  Fetal_Situation',
-    '1': '09  Bubblepicking',
-    '8': '10'
+    '1': '09  Bubblepicking'
 };
 const TRACK_ITEM_H = 26; // px — must match CSS
 

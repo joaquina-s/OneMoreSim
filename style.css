@@ -589,7 +589,10 @@ button {
         -0.7px -0.7px 0 #000,
          0.7px -0.7px 0 #000,
         -0.7px  0.7px 0 #000,
-         0.7px  0.7px 0 #000;
+         0.7px  0.7px 0 #000,
+         0 0 6px #ffffff,
+         0 0 14px rgba(0, 80, 255, 0.9),
+         0 0 28px rgba(0, 30, 255, 0.5);
 }
 
 /* Square terminal cursor — inline after text inside same scaled wrapper */
@@ -1823,10 +1826,6 @@ button {
     align-items: center;
     justify-content: center;
     margin-left: 6px;
-    min-width: calc(var(--w-charbtn) * 2.2);
-    background: rgba(4, 5, 13, 0.7);
-    border: 1px solid rgba(40, 50, 90, 0.4);
-    border-radius: 2px;
     overflow: hidden;
 }
 

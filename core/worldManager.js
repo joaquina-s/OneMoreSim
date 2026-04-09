@@ -32,7 +32,7 @@ export class WorldManager {
     // ─── World names for the header HUD ───
     static WORLD_NAMES = {
         '0': 'CAROUSEL', '1': 'TERRAIN', '2': 'ARRAY-3D', '3': 'TUNNEL',
-        '4': 'VÓRTICE', '5': 'NEBULOSA', '6': 'OCÉANO', '7': 'CRISTAL'
+        '4': 'VÓRTICE', '5': 'NEBULOSA', '6': 'OCÉANO', '7': 'CRISTAL', '9': 'LAYER'
     };
 
     /**
