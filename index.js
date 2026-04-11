@@ -166,23 +166,54 @@ function enterExperience() {
                 const enterBtn = document.getElementById('intro-enter-btn');
                 const loadingWrap = document.getElementById('intro-loading-bar-wrap');
                 const allIds = ['0','7','2','9','6','3','5','4','1'];
+
+                // Heavy binary assets to warm into HTTP cache so that when
+                // the user enters that world, the GLTFLoader gets the file
+                // from cache instantly (no download wait)
+                const heavyAssets = [
+                    'assets/3D/lanchachar.glb',   // world06 — 20MB
+                    'assets/3D/palm1.1.glb',      // world06 — 12MB
+                    'assets/3D/palm2.1.glb',      // world06 — 14MB
+                    'assets/3D/walk.glb',         // world06 + bubblepicking
+                    'assets/3D/baneraLow.glb',    // world-03 + world-00
+                    'assets/3D/teatro.glb',       // world-01
+                ];
+                // Total progress units = worlds + heavy assets + music
+                const totalUnits = allIds.length + heavyAssets.length + 1;
                 let loaded = 0;
+                const bumpProgress = () => {
+                    loaded++;
+                    if (loadingBar) loadingBar.style.width = `${(loaded / totalUnits) * 100}%`;
+                };
 
-                // Activate world 0 first (counts as 1 loaded)
+                // Activate world 0 first
                 await worldManager.activate('0');
-                loaded++;
-                if (loadingBar) loadingBar.style.width = `${(loaded / allIds.length) * 100}%`;
+                bumpProgress();
 
-                // Preload remaining worlds in parallel for speed
+                // Preload remaining worlds (JS modules) in parallel
                 const remainingIds = allIds.slice(1);
                 const preloadPromises = remainingIds.map(id =>
-                    worldManager.preload(id).then(() => {
-                        loaded++;
-                        if (loadingBar) loadingBar.style.width = `${(loaded / allIds.length) * 100}%`;
-                    })
+                    worldManager.preload(id).then(bumpProgress)
                 );
-                // Also init music in parallel with world preloads
-                preloadPromises.push(ensureMusicInit());
+
+                // Warm HTTP cache for heavy binary assets in parallel.
+                // fetch().blob() forces the browser to actually download
+                // and cache the response under the same URL that the
+                // GLTFLoader / video element will use later.
+                heavyAssets.forEach(url => {
+                    preloadPromises.push(
+                        fetch(url)
+                            .then(r => r.blob())
+                            .then(bumpProgress)
+                            .catch(e => {
+                                console.warn('[preload] asset failed:', url, e);
+                                bumpProgress();
+                            })
+                    );
+                });
+
+                // Also init music in parallel
+                preloadPromises.push(ensureMusicInit().then(bumpProgress));
                 await Promise.all(preloadPromises);
 
                 // All loaded — hide bar, show enter button
