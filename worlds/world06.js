@@ -365,18 +365,26 @@ const WorldChase = {
         const variation = 1 + Math.random() * 2;   // 1 → 3
         palm.scale.setScalar(baseScale * variation);
 
-        // Preservar texturas originales — solo habilitar sombras y visibilidad
+        // Preservar texturas originales si existen; fallback visible si no
         palm.traverse(child => {
           if (child.isMesh) {
             child.frustumCulled = false;
             child.visible = true;
             child.castShadow = true;
             child.receiveShadow = true;
-            if (child.material && child.material.map) {
+            const hasMap = child.material && child.material.map;
+            if (hasMap) {
               child.material.map.encoding = THREE.sRGBEncoding;
               child.material.map.needsUpdate = true;
+              child.material.needsUpdate = true;
+            } else {
+              // Fallback si el GLB no trae textura — verde palmera visible
+              child.material = new THREE.MeshStandardMaterial({
+                color: pos.model === 0 ? 0x2d5a1b : 0x3a6b22,
+                roughness: 0.8,
+                metalness: 0.1
+              });
             }
-            if (child.material) child.material.needsUpdate = true;
           }
         });
 
@@ -387,14 +395,16 @@ const WorldChase = {
     };
 
     loader.load('assets/3D/palm1.1.glb', (gltf) => {
+      console.log('[world06] palm1.1 loaded', gltf);
       palm1Proto = gltf.scene;
       placePalms();
-    }, undefined, (e) => console.warn('palm1.1 load error:', e));
+    }, undefined, (e) => console.error('[world06] palm1.1 load error:', e));
 
     loader.load('assets/3D/palm2.1.glb', (gltf) => {
+      console.log('[world06] palm2.1 loaded', gltf);
       palm2Proto = gltf.scene;
       placePalms();
-    }, undefined, (e) => console.warn('palm2.1 load error:', e));
+    }, undefined, (e) => console.error('[world06] palm2.1 load error:', e));
   },
 
   /* ════════════════════════════════════════════
@@ -479,28 +489,41 @@ const WorldChase = {
   _loadLancha() {
     const loader = new THREE.GLTFLoader();
     loader.load('assets/3D/lanchachar.glb', (gltf) => {
+      console.log('[world06] lanchachar loaded', gltf, 'animations:', gltf.animations.length);
       this._lancha = gltf.scene;
 
       this._lancha.scale.setScalar(1);
       this._lancha.position.set(0, 0.5, -6);
       this._lancha.rotation.y = -Math.PI / 2;
 
-      // Preservar materiales originales + texturas, solo asegurar skinning
+      // Preservar materiales + texturas; fallback visible si no hay map
       this._lancha.traverse((child) => {
-        if (child.isMesh && child.material) {
-          if (child.material.metalness !== undefined) {
-            child.material.metalness = 0.0;
-            child.material.roughness = 0.9;
-          }
-          if (child.material.map) {
-            child.material.map.encoding = THREE.sRGBEncoding;
-            child.material.map.needsUpdate = true;
-          }
-          if (child.isSkinnedMesh) {
-            child.material.skinning = true;
-          }
-          child.material.needsUpdate = true;
+        if (child.isMesh) {
+          child.frustumCulled = false;
+          child.visible = true;
           child.castShadow = true;
+          if (child.material) {
+            if (child.material.metalness !== undefined) {
+              child.material.metalness = 0.0;
+              child.material.roughness = 0.9;
+            }
+            if (child.material.map) {
+              child.material.map.encoding = THREE.sRGBEncoding;
+              child.material.map.needsUpdate = true;
+            }
+            if (child.isSkinnedMesh) {
+              child.material.skinning = true;
+            }
+            child.material.needsUpdate = true;
+          } else {
+            // Fallback si el mesh no tiene material
+            child.material = new THREE.MeshStandardMaterial({
+              color: 0x8899cc,
+              roughness: 0.9,
+              metalness: 0.0,
+              skinning: child.isSkinnedMesh || false
+            });
+          }
         }
       });
 
@@ -513,6 +536,7 @@ const WorldChase = {
           const action = this._lanchaMixer.clipAction(clip);
           action.play();
         });
+        console.log('[world06] lanchachar mixer started,', gltf.animations.length, 'clips');
       }
 
       // Wake (Estela)
@@ -534,7 +558,7 @@ const WorldChase = {
       this._lancha.add(wake2);
 
       this._wakePlanes = [wake1, wake2];
-    }, undefined, (e) => console.error(e));
+    }, undefined, (e) => console.error('[world06] lanchachar load error:', e));
   },
 
   /* ════════════════════════════════════════════
