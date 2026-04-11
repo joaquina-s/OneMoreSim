@@ -4,6 +4,9 @@ const WorldChase = {
   camera: null,
   _renderer: null,
   _mixer: null,
+  _lanchaMixer: null,
+  _video: null,
+  _videoTexture: null,
   _clock: null,
   _character: null,
   _lancha: null,
@@ -323,20 +326,20 @@ const WorldChase = {
      PALM TREES — loaded from GLBs
      ════════════════════════════════════════════ */
   _loadPalms() {
-    // Absolute positions in world space (terrain is at X ≈ -23)
+    // Palmas más separadas — rango completo de z (-38 a +32) y x más amplio
     const palmPositions = [
-      { x: -14, z:  -5, scale: 1.0, model: 0 },
-      { x: -18, z: -12, scale: 1.3, model: 1 },
-      { x: -13, z: -20, scale: 0.9, model: 0 },
-      { x: -20, z:  -8, scale: 1.1, model: 1 },
-      { x: -15, z: -28, scale: 1.4, model: 0 },
-      { x: -19, z: -35, scale: 0.85, model: 1 },
-      { x: -14, z: -16, scale: 1.0, model: 0 },
-      { x: -21, z: -22, scale: 1.2, model: 1 },
-      { x: -16, z: -30, scale: 0.95, model: 0 },
-      { x: -18, z:  -3, scale: 1.15, model: 1 },
-      { x: -13, z: -38, scale: 1.0, model: 0 },
-      { x: -22, z: -14, scale: 0.9, model: 1 },
+      { x: -13, z:  -5, model: 0 },
+      { x: -21, z: -18, model: 1 },
+      { x: -15, z: -32, model: 0 },
+      { x: -25, z:  -8, model: 1 },
+      { x: -17, z:  10, model: 0 },
+      { x: -23, z:  22, model: 1 },
+      { x: -14, z:  32, model: 0 },
+      { x: -27, z: -24, model: 1 },
+      { x: -19, z:  -3, model: 0 },
+      { x: -24, z:  15, model: 1 },
+      { x: -16, z: -14, model: 0 },
+      { x: -26, z: -38, model: 1 },
     ];
 
     const loader = new THREE.GLTFLoader();
@@ -355,43 +358,43 @@ const WorldChase = {
         palm.position.set(pos.x, 0, pos.z);
         palm.rotation.y = Math.random() * Math.PI * 2;
 
-        // Apply bounding-box-based scale so palm is ~4 units tall
+        // Escala normalizada a ~4 unidades alto, luego variación aleatoria 1–3
         const box = new THREE.Box3().setFromObject(palm);
         const size = box.getSize(new THREE.Vector3());
         const baseScale = 4.0 / Math.max(size.x, size.y, size.z, 0.01);
-        palm.scale.setScalar(baseScale * pos.scale);
+        const variation = 1 + Math.random() * 2;   // 1 → 3
+        palm.scale.setScalar(baseScale * variation);
 
+        // Preservar texturas originales — solo habilitar sombras y visibilidad
         palm.traverse(child => {
           if (child.isMesh) {
             child.frustumCulled = false;
             child.visible = true;
             child.castShadow = true;
             child.receiveShadow = true;
-            // Force visible material (dark green silhouette)
-            child.material = new THREE.MeshStandardMaterial({
-              color: pos.model === 0 ? 0x2d5a1b : 0x3a6b22,
-              roughness: 0.8,
-              metalness: 0.1
-            });
+            if (child.material && child.material.map) {
+              child.material.map.encoding = THREE.sRGBEncoding;
+              child.material.map.needsUpdate = true;
+            }
+            if (child.material) child.material.needsUpdate = true;
           }
         });
 
-        // Add directly to scene, NOT to terrain
         this.scene.add(palm);
         this._palmModels.push(palm);
       });
 
     };
 
-    loader.load('assets/3D/palm1.glb', (gltf) => {
+    loader.load('assets/3D/palm1.1.glb', (gltf) => {
       palm1Proto = gltf.scene;
       placePalms();
-    }, undefined, (e) => console.warn('palm1 load error:', e));
+    }, undefined, (e) => console.warn('palm1.1 load error:', e));
 
-    loader.load('assets/3D/palm2.glb', (gltf) => {
+    loader.load('assets/3D/palm2.1.glb', (gltf) => {
       palm2Proto = gltf.scene;
       placePalms();
-    }, undefined, (e) => console.warn('palm2 load error:', e));
+    }, undefined, (e) => console.warn('palm2.1 load error:', e));
   },
 
   /* ════════════════════════════════════════════
@@ -475,13 +478,14 @@ const WorldChase = {
      ════════════════════════════════════════════ */
   _loadLancha() {
     const loader = new THREE.GLTFLoader();
-    loader.load('assets/3D/lancha.glb', (gltf) => {
+    loader.load('assets/3D/lanchachar.glb', (gltf) => {
       this._lancha = gltf.scene;
 
       this._lancha.scale.setScalar(1);
       this._lancha.position.set(0, 0.5, -6);
       this._lancha.rotation.y = -Math.PI / 2;
 
+      // Preservar materiales originales + texturas, solo asegurar skinning
       this._lancha.traverse((child) => {
         if (child.isMesh && child.material) {
           if (child.material.metalness !== undefined) {
@@ -492,11 +496,24 @@ const WorldChase = {
             child.material.map.encoding = THREE.sRGBEncoding;
             child.material.map.needsUpdate = true;
           }
+          if (child.isSkinnedMesh) {
+            child.material.skinning = true;
+          }
           child.material.needsUpdate = true;
+          child.castShadow = true;
         }
       });
 
       this.scene.add(this._lancha);
+
+      // Disparar animación del personaje dentro de la lancha
+      if (gltf.animations && gltf.animations.length > 0) {
+        this._lanchaMixer = new THREE.AnimationMixer(this._lancha);
+        gltf.animations.forEach(clip => {
+          const action = this._lanchaMixer.clipAction(clip);
+          action.play();
+        });
+      }
 
       // Wake (Estela)
       const wakeGeo = new THREE.PlaneGeometry(0.5, 4);
@@ -524,6 +541,27 @@ const WorldChase = {
      CHARACTER
      ════════════════════════════════════════════ */
   _loadCharacter() {
+    // Video texture setup — Seq01.mp4 loop muted
+    const video = document.createElement('video');
+    video.src = 'assets/videos/Seq01.mp4';
+    video.loop = true;
+    video.muted = true;
+    video.playsInline = true;
+    video.crossOrigin = 'anonymous';
+    video.preload = 'auto';
+    video.autoplay = true;
+    const tryPlay = () => video.play().catch(() => {});
+    video.addEventListener('canplaythrough', tryPlay);
+    tryPlay();
+    this._video = video;
+
+    const videoTexture = new THREE.VideoTexture(video);
+    videoTexture.minFilter = THREE.LinearFilter;
+    videoTexture.magFilter = THREE.LinearFilter;
+    videoTexture.format = THREE.RGBAFormat;
+    videoTexture.encoding = THREE.sRGBEncoding;
+    this._videoTexture = videoTexture;
+
     const loader = new THREE.GLTFLoader();
     loader.load('assets/3D/walk.glb', (gltf) => {
       this._character = THREE.SkeletonUtils ? THREE.SkeletonUtils.clone(gltf.scene) : gltf.scene;
@@ -531,14 +569,13 @@ const WorldChase = {
       this._character.scale.setScalar(0.5);
       this._character.rotation.y = Math.PI;
 
-      // Apply emissive material so character is visible against the dark ocean
+      // Texture = video map, with skinning enabled
       this._character.traverse(child => {
         if (child.isMesh) {
           child.material = new THREE.MeshStandardMaterial({
-            color: 0x7d85b4,
-            emissive: 0x2a2d4a,
+            map: videoTexture,
             roughness: 0.8,
-            metalness: 0.2,
+            metalness: 0.1,
             skinning: true
           });
           child.castShadow = true;
@@ -552,7 +589,8 @@ const WorldChase = {
         const action = this._mixer.clipAction(gltf.animations[0]);
         action.play();
         this._walkAction = action;
-        this._walkAction.paused = true;
+        // Animación SIEMPRE activa (no pausar cuando no se mueve)
+        this._walkAction.paused = false;
       }
     }, undefined, (e) => console.error(e));
   },
@@ -706,30 +744,24 @@ const WorldChase = {
       this._speedLines.geometry.attributes.position.needsUpdate = true;
     }
 
-    // 6. Character movement
+    // 6. Character movement — animación siempre activa
     if (this._character) {
-      let isMoving = false;
       const speed = 0.05;
 
       if (keys.left) {
         this._character.position.x -= speed;
-        isMoving = true;
       } else if (keys.right) {
         this._character.position.x += speed;
-        isMoving = true;
       }
 
       this._character.position.x = Math.max(-4, Math.min(4, this._character.position.x));
-
-      if (this._walkAction) {
-        if (isMoving) {
-          this._walkAction.paused = false;
-          if (this._mixer) this._mixer.update(delta);
-        } else {
-          this._walkAction.paused = true;
-        }
-      }
     }
+
+    // Mixer siempre corre (walk.glb loop continuo)
+    if (this._mixer) this._mixer.update(delta);
+
+    // Lancha mixer (personaje animado dentro de la lancha)
+    if (this._lanchaMixer) this._lanchaMixer.update(delta);
 
     // 7. Star twinkle (subtle opacity variation)
     if (this._stars) {
@@ -780,6 +812,15 @@ const WorldChase = {
     }
     if (this._waterMat) this._waterMat.dispose();
     if (this._foamMat) this._foamMat.dispose();
+    if (this._videoTexture) this._videoTexture.dispose();
+    if (this._video) {
+      this._video.pause();
+      this._video.removeAttribute('src');
+      this._video.load();
+      this._video = null;
+    }
+    this._mixer = null;
+    this._lanchaMixer = null;
     if (this._speedLines) {
       this._speedLines.geometry.dispose();
       this._speedLines.material.dispose();
