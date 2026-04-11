@@ -265,7 +265,7 @@ button {
 
 #intro-welcome-img {
     display: block;
-    max-width: min(1190px, 95vw);
+    max-width: min(1428px, 98vw);
     width: 100%;
     height: auto;
     filter: drop-shadow(0 0 24px rgba(180, 210, 255, 0.55))
