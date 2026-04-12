@@ -283,6 +283,27 @@ document.getElementById('intro-enter-btn').addEventListener('click', () => {
 });
 
 // ───────────────────────────────────────────────
+// HEADER LOGO BUTTON 1 → re-open welcome overlay
+// ───────────────────────────────────────────────
+const logoBtn1 = document.getElementById('logo-btn-1');
+if (logoBtn1) {
+    logoBtn1.addEventListener('click', () => {
+        uiSound.click && uiSound.click();
+        const introOverlay = document.getElementById('intro-overlay');
+        const loadingWrap = document.getElementById('intro-loading-bar-wrap');
+        const enterBtn = document.getElementById('intro-enter-btn');
+        if (!introOverlay) return;
+        // Hide loading bar (already loaded), show enter button
+        if (loadingWrap) loadingWrap.style.display = 'none';
+        if (enterBtn) enterBtn.style.display = 'flex';
+        // Re-enable and fade back in
+        introOverlay.style.display = 'flex';
+        introOverlay.style.pointerEvents = 'auto';
+        gsap.fromTo(introOverlay, { opacity: 0 }, { opacity: 1, duration: 0.4 });
+    });
+}
+
+// ───────────────────────────────────────────────
 // HUD WORLD DATA & UPDATE LOGIC
 // ───────────────────────────────────────────────
 

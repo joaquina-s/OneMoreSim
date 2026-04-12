@@ -33,7 +33,7 @@ const WorldLayer = {
 
     // ── ESCENA ──
     this.scene = new THREE.Scene()
-    this.scene.background = new THREE.Color(0x000000)
+    this.scene.background = new THREE.Color(0xffffff)
 
     // ── CÁMARA ──
     // Más cerca para que la imagen ocupe casi todo el viewport
