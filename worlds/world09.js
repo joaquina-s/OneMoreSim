@@ -1,6 +1,7 @@
-// scenes/bubblepicking.js
+// worlds/world09.js
 // BubblePicking world — 4 themed rooms with walk character,
 // ascending bubbles, floating images, and bubble-picking mechanics.
+// Datamosh melt trail behind the character while walking.
 // Uses global THREE (r128 via CDN script tags).
 
 import { deviceProfile } from '../core/deviceProfile.js';
@@ -12,49 +13,44 @@ let bpCamera = null;
 let ambientLight = null;
 let dirLight = null;
 
-let playerGroup = null;   // THREE.Group containing the GLB clone
-let playerMixer = null;   // AnimationMixer for the walk character
-let walkAction = null;    // AnimationAction
+let playerGroup = null;
+let playerMixer = null;
+let walkAction = null;
 let orbitAngle = 0;
 let velocity = 0;
 const orbitRadius = 16;
-let lastFacingRight = true; // track last facing direction
+let lastFacingRight = true;
 
 let currentRoomId = null;
 let roomOverlayTimeout = null;
 
 const simulations = [];
 
-// Shader passes
-let blurPass = null;
-let pixelPass = null;
-let hazePass = null;
-let renderPass = null;
-
+// Shader passes (unused now — datamosh replaces EffectComposer)
 let _composer = null;
 let _renderer = null;
 
 // ─── Datamosh trail state ───
 let _rtCurrent = null;
-let _rtTrailA = null;   // ping-pong pair: read from one, write to other
+let _rtTrailA = null;
 let _rtTrailB = null;
-let _trailRead = null;  // points to the RT to read (last frame's trail)
-let _trailWrite = null; // points to the RT to write (this frame's trail)
+let _trailRead = null;
+let _trailWrite = null;
 let _datamoshScene = null;
 let _datamoshCamera = null;
 let _datamoshMat = null;
 let _finalScene = null;
 let _finalMat = null;
 let _lastTrailDir = 1.0;
+let _trailIntensity = 0.0;
+let _lastTime = 0;
 
 // ─── Textures ───
 let floorTex = null;
-let wallTextures = {};  // { '1': tex, '2': tex, ... }
+let wallTextures = {};
 
-// ─── Wall meshes per room (for dynamic texture swap) ───
-const roomWalls = {};   // { '1': [mesh, mesh], '2': ... }
+const roomWalls = {};
 
-// ─── State machine ───
 const state = {
     currentRoom: null,
     bubbleAttached: false,
@@ -64,22 +60,16 @@ const state = {
     room4Entered: false
 };
 
-// ─── Room 2: Bubbles ───
 let bubbles = [];
-let attachedBubble = null;   // The bubble mesh stuck to the player
-
-// ─── Room 3: Floating images + central bubble ───
+let attachedBubble = null;
 let floatingImages = [];
 let centralBubble = null;
-let absorbedImages = [];     // Images inside the central bubble
+let absorbedImages = [];
 let absorbing = false;
 let absorbIndex = 0;
 let absorbTimer = 0;
+let playerBubbleImages = [];
 
-// ─── Room 4: Player bubble with images ───
-let playerBubbleImages = [];  // Mini-planes orbiting inside the attached bubble
-
-// ─── Room Data (ordered so ArrowRight = 1→2→3→4 clockwise) ───
 const roomData = [
     { id: "1", name: "Sala 1 — Nebulosa", color: 0xffffff, emissive: 0xffffff, cx: -12.5, cz: -12.5, wallTex: 'Wall1.png' },
     { id: "2", name: "Sala 2 — Burbujas", color: 0xffffff, emissive: 0xffffff, cx: -12.5, cz: 12.5,  wallTex: 'Wall2.png' },
@@ -88,88 +78,8 @@ const roomData = [
 ];
 
 // ═══════════════════════════════════════════════
-// Shader Definitions (kept from carousel)
+// Datamosh Melt Shader
 // ═══════════════════════════════════════════════
-
-const BlurShader = {
-    uniforms: {
-        "tDiffuse": { value: null },
-        "amount": { value: 0.0 }
-    },
-    vertexShader: `
-        varying vec2 vUv;
-        void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
-    `,
-    fragmentShader: `
-        uniform sampler2D tDiffuse; uniform float amount; varying vec2 vUv;
-        void main() {
-            vec4 color = vec4(0.0); float offset = amount * 0.005;
-            color += texture2D(tDiffuse, vUv + vec2(-offset, -offset)) * 0.0625;
-            color += texture2D(tDiffuse, vUv + vec2(0.0, -offset)) * 0.125;
-            color += texture2D(tDiffuse, vUv + vec2(offset, -offset)) * 0.0625;
-            color += texture2D(tDiffuse, vUv + vec2(-offset, 0.0)) * 0.125;
-            color += texture2D(tDiffuse, vUv) * 0.25;
-            color += texture2D(tDiffuse, vUv + vec2(offset, 0.0)) * 0.125;
-            color += texture2D(tDiffuse, vUv + vec2(-offset, offset)) * 0.0625;
-            color += texture2D(tDiffuse, vUv + vec2(0.0, offset)) * 0.125;
-            color += texture2D(tDiffuse, vUv + vec2(offset, offset)) * 0.0625;
-            gl_FragColor = color;
-        }
-    `
-};
-
-const PixelateShader = {
-    uniforms: {
-        "tDiffuse": { value: null },
-        "pixelSize": { value: 0.0 },
-        "resolution": { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
-    },
-    vertexShader: `
-        varying vec2 vUv;
-        void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
-    `,
-    fragmentShader: `
-        uniform sampler2D tDiffuse; uniform float pixelSize; uniform vec2 resolution; varying vec2 vUv;
-        void main() {
-            if (pixelSize <= 0.0) { gl_FragColor = texture2D(tDiffuse, vUv); }
-            else {
-                vec2 curPixelSize = vec2(pixelSize) / resolution;
-                vec2 uvPixelated = floor(vUv / curPixelSize) * curPixelSize;
-                gl_FragColor = texture2D(tDiffuse, uvPixelated);
-            }
-        }
-    `
-};
-
-const HazeShader = {
-    uniforms: {
-        "tDiffuse": { value: null },
-        "time": { value: 0.0 },
-        "intensity": { value: 0.0 }
-    },
-    vertexShader: `
-        varying vec2 vUv;
-        void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
-    `,
-    fragmentShader: `
-        uniform sampler2D tDiffuse; uniform float time; uniform float intensity; varying vec2 vUv;
-        void main() {
-            if (intensity <= 0.0) { gl_FragColor = texture2D(tDiffuse, vUv); }
-            else {
-                vec2 distortedUv = vUv;
-                distortedUv.x += sin(vUv.y * 10.0 + time * 2.5) * 0.0025 * intensity;
-                distortedUv.y += cos(vUv.x * 10.0 + time * 2.0) * 0.0025 * intensity;
-                vec4 color = texture2D(tDiffuse, distortedUv);
-                gl_FragColor = color;
-            }
-        }
-    `
-};
-
-// ═══════════════════════════════════════════════
-// Datamosh Trail Shader
-// ═══════════════════════════════════════════════
-
 const DatamoshShader = {
     vertexShader: `
         varying vec2 vUv;
@@ -193,17 +103,28 @@ const DatamoshShader = {
         }
 
         void main() {
+            // Trail boundary: midpoint between character and screen center
+            float screenCenter = 0.5;
+            float trailBoundary = mix(screenCenter, uCharacterPos.x, 0.3);
             float trailSide = uTrailDir > 0.0
-                ? step(vUv.x, uCharacterPos.x)
-                : step(uCharacterPos.x, vUv.x);
-            float distFromChar = abs(vUv.x - uCharacterPos.x);
-            float trailFalloff = smoothstep(0.0, 0.15, distFromChar);
+                ? step(vUv.x, trailBoundary)
+                : step(trailBoundary, vUv.x);
+            float distFromBoundary = abs(vUv.x - trailBoundary);
+            float trailFalloff = smoothstep(0.0, 0.12, distFromBoundary);
             float mask = trailSide * trailFalloff * uActive;
 
             vec2 blockUv = floor(vUv / uBlockSize) * uBlockSize;
-            float noiseX = hash(blockUv + floor(uTime * 8.0) * 0.1) - 0.5;
-            float noiseY = hash(blockUv + floor(uTime * 8.0) * 0.1 + 99.9) - 0.5;
-            vec2 displacement = vec2(noiseX, noiseY) * uDisplace * mask;
+
+            // Melt downward displacement
+            float noiseX = (hash(blockUv + floor(uTime * 6.0) * 0.1) - 0.5) * 0.3;
+            vec4 trailCheck = texture2D(tTrail, vUv);
+            float corruptionAge = dot(trailCheck.rgb, vec3(0.33));
+            float meltY = -abs(hash(blockUv + 0.77) * 0.5 + 0.5)
+                          * uDisplace
+                          * (1.5 + corruptionAge * 2.0)
+                          * mask;
+            float meltX = noiseX * uDisplace * 0.4 * mask;
+            vec2 displacement = vec2(meltX, meltY);
 
             vec2 trailUv = clamp(vUv + displacement, 0.0, 1.0);
             vec4 trailSample = texture2D(tTrail, trailUv);
@@ -233,29 +154,20 @@ const DatamoshShader = {
 // ═══════════════════════════════════════════════
 // Room Construction
 // ═══════════════════════════════════════════════
-
 function buildRooms(scene) {
     const texLoader = new THREE.TextureLoader();
-
-    // ── Floor ──
     floorTex = texLoader.load('assets/CarouselFloor.png');
     floorTex.wrapS = THREE.RepeatWrapping;
     floorTex.wrapT = THREE.RepeatWrapping;
     floorTex.repeat.set(4, 4);
 
-    const floorMat = new THREE.MeshStandardMaterial({
-        map: floorTex, roughness: 0.8, metalness: 0.2
-    });
-    // Circular floor — radius matches the rectangular wall boundary
-    const floorRadius = 25;
-    const floor = new THREE.Mesh(new THREE.CircleGeometry(floorRadius, 64), floorMat);
+    const floorMat = new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.8, metalness: 0.2 });
+    const floor = new THREE.Mesh(new THREE.CircleGeometry(25, 64), floorMat);
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
     scene.add(floor);
 
-    // ── Walls per room ──
     roomData.forEach(room => {
-        // Load this room's wall texture (stretched, no tiling)
         const wTex = texLoader.load('assets/' + room.wallTex);
         wTex.wrapS = THREE.ClampToEdgeWrapping;
         wTex.wrapT = THREE.ClampToEdgeWrapping;
@@ -265,19 +177,10 @@ function buildRooms(scene) {
         pLight.position.set(room.cx, 5, room.cz);
         scene.add(pLight);
 
-        // Inner wall material — with texture, stretched to fit, no color tint
         const innerWallMat = new THREE.MeshStandardMaterial({
-            map: wTex,
-            color: 0xffffff,
+            map: wTex, color: 0xffffff,
             emissive: 0x000000, emissiveIntensity: 0.0,
             transparent: true, opacity: 0.85, side: THREE.DoubleSide
-        });
-
-        // Outer wall material — plain, no texture
-        const outerWallMat = new THREE.MeshStandardMaterial({
-            color: 0x111118,
-            emissive: room.emissive, emissiveIntensity: 0.03,
-            transparent: true, opacity: 0.15, side: THREE.DoubleSide
         });
 
         const wT = 0.5, wH = 10, rs = 24.5;
@@ -297,26 +200,21 @@ function buildRooms(scene) {
         const xNear = room.cx - rs / 2;
         const xFar  = room.cx + rs / 2;
 
-        // Only add inner textured walls — skip outer translucent edge walls
         if (Math.abs(zNear) <= 12) addWall(rs, wH, wT, room.cx, zNear, innerWallMat);
         if (Math.abs(zFar)  <= 12) addWall(rs, wH, wT, room.cx, zFar,  innerWallMat);
         if (Math.abs(xNear) <= 12) addWall(wT, wH, rs, xNear, room.cz, innerWallMat);
         if (Math.abs(xFar)  <= 12) addWall(wT, wH, rs, xFar,  room.cz, innerWallMat);
     });
-    // Cross dividers removed
 }
 
 // ═══════════════════════════════════════════════
 // Room Simulations
 // ═══════════════════════════════════════════════
-
-// ─── Room 1: Nebulosa displacement particles ───
 function initRoom1(scene) {
     const geo = new THREE.BufferGeometry();
     const count = 1200;
     const pos = new Float32Array(count * 3);
     const pRoom = roomData.find(r => r.id === "1");
-
     for (let i = 0; i < count; i++) {
         const radius = Math.random() * 10;
         const theta = Math.random() * Math.PI * 2;
@@ -325,74 +223,47 @@ function initRoom1(scene) {
         pos[i * 3 + 2] = pRoom.cz + Math.sin(theta) * radius;
     }
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    const mat = new THREE.PointsMaterial({
-        size: 0.15, color: 0xcccccc, transparent: true,
-        opacity: 0.5, blending: THREE.AdditiveBlending
-    });
+    const mat = new THREE.PointsMaterial({ size: 0.15, color: 0xcccccc, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending });
     const particles = new THREE.Points(geo, mat);
     scene.add(particles);
-
     simulations.push((time) => {
         particles.rotation.y = time * 0.1;
         const positions = particles.geometry.attributes.position.array;
-        for (let i = 0; i < count; i++) {
-            positions[i * 3 + 1] += Math.sin(time * 2 + i) * 0.01;
-        }
+        for (let i = 0; i < count; i++) positions[i * 3 + 1] += Math.sin(time * 2 + i) * 0.01;
         particles.geometry.attributes.position.needsUpdate = true;
     });
 }
 
-// ─── Room 2: Ascending bubbles ───
 function initRoom2(scene) {
     const pRoom = roomData.find(r => r.id === "2");
     bubbles = [];
-
     for (let i = 0; i < 20; i++) {
-        const r = 0.17 + Math.random() * 0.40;  // 15% bigger than previous 0.15-0.5
+        const r = 0.17 + Math.random() * 0.40;
         const geo = new THREE.SphereGeometry(r, 16, 16);
         const mat = new THREE.MeshStandardMaterial({
-            color: 0xffffff,
-            emissive: 0xffffff,
-            emissiveIntensity: 0.1,
-            transparent: true,
-            opacity: 0.3 + Math.random() * 0.2,
-            roughness: 0.1,
-            metalness: 0.1
+            color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.1,
+            transparent: true, opacity: 0.3 + Math.random() * 0.2, roughness: 0.1, metalness: 0.1
         });
         const mesh = new THREE.Mesh(geo, mat);
-
-        mesh.position.set(
-            pRoom.cx + (Math.random() - 0.5) * 18,
-            Math.random() * 10,
-            pRoom.cz + (Math.random() - 0.5) * 18
-        );
-
+        mesh.position.set(pRoom.cx + (Math.random() - 0.5) * 18, Math.random() * 10, pRoom.cz + (Math.random() - 0.5) * 18);
         mesh.userData.speed = 0.3 + Math.random() * 0.7;
         mesh.userData.baseX = mesh.position.x;
         mesh.userData.baseZ = mesh.position.z;
         mesh.userData.attached = false;
         mesh.userData.radius = r;
-
         scene.add(mesh);
         bubbles.push(mesh);
     }
-
     simulations.push((time) => {
         bubbles.forEach(b => {
             if (b.userData.attached) return;
-
             b.position.y += b.userData.speed * 0.016;
-            // Gentle horizontal wobble
             b.position.x = b.userData.baseX + Math.sin(time * 2 + b.userData.speed * 10) * 0.3;
-
-            if (b.position.y > 10) {
-                b.position.y = 0.2;
-            }
+            if (b.position.y > 10) b.position.y = 0.2;
         });
     });
 }
 
-// ─── Room 3: Floating images + central bubble ───
 function initRoom3(scene) {
     const pRoom = roomData.find(r => r.id === "3");
     floatingImages = [];
@@ -400,62 +271,39 @@ function initRoom3(scene) {
     absorbing = false;
     absorbIndex = 0;
     absorbTimer = 0;
-
     const texLoader = new THREE.TextureLoader();
     const imgTex = texLoader.load('assets/CarouselFloor.png');
-
-    // 15 small floating planes
     for (let i = 0; i < 15; i++) {
         const geo = new THREE.PlaneGeometry(0.15, 0.15);
-        const mat = new THREE.MeshBasicMaterial({
-            map: imgTex, transparent: true, opacity: 0.9, side: THREE.DoubleSide
-        });
+        const mat = new THREE.MeshBasicMaterial({ map: imgTex, transparent: true, opacity: 0.9, side: THREE.DoubleSide });
         const mesh = new THREE.Mesh(geo, mat);
-
-        mesh.position.set(
-            pRoom.cx + (Math.random() - 0.5) * 16,
-            1 + Math.random() * 6,
-            pRoom.cz + (Math.random() - 0.5) * 16
-        );
+        mesh.position.set(pRoom.cx + (Math.random() - 0.5) * 16, 1 + Math.random() * 6, pRoom.cz + (Math.random() - 0.5) * 16);
         mesh.userData.homePos = mesh.position.clone();
         mesh.userData.phase = Math.random() * Math.PI * 2;
         mesh.userData.absorbed = false;
-
         scene.add(mesh);
         floatingImages.push(mesh);
     }
-
-    // Central bubble (5x larger: radius 4.0)
     const bubbleGeo = new THREE.SphereGeometry(4.0, 32, 32);
     const bubbleMat = new THREE.MeshStandardMaterial({
-        color: 0xaaddff,
-        emissive: 0x224466,
-        emissiveIntensity: 0.2,
-        transparent: true,
-        opacity: 0.25,
-        roughness: 0.05,
-        metalness: 0.4
+        color: 0xaaddff, emissive: 0x224466, emissiveIntensity: 0.2,
+        transparent: true, opacity: 0.25, roughness: 0.05, metalness: 0.4
     });
     centralBubble = new THREE.Mesh(bubbleGeo, bubbleMat);
     centralBubble.position.set(pRoom.cx, 4, pRoom.cz);
     scene.add(centralBubble);
-
     simulations.push((time) => {
-        // Float unabsorbed images
         floatingImages.forEach(img => {
             if (img.userData.absorbed) return;
-
             const h = img.userData.homePos;
             img.position.x = h.x + Math.sin(time * 0.8 + img.userData.phase) * 0.5;
             img.position.y = h.y + Math.cos(time * 1.2 + img.userData.phase) * 0.3;
             img.position.z = h.z + Math.sin(time * 0.6 + img.userData.phase + 1) * 0.4;
             img.rotation.y = time * 0.5 + img.userData.phase;
         });
-
-        // Absorb animation
         if (absorbing && absorbIndex < floatingImages.length) {
             absorbTimer += 0.016;
-            if (absorbTimer > 0.3) { // one every 0.3s
+            if (absorbTimer > 0.3) {
                 absorbTimer = 0;
                 const img = floatingImages[absorbIndex];
                 if (img && !img.userData.absorbed) {
@@ -466,41 +314,30 @@ function initRoom3(scene) {
                 absorbIndex++;
             }
         }
-
-        // Images absorbed orbit inside the central bubble
-        absorbedImages.forEach((img, i) => {
-            const orbitR = 3.0; // orbit inside the larger bubble
+        absorbedImages.forEach(img => {
+            const orbitR = 3.0;
             const phase = img.userData.orbitPhase || 0;
             const targetX = centralBubble.position.x + Math.cos(time * 0.8 + phase) * orbitR;
             const targetY = centralBubble.position.y + Math.sin(time * 1.1 + phase) * orbitR * 0.6;
             const targetZ = centralBubble.position.z + Math.sin(time * 0.9 + phase + 1) * orbitR;
-
-            // Smooth lerp towards target
             img.position.x += (targetX - img.position.x) * 0.05;
             img.position.y += (targetY - img.position.y) * 0.05;
             img.position.z += (targetZ - img.position.z) * 0.05;
             img.rotation.y = time + phase;
         });
-
-        // Central bubble gentle pulse
         const scale = 1 + Math.sin(time * 2) * 0.05;
         centralBubble.scale.set(scale, scale, scale);
     });
 }
 
-// ─── Room 4: Character webp plane + bubble effects ───
 function initRoom4(scene) {
     const pRoom = roomData.find(r => r.id === "4");
-
-    // Load character webp as a texture on a standing plane
     const texLoader = new THREE.TextureLoader();
     texLoader.load('assets/chars/8.webp', (charTex) => {
-        const planeH = 8;  // similar height to the player character
+        const planeH = 8;
         const planeW = planeH * (charTex.image.width / charTex.image.height || 0.6);
         const geo = new THREE.PlaneGeometry(planeW, planeH);
-        const mat = new THREE.MeshBasicMaterial({
-            map: charTex, transparent: true, side: THREE.DoubleSide
-        });
+        const mat = new THREE.MeshBasicMaterial({ map: charTex, transparent: true, side: THREE.DoubleSide });
         const charPlane = new THREE.Mesh(geo, mat);
         charPlane.position.set(pRoom.cx - 5, planeH / 2, pRoom.cz);
         scene.add(charPlane);
@@ -508,14 +345,12 @@ function initRoom4(scene) {
 }
 
 // ═══════════════════════════════════════════════
-// Player Character (walk.glb)
+// Player Character
 // ═══════════════════════════════════════════════
-
 function createPlayer(scene) {
     playerGroup = new THREE.Group();
     playerGroup.position.set(orbitRadius, 0, 0);
     scene.add(playerGroup);
-
     const loader = new THREE.GLTFLoader();
     loader.load('assets/3D/walk.glb', (gltf) => {
         let clone;
@@ -524,19 +359,12 @@ function createPlayer(scene) {
         } else {
             clone = gltf.scene.clone();
         }
-
-        clone.scale.set(4.25, 4.25, 4.25); // 5 * 0.85 = 4.25 (15% smaller than previous 5)
+        clone.scale.set(4.25, 4.25, 4.25);
         clone.position.set(0, 0, 0);
-
-        // Preserve original GLB textures, only ensure skinning is enabled
         clone.traverse(child => {
             if (child.isMesh) {
                 if (Array.isArray(child.material)) {
-                    child.material = child.material.map(m => {
-                        const mat = m.clone();
-                        mat.skinning = true;
-                        return mat;
-                    });
+                    child.material = child.material.map(m => { const c = m.clone(); c.skinning = true; return c; });
                 } else if (child.material) {
                     child.material = child.material.clone();
                     child.material.skinning = true;
@@ -544,15 +372,12 @@ function createPlayer(scene) {
                 child.castShadow = true;
             }
         });
-
         playerGroup.add(clone);
-
-        // Animation
         if (gltf.animations && gltf.animations.length > 0) {
             playerMixer = new THREE.AnimationMixer(clone);
             walkAction = playerMixer.clipAction(gltf.animations[0]);
             walkAction.play();
-            walkAction.paused = true; // Start idle
+            walkAction.paused = true;
         }
     }, undefined, (e) => console.error("BubblePicking: Error loading walk.glb", e));
 }
@@ -560,28 +385,22 @@ function createPlayer(scene) {
 // ═══════════════════════════════════════════════
 // Room Detection
 // ═══════════════════════════════════════════════
-
 function detectRoom() {
     if (!playerGroup) return;
     const px = playerGroup.position.x;
     const pz = playerGroup.position.z;
-
     let detectedId = null;
-    // Quadrant detection matching new roomData positions
-    if (px < 0 && pz < 0)  detectedId = "1";  // Sala 1: (-12.5, -12.5)
-    else if (px < 0 && pz >= 0) detectedId = "2";  // Sala 2: (-12.5, 12.5)
-    else if (px >= 0 && pz >= 0) detectedId = "3"; // Sala 3: (12.5, 12.5)
-    else if (px >= 0 && pz < 0) detectedId = "4";  // Sala 4: (12.5, -12.5)
+    if (px < 0 && pz < 0) detectedId = "1";
+    else if (px < 0 && pz >= 0) detectedId = "2";
+    else if (px >= 0 && pz >= 0) detectedId = "3";
+    else if (px >= 0 && pz < 0) detectedId = "4";
 
     if (detectedId && detectedId !== currentRoomId) {
         currentRoomId = detectedId;
         state.currentRoom = detectedId;
-
         const room = roomData.find(r => r.id === currentRoomId);
-
         const roomNameDisplay = document.getElementById('room-name-display');
         const currentRoomText = document.getElementById('current-room-name');
-
         if (currentRoomText) {
             currentRoomText.innerText = room.name;
             currentRoomText.style.color = '#' + room.emissive.toString(16).padStart(6, '0');
@@ -591,60 +410,30 @@ function detectRoom() {
             roomNameDisplay.style.color = '#' + room.emissive.toString(16).padStart(6, '0');
             roomNameDisplay.classList.add('visible');
             clearTimeout(roomOverlayTimeout);
-            roomOverlayTimeout = setTimeout(() => {
-                roomNameDisplay.classList.remove('visible');
-            }, 2000);
+            roomOverlayTimeout = setTimeout(() => roomNameDisplay.classList.remove('visible'), 2000);
         }
-
-        // ── State triggers on room entry ──
-        if (detectedId === "2" && !state.room2Entered) {
-            state.room2Entered = true;
-            // Attach nearest bubble to player
-            attachNearestBubble();
-        }
-
-        if (detectedId === "3" && !state.room3Entered) {
-            state.room3Entered = true;
-            absorbing = true; // Start absorb animation
-        }
-
-        if (detectedId === "4" && !state.room4Entered) {
-            state.room4Entered = true;
-            state.bubbleHasImages = true;
-            fillPlayerBubbleWithImages();
-        }
+        if (detectedId === "2" && !state.room2Entered) { state.room2Entered = true; attachNearestBubble(); }
+        if (detectedId === "3" && !state.room3Entered) { state.room3Entered = true; absorbing = true; }
+        if (detectedId === "4" && !state.room4Entered) { state.room4Entered = true; state.bubbleHasImages = true; fillPlayerBubbleWithImages(); }
     }
 }
 
 // ═══════════════════════════════════════════════
 // Bubble Mechanics
 // ═══════════════════════════════════════════════
-
 function attachNearestBubble() {
     if (!playerGroup || bubbles.length === 0) return;
-
-    let closest = null;
-    let minDist = Infinity;
-
-    bubbles.forEach(b => {
-        if (b.userData.attached) return;
-        const d = playerGroup.position.distanceTo(b.position);
-        if (d < minDist) { minDist = d; closest = b; }
-    });
-
+    let closest = null, minDist = Infinity;
+    bubbles.forEach(b => { if (!b.userData.attached) { const dd = playerGroup.position.distanceTo(b.position); if (dd < minDist) { minDist = dd; closest = b; } } });
     if (closest) {
         closest.userData.attached = true;
         state.bubbleAttached = true;
         attachedBubble = closest;
-
-        // Reparent to playerGroup
         const worldPos = new THREE.Vector3();
         closest.getWorldPosition(worldPos);
         bpScene.remove(closest);
-        closest.position.set(0, 2.8, 0.1); // Chest height offset
+        closest.position.set(0, 2.8, 0.1);
         playerGroup.add(closest);
-
-        // Make it a bit bigger so it's visible
         closest.scale.set(3, 3, 3);
         closest.material.opacity = 0.35;
     }
@@ -652,16 +441,11 @@ function attachNearestBubble() {
 
 function fillPlayerBubbleWithImages() {
     if (!attachedBubble) return;
-
     const texLoader = new THREE.TextureLoader();
     const imgTex = texLoader.load('assets/CarouselFloor.png');
-
-    // Create small planes orbiting inside the attached bubble
     for (let i = 0; i < 8; i++) {
         const geo = new THREE.PlaneGeometry(0.04, 0.04);
-        const mat = new THREE.MeshBasicMaterial({
-            map: imgTex, transparent: true, opacity: 0.85, side: THREE.DoubleSide
-        });
+        const mat = new THREE.MeshBasicMaterial({ map: imgTex, transparent: true, opacity: 0.85, side: THREE.DoubleSide });
         const plane = new THREE.Mesh(geo, mat);
         plane.userData.orbitPhase = i * (Math.PI * 2 / 8);
         attachedBubble.add(plane);
@@ -672,7 +456,6 @@ function fillPlayerBubbleWithImages() {
 // ═══════════════════════════════════════════════
 // Public Interface
 // ═══════════════════════════════════════════════
-
 export const bubblepicking = {
     scene: null,
     camera: null,
@@ -681,7 +464,6 @@ export const bubblepicking = {
         _composer = composer;
         _renderer = renderer;
 
-        // Reset state
         Object.assign(state, {
             currentRoom: null, bubbleAttached: false, bubbleHasImages: false,
             room2Entered: false, room3Entered: false, room4Entered: false
@@ -695,25 +477,21 @@ export const bubblepicking = {
         absorbing = false;
         absorbIndex = 0;
         absorbTimer = 0;
+        _trailIntensity = 0.0;
+        _lastTime = 0;
+        _lastTrailDir = 1.0;
 
-        // Scene
         bpScene = new THREE.Scene();
         bpScene.background = new THREE.Color(0x010814);
         bpScene.fog = new THREE.FogExp2(0x020d1f, 0.018);
         this.scene = bpScene;
 
-        // Camera — fisheye (FOV 120) like WorldChase
-        bpCamera = new THREE.PerspectiveCamera(
-            120, window.innerWidth / window.innerHeight, 0.1, 1000
-        );
+        bpCamera = new THREE.PerspectiveCamera(120, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.camera = bpCamera;
 
-        // Lighting — luminous night sky (inspired by WorldChase)
-        // 1. Deep blue ambient
         ambientLight = new THREE.AmbientLight(0x0a1a3f, 0.8);
         bpScene.add(ambientLight);
 
-        // 2. Moonlight — directional, white-blue, with shadows
         dirLight = new THREE.DirectionalLight(0xc8d8ff, 1.8);
         dirLight.castShadow = deviceProfile.useShadows;
         dirLight.shadow.mapSize.width = deviceProfile.shadowMapSize;
@@ -727,51 +505,29 @@ export const bubblepicking = {
         dirLight.shadow.camera.bottom = -d;
         bpScene.add(dirLight);
 
-        // 3. Hemisphere for warm/cool split
         const hemiLight = new THREE.HemisphereLight(0x0a1a4a, 0x001133, 0.6);
         bpScene.add(hemiLight);
 
-        // Build rooms and simulations
         buildRooms(bpScene);
         simulations.length = 0;
         initRoom1(bpScene);
         initRoom2(bpScene);
         initRoom3(bpScene);
         initRoom4(bpScene);
-
-        // Player
         createPlayer(bpScene);
 
-        // Post-processing
-        if (composer) {
-            renderPass = new THREE.RenderPass(bpScene, bpCamera);
-            composer.addPass(renderPass);
-
-            blurPass = new THREE.ShaderPass(BlurShader);
-            blurPass.uniforms.amount.value = 0.0;
-            composer.addPass(blurPass);
-
-            pixelPass = new THREE.ShaderPass(PixelateShader);
-            pixelPass.uniforms.pixelSize.value = 0.0;
-            composer.addPass(pixelPass);
-
-            hazePass = new THREE.ShaderPass(HazeShader);
-            hazePass.uniforms.intensity.value = 0.0;
-            composer.addPass(hazePass);
-        }
-
-        // ── Datamosh trail setup ──
-        const canvasW = Math.max(1, renderer.domElement.width  || renderer.domElement.clientWidth  || 800);
-        const canvasH = Math.max(1, renderer.domElement.height || renderer.domElement.clientHeight || 600);
-        _rtCurrent = new THREE.WebGLRenderTarget(canvasW, canvasH);
-        _rtTrailA  = new THREE.WebGLRenderTarget(canvasW, canvasH);
-        _rtTrailB  = new THREE.WebGLRenderTarget(canvasW, canvasH);
-        _trailRead  = _rtTrailA;
-        _trailWrite = _rtTrailB;
+        // ── Datamosh pipeline (follows world06 pattern exactly) ──
+        const W = Math.max(1, renderer.domElement.clientWidth  || 800);
+        const H = Math.max(1, renderer.domElement.clientHeight || 600);
 
         _datamoshCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
-        // Accumulation quad
+        _rtCurrent = new THREE.WebGLRenderTarget(W, H);
+        _rtTrailA  = new THREE.WebGLRenderTarget(W, H);
+        _rtTrailB  = new THREE.WebGLRenderTarget(W, H);
+        _trailRead  = _rtTrailA;
+        _trailWrite = _rtTrailB;
+
         _datamoshMat = new THREE.ShaderMaterial({
             vertexShader: DatamoshShader.vertexShader,
             fragmentShader: DatamoshShader.fragmentShader,
@@ -781,31 +537,51 @@ export const bubblepicking = {
                 uTime:         { value: 0 },
                 uDecay:        { value: 0.94 },
                 uDisplace:     { value: 0.018 },
-                uBlockSize:    { value: 0.035 },
+                uBlockSize:    { value: 0.012 },
                 uCharacterPos: { value: new THREE.Vector2(0.5, 0.5) },
                 uTrailDir:     { value: 1.0 },
                 uActive:       { value: 0.0 },
-                uResolution:   { value: new THREE.Vector2(canvasW, canvasH) }
-            }
+                uResolution:   { value: new THREE.Vector2(W, H) }
+            },
+            depthWrite: false,
+            depthTest: false
         });
-        const dmQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), _datamoshMat);
         _datamoshScene = new THREE.Scene();
-        _datamoshScene.add(dmQuad);
+        _datamoshScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), _datamoshMat));
 
-        // Final output quad
         _finalMat = new THREE.ShaderMaterial({
             vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position, 1.0); }`,
-            fragmentShader: `uniform sampler2D tFinal; varying vec2 vUv; void main() { gl_FragColor = texture2D(tFinal, vUv); }`,
-            uniforms: { tFinal: { value: null } }
+            fragmentShader: `
+                uniform sampler2D tFinal;
+                uniform float uGlowStrength;
+                varying vec2 vUv;
+                void main() {
+                    vec4 color = texture2D(tFinal, vUv);
+                    float spread = 0.008;
+                    vec4 glow = vec4(0.0);
+                    glow += texture2D(tFinal, vUv + vec2( spread,  0.0));
+                    glow += texture2D(tFinal, vUv + vec2(-spread,  0.0));
+                    glow += texture2D(tFinal, vUv + vec2(0.0,  spread));
+                    glow += texture2D(tFinal, vUv + vec2(0.0, -spread));
+                    glow += texture2D(tFinal, vUv + vec2( spread,  spread));
+                    glow += texture2D(tFinal, vUv + vec2(-spread, -spread));
+                    glow /= 6.0;
+                    float brightness = dot(glow.rgb, vec3(0.2126, 0.7152, 0.0722));
+                    float glowMask = smoothstep(0.3, 0.8, brightness);
+                    color.rgb += glow.rgb * glowMask * uGlowStrength;
+                    gl_FragColor = color;
+                }
+            `,
+            uniforms: {
+                tFinal:       { value: null },
+                uGlowStrength: { value: 0.35 }
+            },
+            depthWrite: false,
+            depthTest: false
         });
-        const finalQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), _finalMat);
         _finalScene = new THREE.Scene();
-        _finalScene.add(finalQuad);
+        _finalScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), _finalMat));
 
-        _lastTrailDir = 1.0;
-
-        // Reset navigation state — start at Sala 1 center angle
-        // Sala 1 is at (-12.5, -12.5), angle from origin = atan2(-12.5, -12.5) = -3π/4
         orbitAngle = Math.atan2(-12.5, -12.5);
         velocity = 0;
         currentRoomId = null;
@@ -815,23 +591,23 @@ export const bubblepicking = {
     update(time, keys) {
         if (!bpScene || !bpCamera || !playerGroup) return;
 
+        // ── Delta time ──
+        if (_lastTime === 0) _lastTime = time;
+        let delta = time - _lastTime;
+        if (delta > 0.1) delta = 0.016;
+        _lastTime = time;
+
         // ── Movement ──
         const isMoving = keys.left || keys.right;
-
-        if (keys.left) velocity += 0.00024;   // 20% slower
+        if (keys.left) velocity += 0.00024;
         if (keys.right) velocity -= 0.00024;
-
-        if (!isMoving) {
-            velocity *= 0.95;
-        }
-
-        velocity = Math.max(-0.0032, Math.min(0.0032, velocity)); // 20% slower max
+        if (!isMoving) velocity *= 0.95;
+        velocity = Math.max(-0.0032, Math.min(0.0032, velocity));
         orbitAngle += velocity;
 
         playerGroup.position.x = Math.cos(orbitAngle) * orbitRadius;
         playerGroup.position.z = Math.sin(orbitAngle) * orbitRadius;
 
-        // Orient character along orbit tangent — no spinning while moving
         if (Math.abs(velocity) > 0.00005) {
             const sign = velocity > 0 ? 1 : -1;
             const dx = -Math.sin(orbitAngle) * sign;
@@ -839,167 +615,108 @@ export const bubblepicking = {
             playerGroup.rotation.y = Math.atan2(dx, dz);
         }
 
-        // ── Walk animation control ──
         if (walkAction) {
             walkAction.paused = !isMoving;
-            walkAction.timeScale = 0.4; // 60% slower
+            walkAction.timeScale = 0.4;
         }
+        if (playerMixer) playerMixer.update(0.016);
 
-        if (playerMixer) {
-            playerMixer.update(0.016);
-        }
-
-        // ── Camera — closer to character ──
+        // ── Camera ──
         const cameraDistance = 9;
         bpCamera.position.x = playerGroup.position.x + Math.cos(orbitAngle) * cameraDistance;
         bpCamera.position.z = playerGroup.position.z + Math.sin(orbitAngle) * cameraDistance;
         bpCamera.position.y = 6;
+        bpCamera.lookAt(playerGroup.position.x, playerGroup.position.y + 1, playerGroup.position.z);
+        dirLight.position.set(playerGroup.position.x + 5, playerGroup.position.y + 10, playerGroup.position.z + 5);
 
-        bpCamera.lookAt(
-            playerGroup.position.x,
-            playerGroup.position.y + 1,
-            playerGroup.position.z
-        );
-        dirLight.position.set(
-            playerGroup.position.x + 5,
-            playerGroup.position.y + 10,
-            playerGroup.position.z + 5
-        );
-
-        // ── Post-processing distance blending ──
-        if (_composer) {
-            const px = playerGroup.position.x;
-            const pz = playerGroup.position.z;
-
-            // Room 1 blur (Nebulosa displacement)
-            const distR1 = Math.sqrt(Math.pow(px - (-12.5), 2) + Math.pow(pz - (-12.5), 2));
-            const weightR1 = Math.max(0, 1.0 - (distR1 / 20.0));
-            blurPass.uniforms.amount.value = THREE.MathUtils.lerp(
-                blurPass.uniforms.amount.value, weightR1 * 0.5, 0.05  // 80% less than previous 2.5
-            );
-
-            // Room 4 pixelate
-            const distR4 = Math.sqrt(Math.pow(px - (-12.5), 2) + Math.pow(pz - 12.5, 2));
-            const weightR4 = Math.max(0, 1.0 - (distR4 / 20.0));
-            // Room 4: pixelate disabled
-            pixelPass.uniforms.pixelSize.value = 0.0;
-
-            // Room 3 haze
-            const distR3 = Math.sqrt(Math.pow(px - 12.5, 2) + Math.pow(pz - 12.5, 2));
-            const weightR3 = Math.max(0, 1.0 - (distR3 / 20.0));
-            hazePass.uniforms.intensity.value = THREE.MathUtils.lerp(
-                hazePass.uniforms.intensity.value, weightR3 * 1.25, 0.05
-            );
-            hazePass.uniforms.time.value = time;
-        }
-
-        // ── Player bubble images orbiting ──
+        // ── Player bubble images ──
         if (state.bubbleHasImages && playerBubbleImages.length > 0) {
             playerBubbleImages.forEach(p => {
                 const phase = p.userData.orbitPhase || 0;
                 const r = 0.25;
-                p.position.set(
-                    Math.cos(time * 1.2 + phase) * r,
-                    Math.sin(time * 1.5 + phase) * r * 0.6,
-                    Math.sin(time * 0.9 + phase + 1) * r
-                );
+                p.position.set(Math.cos(time * 1.2 + phase) * r, Math.sin(time * 1.5 + phase) * r * 0.6, Math.sin(time * 0.9 + phase + 1) * r);
                 p.rotation.y = time + phase;
             });
         }
 
-        // Room detection and simulations
         detectRoom();
         simulations.forEach(sim => sim(time));
 
-        // ── Datamosh trail pipeline (ping-pong) ──
+        // ── Datamosh render pipeline (world06 pattern) ──
         if (_rtCurrent && _datamoshMat && _finalMat && _trailRead && _trailWrite) {
-            const prevAutoClear = _renderer.autoClear;
+            const autoClear = _renderer.autoClear;
+            _renderer.autoClear = false;
 
-            // 1. Render clean scene to rtCurrent
-            _renderer.autoClear = true;
+            // a. Render scene → rtCurrent
             _renderer.setRenderTarget(_rtCurrent);
+            _renderer.clear();
             _renderer.render(bpScene, bpCamera);
 
-            // 2. Update datamosh uniforms
+            // b. Progressive fade intensity
+            if (isMoving) {
+                _trailIntensity = Math.min(1.0, _trailIntensity + delta / 1.0);
+            } else {
+                _trailIntensity = Math.max(0.0, _trailIntensity - delta / 4.0);
+            }
+
             if (keys.left) _lastTrailDir = -1.0;
             else if (keys.right) _lastTrailDir = 1.0;
 
             const charScreenPos = playerGroup.position.clone().project(bpCamera);
             _datamoshMat.uniforms.tCurrent.value      = _rtCurrent.texture;
-            _datamoshMat.uniforms.tTrail.value         = _trailRead.texture;  // read LAST frame
+            _datamoshMat.uniforms.tTrail.value         = _trailRead.texture;
             _datamoshMat.uniforms.uTime.value          = time;
-            _datamoshMat.uniforms.uCharacterPos.value.set(
-                (charScreenPos.x + 1) / 2,
-                (charScreenPos.y + 1) / 2
-            );
+            _datamoshMat.uniforms.uCharacterPos.value.set((charScreenPos.x + 1) / 2, (charScreenPos.y + 1) / 2);
             _datamoshMat.uniforms.uTrailDir.value      = _lastTrailDir;
-            _datamoshMat.uniforms.uActive.value        = isMoving ? 1.0 : 0.0;
-            _datamoshMat.uniforms.uDecay.value         = isMoving ? 0.94 : 0.72;
-            _datamoshMat.uniforms.uDisplace.value      = isMoving ? 0.018 : 0.0;
+            _datamoshMat.uniforms.uActive.value        = _trailIntensity;
+            _datamoshMat.uniforms.uDecay.value         = 0.72 + _trailIntensity * 0.22;
+            _datamoshMat.uniforms.uDisplace.value      = _trailIntensity * 0.018;
 
-            // 3. Run datamosh accumulation → write to OTHER trail buffer
-            _renderer.autoClear = false;
+            // c. Accumulate: (rtCurrent + trailRead) → trailWrite
             _renderer.setRenderTarget(_trailWrite);
             _renderer.clear();
             _renderer.render(_datamoshScene, _datamoshCamera);
 
-            // 4. Output result to screen
-            _finalMat.uniforms.tFinal.value = _trailWrite.texture;
-            _renderer.setRenderTarget(null);
-            _renderer.clear();
-            _renderer.render(_finalScene, _datamoshCamera);
-
-            // 5. Swap ping-pong buffers
+            // d. Swap ping-pong
             const tmp = _trailRead;
             _trailRead = _trailWrite;
             _trailWrite = tmp;
 
-            _renderer.autoClear = prevAutoClear;
-        } else if (_composer) {
-            _composer.render();
+            // e. Final pass to screen (with glow)
+            _finalMat.uniforms.tFinal.value = _trailRead.texture;
+            _renderer.setRenderTarget(null);
+            _renderer.clear();
+            _renderer.render(_finalScene, _datamoshCamera);
+
+            _renderer.autoClear = autoClear;
         } else {
+            // Fallback: direct render
             _renderer.render(bpScene, bpCamera);
         }
     },
 
-    getPixelPass() {
-        return pixelPass;
-    },
+    getPixelPass() { return null; },
 
     dispose() {
-        if (_composer) {
-            if (renderPass) _composer.removePass(renderPass);
-            if (blurPass) _composer.removePass(blurPass);
-            if (pixelPass) _composer.removePass(pixelPass);
-            if (hazePass) _composer.removePass(hazePass);
-        }
-
         if (playerMixer) {
             playerMixer.stopAllAction();
             if (playerGroup) playerMixer.uncacheRoot(playerGroup);
         }
-
         if (bpScene) {
             bpScene.traverse(child => {
                 if (child.geometry) child.geometry.dispose();
                 if (child.material) {
-                    if (Array.isArray(child.material)) {
-                        child.material.forEach(m => m.dispose());
-                    } else {
-                        child.material.dispose();
-                    }
+                    if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
+                    else child.material.dispose();
                 }
             });
             bpScene.clear();
             bpScene = null;
         }
-
-        // Dispose textures
         if (floorTex) floorTex.dispose();
         Object.values(wallTextures).forEach(t => t.dispose());
         wallTextures = {};
 
-        // Dispose datamosh render targets
         if (_rtCurrent) { _rtCurrent.dispose(); _rtCurrent = null; }
         if (_rtTrailA)  { _rtTrailA.dispose();  _rtTrailA = null; }
         if (_rtTrailB)  { _rtTrailB.dispose();  _rtTrailB = null; }
@@ -1021,13 +738,8 @@ export const bubblepicking = {
         orbitAngle = 0;
         velocity = 0;
         currentRoomId = null;
-        blurPass = null;
-        pixelPass = null;
-        hazePass = null;
-        renderPass = null;
         _composer = null;
         _renderer = null;
-
         bubbles = [];
         floatingImages = [];
         absorbedImages = [];
