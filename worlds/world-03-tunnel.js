@@ -6,17 +6,16 @@ const WorldBanera = {
   _renderer:      null,
   _localComposer: null,
   _orbitControls: null,
-  _waterMesh:     null,
   _waterUniforms: null,
+  _wordMaterial:  null,
+  _wordPlaneMesh: null,
   _eggLight:      null,
   _eggs:          [],
   _handlers:      {},
   _volLightMesh:  null,
   _volLightUniforms: null,
-  _floorVideo:    null,
-  _floorVideoTex: null,
-  _floorTextTex:  null,
-  _floorTextMesh: null,
+  _floorMesh:     null,
+  _floorTex:      null,
 
   // ─────────────────────────────────────────
   init(renderer, composer) {
@@ -124,6 +123,12 @@ const WorldBanera = {
             toMove.push(child)
             this._eggs.push(child)
 
+          } else if (name.includes('plane') || name.includes('plano')) {
+            // ── PLANE: aplicar textura de palabras en movimiento ──
+            if (this._wordMaterial) {
+              child.material = this._wordMaterial
+              this._wordPlaneMesh = child
+            }
           } else {
             // ── BAÑERA u otros: mantener texturas baked del GLB ──
             if (child.material) {
@@ -146,14 +151,14 @@ const WorldBanera = {
       }
     )
 
-    // ── AGUA DE PALABRAS ──
-    this._createWater()
+    // ── WORD TEXTURE (se aplica al plane del GLB) ──
+    this._createWordMaterial()
 
     // ── VOLUMETRIC LIGHT CONE ──
     this._createVolumetricLight()
 
-    // ── FLOOR PLANES (video + scrolling text) ──
-    this._createFloorPlanes()
+    // ── FLOOR (studyingMyPain.png) ──
+    this._createFloor()
 
     // ── ORBIT CONTROLS ──
     this._orbitControls = new THREE.OrbitControls(this.camera, renderer.domElement)
@@ -170,7 +175,7 @@ const WorldBanera = {
   },
 
   // ─────────────────────────────────────────
-  _createWater() {
+  _createWordMaterial() {
     const texSize = 1024
     const c = document.createElement('canvas')
     c.width = c.height = texSize
@@ -180,7 +185,7 @@ const WorldBanera = {
     ctx.fillStyle = '#000000'
     ctx.fillRect(0, 0, texSize, texSize)
 
-    // Palabras de la obra — reemplazar con las palabras reales
+    // Palabras de la obra
     const words = [
       'latente', 'espectro', 'algoritmo', 'conexión', 'distancia',
       'amor', 'interfaz', 'señal', 'ruido', 'memoria', 'vector',
@@ -273,15 +278,8 @@ const WorldBanera = {
       `
     })
 
-    // Tamaños ajustados para que no sobresalga de la bañera
-    const geo = new THREE.PlaneGeometry(1.2, 0.55, 60, 30)
-    // Modificar ligeramente la forma para que sea un rectangulo redondeado 
-    // u ovalado aplicando transformaciones a los vertices si quisieramos, 
-    // pero con PlaneGeometry + alpha clipping o simplemente un tamaño menor bastará para no salirse de la geometria curva interior.
-    this._waterMesh = new THREE.Mesh(geo, mat)
-    this._waterMesh.rotation.x = -Math.PI / 2
-    this._waterMesh.position.set(0, 0.13, 0)
-    this.scene.add(this._waterMesh)
+    // Store material — will be applied to the GLB plane mesh when loaded
+    this._wordMaterial = mat
   },
 
   // ─────────────────────────────────────────
@@ -319,52 +317,19 @@ const WorldBanera = {
   },
 
   // ─────────────────────────────────────────
-  _createFloorPlanes() {
-    // Aspect 1024:768 → use proportional world units
-    const planeW = 3.0
-    const planeH = planeW * (768 / 1024) // ≈ 2.25
-    const floorY = -0.35 // below bathtub
-
-    // ── Plane 1: video (wtube.mp4) ──
-    this._floorVideo = document.createElement('video')
-    this._floorVideo.src = 'assets/videos/wtube.mp4'
-    this._floorVideo.loop = true
-    this._floorVideo.muted = true
-    this._floorVideo.playsInline = true
-    this._floorVideo.crossOrigin = 'anonymous'
-    this._floorVideo.play().catch(() => {})
-
-    this._floorVideoTex = new THREE.VideoTexture(this._floorVideo)
-    this._floorVideoTex.minFilter = THREE.LinearFilter
-    this._floorVideoTex.magFilter = THREE.LinearFilter
-
-    const videoMat = new THREE.MeshBasicMaterial({
-      map: this._floorVideoTex,
-      side: THREE.DoubleSide,
-      transparent: false,
-    })
-    const videoGeo = new THREE.PlaneGeometry(planeW, planeH)
-    const videoPlane = new THREE.Mesh(videoGeo, videoMat)
-    videoPlane.rotation.x = -Math.PI / 2
-    videoPlane.position.set(0, floorY, 0)
-    this.scene.add(videoPlane)
-
-    // ── Plane 2: watertext.png with scrolling UVs (on top of video) ──
+  _createFloor() {
     const textLoader = new THREE.TextureLoader()
-    this._floorTextTex = textLoader.load('assets/texto/watertext.png')
-    this._floorTextTex.wrapS = THREE.RepeatWrapping
-    this._floorTextTex.wrapT = THREE.RepeatWrapping
+    this._floorTex = textLoader.load('assets/tex/studyingMyPain.png')
 
-    const textMat = new THREE.MeshBasicMaterial({
-      map: this._floorTextTex,
+    const floorMat = new THREE.MeshBasicMaterial({
+      map: this._floorTex,
       side: THREE.DoubleSide,
-      transparent: true,
     })
-    const textGeo = new THREE.PlaneGeometry(planeW, planeH)
-    this._floorTextMesh = new THREE.Mesh(textGeo, textMat)
-    this._floorTextMesh.rotation.x = -Math.PI / 2
-    this._floorTextMesh.position.set(0, floorY + 0.001, 0) // tiny offset to avoid z-fighting
-    this.scene.add(this._floorTextMesh)
+    const floorGeo = new THREE.PlaneGeometry(6, 6)
+    this._floorMesh = new THREE.Mesh(floorGeo, floorMat)
+    this._floorMesh.rotation.x = -Math.PI / 2
+    this._floorMesh.position.set(0, -0.35, 0)
+    this.scene.add(this._floorMesh)
   },
 
   // ─────────────────────────────────────────
@@ -475,12 +440,6 @@ const WorldBanera = {
       }
     }
 
-    // Scroll UV on floor text plane
-    if (this._floorTextTex) {
-      this._floorTextTex.offset.x = time * 0.02
-      this._floorTextTex.offset.y = time * 0.015
-    }
-
     // Volumetric light animation
     if (this._volLightUniforms) {
       this._volLightUniforms.uTime.value = time
@@ -516,11 +475,10 @@ const WorldBanera = {
       this._volLightMesh.material.dispose()
     }
 
-    // Agua
-    if (this._waterMesh) {
-      this._waterMesh.geometry.dispose()
-      this._waterMesh.material.uniforms?.uTexture?.value?.dispose()
-      this._waterMesh.material.dispose()
+    // Word material (applied to GLB plane)
+    if (this._wordMaterial) {
+      this._wordMaterial.uniforms?.uTexture?.value?.dispose()
+      this._wordMaterial.dispose()
     }
 
     // Composer local
@@ -546,21 +504,16 @@ const WorldBanera = {
 
     disposeScene(this.scene)
 
-    // Floor planes
-    if (this._floorVideo) {
-      this._floorVideo.pause()
-      this._floorVideo.src = ''
-      this._floorVideo = null
-    }
-    if (this._floorVideoTex) { this._floorVideoTex.dispose(); this._floorVideoTex = null }
-    if (this._floorTextTex)  { this._floorTextTex.dispose();  this._floorTextTex = null }
-    this._floorTextMesh = null
+    // Floor
+    if (this._floorTex) { this._floorTex.dispose(); this._floorTex = null }
+    this._floorMesh = null
+    this._wordPlaneMesh = null
+    this._wordMaterial = null
 
     this._renderer.autoClear = true
     this.scene          = null
     this._localComposer = null
     this._eggs          = []
-    this._waterMesh     = null
     this._waterUniforms = null
     this._eggLight      = null
   }
