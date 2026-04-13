@@ -1,5 +1,5 @@
 const LAYER_COUNT       = 5
-const LAYER_DEPTH_TOTAL = 4       // unidades de profundidad total (compacto)
+const LAYER_DEPTH_TOTAL = 6       // unidades de profundidad total (more spaced out)
 const PLANE_WIDTH       = 6.0     // ancho del plano en unidades Three.js
 const PLANE_HEIGHT      = PLANE_WIDTH * (768 / 1024)  // 4:3 landscape (1024×768)
 
@@ -128,7 +128,7 @@ const WorldLayer = {
     this._orbitControls.minAzimuthAngle = -Math.PI / 2   // -90°
     this._orbitControls.maxAzimuthAngle =  Math.PI / 2   // +90°
 
-    this._orbitControls.rotateSpeed     = 0.35
+    this._orbitControls.rotateSpeed     = 0.175   // 50% slower
     this._orbitControls.target.set(0, 0, 0)
 
     this._orbitControls.autoRotate      = false
@@ -139,10 +139,10 @@ const WorldLayer = {
     if (this._orbitControls) {
       if (keys && keys.left) {
         this._orbitControls.autoRotate = true
-        this._orbitControls.autoRotateSpeed = -3.0
+        this._orbitControls.autoRotateSpeed = -1.5
       } else if (keys && keys.right) {
         this._orbitControls.autoRotate = true
-        this._orbitControls.autoRotateSpeed = 3.0
+        this._orbitControls.autoRotateSpeed = 1.5
       } else {
         this._orbitControls.autoRotate = false
       }

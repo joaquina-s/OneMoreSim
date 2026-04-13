@@ -103,7 +103,7 @@ const WorldTeatro = {
       pointer-events:none; z-index:5;
       text-shadow: 0 0 10px #8899cc;
     `;
-    this._loadingText.textContent = 'CARGANDO TEATRO...';
+    this._loadingText.textContent = 'LOADING PRESENTATION CLUB...';
     const canvasArea = document.getElementById('canvas-area');
     if (canvasArea) canvasArea.appendChild(this._loadingText);
 
@@ -294,25 +294,21 @@ const WorldTeatro = {
     this._mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
     this._raycaster.setFromCamera(this._mouse, this.camera);
-    const intersects = this._raycaster.intersectObjects(this.scene.children, true);
+    // Only raycast against registered chair meshes to avoid hitting floor/walls
+    if (this._chairs.length === 0) return;
+    const intersects = this._raycaster.intersectObjects(this._chairs, false);
 
-    for (let i = 0; i < intersects.length; i++) {
-      let obj = intersects[i].object;
-      let isChair = false;
-      let current = obj;
-      while (current) {
-        const n = current.name.toLowerCase();
-        if (n.includes('silla') || n.includes('chair')) { isChair = true; break; }
-        current = current.parent;
-      }
-      if (isChair) {
-        this._sitOnChair(obj);
-        return;
+    if (intersects.length > 0) {
+      const hitMesh = intersects[0].object;
+      // Find the chair group this mesh belongs to
+      const chairGroup = this._chairGroupOf.get(hitMesh);
+      if (chairGroup) {
+        this._sitOnChair(chairGroup);
       }
     }
   },
 
-  _sitOnChair(chairMesh) {
+  _sitOnChair(chairGroup) {
     this._isSeated = true;
     this._btnVolver.style.display = 'block';
 
@@ -322,7 +318,8 @@ const WorldTeatro = {
       if (this._video.paused) this._video.play().catch(e => console.log(e));
     }
 
-    const box = new THREE.Box3().setFromObject(chairMesh);
+    // Use the entire chair group's bounding box for accurate positioning
+    const box = new THREE.Box3().setFromObject(chairGroup);
     const center = new THREE.Vector3();
     box.getCenter(center);
 
@@ -369,12 +366,19 @@ const WorldTeatro = {
     this._btnVolver.style.display = 'none';
     this._orbitControls.enabled = false;
 
+    // Restore orbit distance limits before animating back
+    this._orbitControls.minDistance = 0.1;
+    this._orbitControls.maxDistance = 100;
+
     if (window.gsap) {
       window.gsap.killTweensOf(this.camera.position);
       window.gsap.killTweensOf(this._orbitControls.target);
       window.gsap.to(this.camera.position, {
         x: this._initialCameraPos.x, y: this._initialCameraPos.y, z: this._initialCameraPos.z,
-        duration: 2.0, ease: 'power2.inOut'
+        duration: 2.0, ease: 'power2.inOut',
+        onUpdate: () => {
+          this.camera.updateProjectionMatrix();
+        }
       });
       window.gsap.to(this._orbitControls.target, {
         x: this._initialTargetPos.x, y: this._initialTargetPos.y, z: this._initialTargetPos.z,
