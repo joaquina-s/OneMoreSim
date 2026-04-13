@@ -17,6 +17,7 @@ const WorldTeatro = {
   _btnVolver: null,
   _loadingText: null,
   _isSeated: false,
+  _isAnimating: false,
   _initialCameraPos: new THREE.Vector3(3, 2.5, 7),
   _initialTargetPos: new THREE.Vector3(0, 1.0, 0),
 
@@ -336,6 +337,7 @@ const WorldTeatro = {
     }
 
     this._orbitControls.enabled = false;
+    this._isAnimating = true;
 
     if (window.gsap) {
       window.gsap.killTweensOf(this.camera.position);
@@ -347,8 +349,9 @@ const WorldTeatro = {
       window.gsap.to(this._orbitControls.target, {
         x: lookPos.x, y: lookPos.y, z: lookPos.z,
         duration: 2.2, ease: 'power2.inOut',
-        onUpdate: () => this._orbitControls.update(),
+        onUpdate: () => { this.camera.lookAt(this._orbitControls.target); },
         onComplete: () => {
+          this._isAnimating = false;
           this._orbitControls.enabled = true;
           this._orbitControls.minDistance = 0.1;
           this._orbitControls.maxDistance = 8;
@@ -359,12 +362,14 @@ const WorldTeatro = {
       this._orbitControls.target.copy(lookPos);
       this._orbitControls.update();
       this._orbitControls.enabled = true;
+      this._isAnimating = false;
     }
   },
 
   _onVolver() {
     this._btnVolver.style.display = 'none';
     this._orbitControls.enabled = false;
+    this._isAnimating = true;
 
     // Restore orbit distance limits before animating back
     this._orbitControls.minDistance = 0.1;
@@ -375,16 +380,14 @@ const WorldTeatro = {
       window.gsap.killTweensOf(this._orbitControls.target);
       window.gsap.to(this.camera.position, {
         x: this._initialCameraPos.x, y: this._initialCameraPos.y, z: this._initialCameraPos.z,
-        duration: 2.0, ease: 'power2.inOut',
-        onUpdate: () => {
-          this.camera.updateProjectionMatrix();
-        }
+        duration: 2.0, ease: 'power2.inOut'
       });
       window.gsap.to(this._orbitControls.target, {
         x: this._initialTargetPos.x, y: this._initialTargetPos.y, z: this._initialTargetPos.z,
         duration: 2.0, ease: 'power2.inOut',
-        onUpdate: () => this._orbitControls.update(),
+        onUpdate: () => { this.camera.lookAt(this._orbitControls.target); },
         onComplete: () => {
+          this._isAnimating = false;
           this._orbitControls.enabled = true;
           this._isSeated = false;
         }
@@ -395,11 +398,15 @@ const WorldTeatro = {
       this._orbitControls.update();
       this._orbitControls.enabled = true;
       this._isSeated = false;
+      this._isAnimating = false;
     }
   },
 
   update(_time) {
-    if (this._orbitControls) this._orbitControls.update();
+    // Skip orbit update during GSAP camera transitions —
+    // OrbitControls.update() recalculates camera position from internal
+    // spherical state, which fights with GSAP animating camera.position.
+    if (this._orbitControls && !this._isAnimating) this._orbitControls.update();
     if (this._renderer) {
       this._renderer.clear();
       this._renderer.render(this.scene, this.camera);
