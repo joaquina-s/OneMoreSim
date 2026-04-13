@@ -918,7 +918,7 @@ button {
 /* World 03 — charBW standing at bottom, centered on divider right edge */
 #world-03-overlay {
     position: fixed;
-    bottom: 0;
+    bottom: -50px;
     z-index: 150;
     pointer-events: none;
     opacity: 0;

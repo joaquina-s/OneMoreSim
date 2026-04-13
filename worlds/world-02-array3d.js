@@ -56,8 +56,8 @@ export default {
     this.scene.background = new THREE.Color(0x020612);
     this.scene.fog = new THREE.Fog(0x001040, 8, 26);
 
-    // ── Camera — FOV 50, pulled back, 28° extra X tilt for lower angle ──
-    this.camera = new THREE.PerspectiveCamera(50, W / H, 0.1, 100);
+    // ── Camera — fisheye FOV 120, pulled back, 33° extra X tilt ──
+    this.camera = new THREE.PerspectiveCamera(120, W / H, 0.1, 100);
     this.camera.position.set(0, 6, 10);
     this.camera.lookAt(0, 0.5, 0);
     // Extra 33° downward pitch for lower camera angle (closer to ground)
@@ -75,7 +75,7 @@ export default {
     // ── Floor ──
     const floorGeo = new THREE.PlaneGeometry(30, 60);
     const floorMat = new THREE.MeshStandardMaterial({
-      color: 0x080c14, roughness: 0.9, metalness: 0.1
+      color: 0x000000, roughness: 0.9, metalness: 0.1
     });
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
@@ -340,9 +340,9 @@ export default {
     img.src       = src;
     img.className = 'floating-text';
 
-    // Random viewport position
-    const randX = (5 + Math.random() * 40);
-    const randY = (10 + Math.random() * 70);
+    // Random viewport position — full screen spread
+    const randX = (2 + Math.random() * 90);
+    const randY = (2 + Math.random() * 88);
     img.style.left = randX + '%';
     img.style.top  = randY + '%';
 
