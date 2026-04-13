@@ -891,11 +891,12 @@ button {
     background: #000;
 }
 
-/* World 00 — eggBW top-left overlay */
+/* World 00 — world01bw left side, full height */
 #world-00-overlay {
     position: absolute;
-    top: clamp(8px, 1.2vh, 20px);
-    left: clamp(8px, 1vw, 20px);
+    top: 0;
+    left: 0;
+    height: 100%;
     z-index: 6;
     pointer-events: none;
     opacity: 0;
@@ -908,8 +909,8 @@ button {
 
 #egg-bw-img {
     display: block;
-    width: min(220px, 16vw);
-    height: auto;
+    height: 100%;
+    width: auto;
     filter: brightness(0.9) contrast(1.1);
     mix-blend-mode: screen;
 }

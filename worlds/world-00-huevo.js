@@ -83,7 +83,20 @@ export default {
         const W = window.innerWidth;
         const H = window.innerHeight;
         this.camera = new THREE.PerspectiveCamera(60, W / H, 0.1, 100);
-        this.camera.position.set(0, 0, 2.8); // Pulled back from the egg
+
+        // ── Calculate egg offset to center it in the space right of world01bw.png ──
+        // world01bw.png is 500×1200; when filling full viewport height its width
+        // fraction = (500/1200) / aspect.  Center of remaining space = (imgFrac + 1) / 2
+        // Offset in NDC from center = centerOfRemaining - 0.5
+        const aspect = W / H;
+        const imgWidthFrac = (500 / 1200) / aspect;           // ~0.234 at 16:9
+        const ndcOffset = ((imgWidthFrac + 1) / 2) - 0.5;     // ~0.117
+        const camZ = 2.24;                                     // 20% closer than 2.8
+        const frustumH = 2 * camZ * Math.tan(THREE.MathUtils.degToRad(60 / 2));
+        const frustumW = frustumH * aspect;
+        this._eggOffsetX = ndcOffset * frustumW;               // scene-space X shift
+
+        this.camera.position.set(this._eggOffsetX, 0, camZ);
 
         // ── Controls ──
         this._orbitControls = new THREE.OrbitControls(this.camera, renderer.domElement);
@@ -92,7 +105,7 @@ export default {
         this._orbitControls.enablePan = false;
         this._orbitControls.minDistance = 1.0;
         this._orbitControls.maxDistance = 15;
-        this._orbitControls.target.set(0, 0, 0);
+        this._orbitControls.target.set(this._eggOffsetX, 0, 0);
 
         // ── Local Composer (for God Rays) ──
         this._localComposer = new THREE.EffectComposer(renderer);
@@ -135,12 +148,12 @@ export default {
         const sunGeo = new THREE.SphereGeometry(0.5, 32, 32);
         const sunMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
         this._sunMesh = new THREE.Mesh(sunGeo, sunMat);
-        this._sunMesh.position.set(0, 0, 0); 
+        this._sunMesh.position.set(this._eggOffsetX, 0, 0);
         this._sunMesh.visible = false; // Hidden, only its coordinate is used for rays projection
         this.scene.add(this._sunMesh);
 
         this._sunLight = new THREE.PointLight(0xffeebb, 2, 50);
-        this._sunLight.position.set(0, 0, 0);
+        this._sunLight.position.set(this._eggOffsetX, 0, 0);
         this.scene.add(this._sunLight);
 
         // ── Load GLB ──
@@ -180,14 +193,15 @@ export default {
                 });
             });
 
-            // Center the model properly
+            // Center the model and offset to the right of the image
             const box = new THREE.Box3().setFromObject(this._huevoMesh);
             const center = new THREE.Vector3();
             box.getCenter(center);
             this._huevoMesh.position.sub(center);
+            this._huevoMesh.position.x += this._eggOffsetX;
 
             this.scene.add(this._huevoMesh);
-            this._sunMesh.position.copy(center);
+            this._sunMesh.position.set(this._eggOffsetX, 0, 0);
         }, undefined, (e) => console.error("Error loading baneraLow.glb (huevo)", e));
     },
 
@@ -201,8 +215,8 @@ export default {
         // Slight hovering motion for the egg
         if (this._huevoMesh) {
             this._huevoMesh.position.y = Math.sin(time * 1.5) * 0.1;
-            // The sun center origin point for the God Rays moves with the egg
-            this._sunMesh.position.y = this._huevoMesh.position.y;
+            // Keep X offset and match sun Y to egg
+            this._sunMesh.position.set(this._eggOffsetX, this._huevoMesh.position.y, 0);
         }
 
         // ── God Rays Light Position Calculation ──
