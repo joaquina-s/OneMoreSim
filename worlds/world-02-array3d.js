@@ -21,10 +21,18 @@ export default {
   _lastHovered: -1,
 
   _textImages: [
-    'assets/texto/text1.png',
-    'assets/texto/text2.png',
-    'assets/texto/text3.png'
+    'assets/texto/SPE1.png',
+    'assets/texto/SPE2.png',
+    'assets/texto/SPE3.png',
+    'assets/texto/SPE4.png',
+    'assets/texto/SPE5.png',
+    'assets/texto/SPE6.png',
+    'assets/texto/SPE7.png',
+    'assets/texto/SPE8.png',
+    'assets/texto/SPE9.png',
+    'assets/texto/SPE10.png'
   ],
+  _nextTextIndex: 0,
   _spawnedTexts: [],
 
   _active: false,
@@ -37,6 +45,7 @@ export default {
     this._hitboxes = [];
     this._lastHovered = -1;
     this._spawnedTexts = [];
+    this._nextTextIndex = 0;
     this._active = true;
 
     const W = renderer.domElement.clientWidth;
@@ -45,21 +54,21 @@ export default {
     // ── Scene ──
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x020612);
-    this.scene.fog = new THREE.Fog(0x00061a, 10, 32);
+    this.scene.fog = new THREE.Fog(0x001040, 8, 26);
 
     // ── Camera — FOV 50, pulled back, 28° extra X tilt for lower angle ──
     this.camera = new THREE.PerspectiveCamera(50, W / H, 0.1, 100);
     this.camera.position.set(0, 6, 10);
     this.camera.lookAt(0, 0.5, 0);
-    // Extra 28° downward pitch for lower camera angle
-    this.camera.rotateX(-THREE.MathUtils.degToRad(28));
+    // Extra 33° downward pitch for lower camera angle (closer to ground)
+    this.camera.rotateX(-THREE.MathUtils.degToRad(33));
 
-    // ── Lighting ──
-    this.scene.add(new THREE.AmbientLight(0x334466, 2.0));
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    // ── Lighting (slightly glowier) ──
+    this.scene.add(new THREE.AmbientLight(0x334466, 2.8));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 2.0);
     dirLight.position.set(5, 10, 5);
     this.scene.add(dirLight);
-    const fillLight = new THREE.DirectionalLight(0x7d85b4, 0.8);
+    const fillLight = new THREE.DirectionalLight(0x7d85b4, 1.2);
     fillLight.position.set(-5, 3, 8);
     this.scene.add(fillLight);
 
@@ -323,7 +332,10 @@ export default {
       canvasArea.appendChild(container);
     }
 
-    const src = this._textImages[Math.floor(Math.random() * this._textImages.length)];
+    // Sequential order SPE1 → SPE10, then repeat
+    const src = this._textImages[this._nextTextIndex];
+    this._nextTextIndex = (this._nextTextIndex + 1) % this._textImages.length;
+
     const img = document.createElement('img');
     img.src       = src;
     img.className = 'floating-text';
@@ -334,9 +346,11 @@ export default {
     img.style.left = randX + '%';
     img.style.top  = randY + '%';
 
+    // Random size between 0.6 and 1.0
+    const scale = 0.6 + Math.random() * 0.4;
     // Subtle random rotation
     const rotation = (Math.random() - 0.5) * 6;
-    img.style.transform = 'rotate(' + rotation + 'deg)';
+    img.style.transform = 'rotate(' + rotation + 'deg) scale(' + scale + ')';
 
     container.appendChild(img);
     this._spawnedTexts.push(img);

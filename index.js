@@ -73,7 +73,7 @@ if (window.matchMedia('(pointer: fine)').matches && cursor) {
 worldManager.register('0', () => import('./worlds/world-00-huevo.js?v=2').then(m => m.default));
 worldManager.register('1', () => Promise.resolve(bubblepicking));
 worldManager.register('2', () => import('./worlds/world-01-teatro.js?v=3').then(m => m.default));
-worldManager.register('3', () => import('./worlds/world-02-array3d.js?v=28').then(m => m.default));
+worldManager.register('3', () => import('./worlds/world-02-array3d.js?v=29').then(m => m.default));
 worldManager.register('4', () => import('./worlds/world-03-tunnel.js?v=2').then(m => m.default));
 worldManager.register('5', () => import('./worlds/world-04-drawrange.js?v=2').then(m => m.default));
 worldManager.register('6', () => import('./worlds/world06.js?v=3').then(m => m.default));
@@ -681,13 +681,22 @@ function positionWorld03Overlay() {
     overlay.style.left = rect.left + 'px';
 }
 
+let _world03OverlayTimer = null;
+
 function showWorld03Overlay() {
-    positionWorld03Overlay();
-    const ov = document.getElementById('world-03-overlay');
-    if (ov) ov.classList.add('visible');
+    // Clear any pending timer
+    if (_world03OverlayTimer) clearTimeout(_world03OverlayTimer);
+    // Delay charBW appearance by 7 seconds
+    _world03OverlayTimer = setTimeout(() => {
+        positionWorld03Overlay();
+        const ov = document.getElementById('world-03-overlay');
+        if (ov) ov.classList.add('visible');
+        _world03OverlayTimer = null;
+    }, 7000);
 }
 
 function hideWorld03Overlay() {
+    if (_world03OverlayTimer) { clearTimeout(_world03OverlayTimer); _world03OverlayTimer = null; }
     const ov = document.getElementById('world-03-overlay');
     if (ov) ov.classList.remove('visible');
 }

@@ -932,7 +932,7 @@ button {
 
 #char-bw-img {
     display: block;
-    height: min(88vh, 820px);
+    height: min(70vh, 656px);
     width: auto;
     filter: brightness(0.92) contrast(1.05);
     mix-blend-mode: screen;
