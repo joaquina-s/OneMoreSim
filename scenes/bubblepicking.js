@@ -34,6 +34,16 @@ let renderPass = null;
 let _composer = null;
 let _renderer = null;
 
+// ─── Datamosh trail state ───
+let _rtCurrent = null;
+let _rtTrail = null;
+let _datamoshScene = null;
+let _datamoshCamera = null;
+let _datamoshMat = null;
+let _finalScene = null;
+let _finalMat = null;
+let _lastTrailDir = 1.0;
+
 // ─── Textures ───
 let floorTex = null;
 let wallTextures = {};  // { '1': tex, '2': tex, ... }
@@ -149,6 +159,70 @@ const HazeShader = {
                 vec4 color = texture2D(tDiffuse, distortedUv);
                 gl_FragColor = color;
             }
+        }
+    `
+};
+
+// ═══════════════════════════════════════════════
+// Datamosh Trail Shader
+// ═══════════════════════════════════════════════
+
+const DatamoshShader = {
+    vertexShader: `
+        varying vec2 vUv;
+        void main() { vUv = uv; gl_Position = vec4(position, 1.0); }
+    `,
+    fragmentShader: `
+        uniform sampler2D tCurrent;
+        uniform sampler2D tTrail;
+        uniform float     uTime;
+        uniform float     uDecay;
+        uniform float     uDisplace;
+        uniform float     uBlockSize;
+        uniform vec2      uCharacterPos;
+        uniform float     uTrailDir;
+        uniform float     uActive;
+        uniform vec2      uResolution;
+        varying vec2 vUv;
+
+        float hash(vec2 p) {
+            return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+        }
+
+        void main() {
+            float trailSide = uTrailDir > 0.0
+                ? step(vUv.x, uCharacterPos.x)
+                : step(uCharacterPos.x, vUv.x);
+            float distFromChar = abs(vUv.x - uCharacterPos.x);
+            float trailFalloff = smoothstep(0.0, 0.15, distFromChar);
+            float mask = trailSide * trailFalloff * uActive;
+
+            vec2 blockUv = floor(vUv / uBlockSize) * uBlockSize;
+            float noiseX = hash(blockUv + floor(uTime * 8.0) * 0.1) - 0.5;
+            float noiseY = hash(blockUv + floor(uTime * 8.0) * 0.1 + 99.9) - 0.5;
+            vec2 displacement = vec2(noiseX, noiseY) * uDisplace * mask;
+
+            vec2 trailUv = clamp(vUv + displacement, 0.0, 1.0);
+            vec4 trailSample = texture2D(tTrail, trailUv);
+            vec4 currentSample = texture2D(tCurrent, vUv);
+
+            float shiftAmt = uDisplace * mask * 0.008;
+            vec4 shifted;
+            shifted.r = texture2D(tTrail, trailUv + vec2( shiftAmt, 0.0)).r;
+            shifted.g = trailSample.g;
+            shifted.b = texture2D(tTrail, trailUv + vec2(-shiftAmt, 0.0)).b;
+            shifted.a = 1.0;
+
+            float freezeBlock = step(0.7, hash(blockUv + 0.42));
+            vec2 frozenUv = clamp(blockUv + vec2(uBlockSize * 0.5) + displacement, 0.0, 1.0);
+            vec4 frozenSample = texture2D(tTrail, frozenUv);
+
+            vec4 corrupted = mix(shifted, frozenSample, freezeBlock * mask * 0.4);
+
+            float decay = mix(1.0, uDecay, mask);
+            vec4 result = mix(currentSample, corrupted, decay * mask);
+
+            gl_FragColor = mix(currentSample, result, mask);
         }
     `
 };
@@ -683,6 +757,47 @@ export const bubblepicking = {
             composer.addPass(hazePass);
         }
 
+        // ── Datamosh trail setup ──
+        const canvasW = renderer.domElement.width;
+        const canvasH = renderer.domElement.height;
+        _rtCurrent = new THREE.WebGLRenderTarget(canvasW, canvasH);
+        _rtTrail   = new THREE.WebGLRenderTarget(canvasW, canvasH);
+
+        _datamoshCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+        // Accumulation quad
+        _datamoshMat = new THREE.ShaderMaterial({
+            vertexShader: DatamoshShader.vertexShader,
+            fragmentShader: DatamoshShader.fragmentShader,
+            uniforms: {
+                tCurrent:      { value: null },
+                tTrail:        { value: null },
+                uTime:         { value: 0 },
+                uDecay:        { value: 0.94 },
+                uDisplace:     { value: 0.018 },
+                uBlockSize:    { value: 0.035 },
+                uCharacterPos: { value: new THREE.Vector2(0.5, 0.5) },
+                uTrailDir:     { value: 1.0 },
+                uActive:       { value: 0.0 },
+                uResolution:   { value: new THREE.Vector2(canvasW, canvasH) }
+            }
+        });
+        const dmQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), _datamoshMat);
+        _datamoshScene = new THREE.Scene();
+        _datamoshScene.add(dmQuad);
+
+        // Final output quad
+        _finalMat = new THREE.ShaderMaterial({
+            vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position, 1.0); }`,
+            fragmentShader: `uniform sampler2D tFinal; varying vec2 vUv; void main() { gl_FragColor = texture2D(tFinal, vUv); }`,
+            uniforms: { tFinal: { value: null } }
+        });
+        const finalQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), _finalMat);
+        _finalScene = new THREE.Scene();
+        _finalScene.add(finalQuad);
+
+        _lastTrailDir = 1.0;
+
         // Reset navigation state — start at Sala 1 center angle
         // Sala 1 is at (-12.5, -12.5), angle from origin = atan2(-12.5, -12.5) = -3π/4
         orbitAngle = Math.atan2(-12.5, -12.5);
@@ -790,8 +905,52 @@ export const bubblepicking = {
         detectRoom();
         simulations.forEach(sim => sim(time));
 
-        // Render
-        if (_composer) {
+        // ── Datamosh trail pipeline ──
+        if (_rtCurrent && _datamoshMat && _finalMat) {
+            // 1. Render scene (with post-processing) to rtCurrent
+            if (_composer) {
+                _composer.renderToScreen = false;
+                _composer.render();
+                // Copy composer output to rtCurrent
+                const composerRT = _composer.readBuffer || _composer.writeBuffer;
+                _renderer.setRenderTarget(_rtCurrent);
+                _finalMat.uniforms.tFinal.value = composerRT.texture;
+                _renderer.render(_finalScene, _datamoshCamera);
+            } else {
+                _renderer.setRenderTarget(_rtCurrent);
+                _renderer.clear();
+                _renderer.render(bpScene, bpCamera);
+            }
+
+            // 2. Update datamosh uniforms
+            if (keys.left) _lastTrailDir = -1.0;
+            else if (keys.right) _lastTrailDir = 1.0;
+
+            const charScreenPos = playerGroup.position.clone().project(bpCamera);
+            _datamoshMat.uniforms.tCurrent.value     = _rtCurrent.texture;
+            _datamoshMat.uniforms.tTrail.value        = _rtTrail.texture;
+            _datamoshMat.uniforms.uTime.value          = time;
+            _datamoshMat.uniforms.uCharacterPos.value.set(
+                (charScreenPos.x + 1) / 2,
+                (charScreenPos.y + 1) / 2
+            );
+            _datamoshMat.uniforms.uTrailDir.value      = _lastTrailDir;
+            _datamoshMat.uniforms.uActive.value        = isMoving ? 1.0 : 0.0;
+            _datamoshMat.uniforms.uDecay.value         = isMoving ? 0.94 : 0.72;
+            _datamoshMat.uniforms.uDisplace.value      = isMoving ? 0.018 : 0.0;
+
+            // 3. Run datamosh accumulation → write to rtTrail
+            _renderer.setRenderTarget(_rtTrail);
+            _renderer.render(_datamoshScene, _datamoshCamera);
+
+            // 4. Output rtTrail to screen
+            _finalMat.uniforms.tFinal.value = _rtTrail.texture;
+            _renderer.setRenderTarget(null);
+            _renderer.render(_finalScene, _datamoshCamera);
+
+            // Restore composer state
+            if (_composer) _composer.renderToScreen = true;
+        } else if (_composer) {
             _composer.render();
         } else {
             _renderer.render(bpScene, bpCamera);
@@ -834,6 +993,15 @@ export const bubblepicking = {
         if (floorTex) floorTex.dispose();
         Object.values(wallTextures).forEach(t => t.dispose());
         wallTextures = {};
+
+        // Dispose datamosh render targets
+        if (_rtCurrent) { _rtCurrent.dispose(); _rtCurrent = null; }
+        if (_rtTrail)   { _rtTrail.dispose();   _rtTrail = null; }
+        if (_datamoshMat) { _datamoshMat.dispose(); _datamoshMat = null; }
+        if (_finalMat) { _finalMat.dispose(); _finalMat = null; }
+        _datamoshScene = null;
+        _finalScene = null;
+        _datamoshCamera = null;
 
         this.scene = null;
         this.camera = null;
