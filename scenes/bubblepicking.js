@@ -36,7 +36,10 @@ let _renderer = null;
 
 // ─── Datamosh trail state ───
 let _rtCurrent = null;
-let _rtTrail = null;
+let _rtTrailA = null;   // ping-pong pair: read from one, write to other
+let _rtTrailB = null;
+let _trailRead = null;  // points to the RT to read (last frame's trail)
+let _trailWrite = null; // points to the RT to write (this frame's trail)
 let _datamoshScene = null;
 let _datamoshCamera = null;
 let _datamoshMat = null;
@@ -758,10 +761,13 @@ export const bubblepicking = {
         }
 
         // ── Datamosh trail setup ──
-        const canvasW = renderer.domElement.width;
-        const canvasH = renderer.domElement.height;
+        const canvasW = Math.max(1, renderer.domElement.width  || renderer.domElement.clientWidth  || 800);
+        const canvasH = Math.max(1, renderer.domElement.height || renderer.domElement.clientHeight || 600);
         _rtCurrent = new THREE.WebGLRenderTarget(canvasW, canvasH);
-        _rtTrail   = new THREE.WebGLRenderTarget(canvasW, canvasH);
+        _rtTrailA  = new THREE.WebGLRenderTarget(canvasW, canvasH);
+        _rtTrailB  = new THREE.WebGLRenderTarget(canvasW, canvasH);
+        _trailRead  = _rtTrailA;
+        _trailWrite = _rtTrailB;
 
         _datamoshCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
@@ -905,11 +911,13 @@ export const bubblepicking = {
         detectRoom();
         simulations.forEach(sim => sim(time));
 
-        // ── Datamosh trail pipeline ──
-        if (_rtCurrent && _datamoshMat && _finalMat) {
-            // 1. Render clean scene directly to rtCurrent
+        // ── Datamosh trail pipeline (ping-pong) ──
+        if (_rtCurrent && _datamoshMat && _finalMat && _trailRead && _trailWrite) {
+            const prevAutoClear = _renderer.autoClear;
+
+            // 1. Render clean scene to rtCurrent
+            _renderer.autoClear = true;
             _renderer.setRenderTarget(_rtCurrent);
-            _renderer.clear();
             _renderer.render(bpScene, bpCamera);
 
             // 2. Update datamosh uniforms
@@ -918,7 +926,7 @@ export const bubblepicking = {
 
             const charScreenPos = playerGroup.position.clone().project(bpCamera);
             _datamoshMat.uniforms.tCurrent.value      = _rtCurrent.texture;
-            _datamoshMat.uniforms.tTrail.value         = _rtTrail.texture;
+            _datamoshMat.uniforms.tTrail.value         = _trailRead.texture;  // read LAST frame
             _datamoshMat.uniforms.uTime.value          = time;
             _datamoshMat.uniforms.uCharacterPos.value.set(
                 (charScreenPos.x + 1) / 2,
@@ -929,14 +937,24 @@ export const bubblepicking = {
             _datamoshMat.uniforms.uDecay.value         = isMoving ? 0.94 : 0.72;
             _datamoshMat.uniforms.uDisplace.value      = isMoving ? 0.018 : 0.0;
 
-            // 3. Run datamosh accumulation → write to rtTrail
-            _renderer.setRenderTarget(_rtTrail);
+            // 3. Run datamosh accumulation → write to OTHER trail buffer
+            _renderer.autoClear = false;
+            _renderer.setRenderTarget(_trailWrite);
+            _renderer.clear();
             _renderer.render(_datamoshScene, _datamoshCamera);
 
-            // 4. Output rtTrail to screen
-            _finalMat.uniforms.tFinal.value = _rtTrail.texture;
+            // 4. Output result to screen
+            _finalMat.uniforms.tFinal.value = _trailWrite.texture;
             _renderer.setRenderTarget(null);
+            _renderer.clear();
             _renderer.render(_finalScene, _datamoshCamera);
+
+            // 5. Swap ping-pong buffers
+            const tmp = _trailRead;
+            _trailRead = _trailWrite;
+            _trailWrite = tmp;
+
+            _renderer.autoClear = prevAutoClear;
         } else if (_composer) {
             _composer.render();
         } else {
@@ -983,7 +1001,10 @@ export const bubblepicking = {
 
         // Dispose datamosh render targets
         if (_rtCurrent) { _rtCurrent.dispose(); _rtCurrent = null; }
-        if (_rtTrail)   { _rtTrail.dispose();   _rtTrail = null; }
+        if (_rtTrailA)  { _rtTrailA.dispose();  _rtTrailA = null; }
+        if (_rtTrailB)  { _rtTrailB.dispose();  _rtTrailB = null; }
+        _trailRead = null;
+        _trailWrite = null;
         if (_datamoshMat) { _datamoshMat.dispose(); _datamoshMat = null; }
         if (_finalMat) { _finalMat.dispose(); _finalMat = null; }
         _datamoshScene = null;
