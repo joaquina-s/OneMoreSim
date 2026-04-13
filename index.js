@@ -288,7 +288,7 @@ document.getElementById('intro-enter-btn').addEventListener('click', () => {
 const logoBtn1 = document.getElementById('logo-btn-1');
 if (logoBtn1) {
     logoBtn1.addEventListener('click', () => {
-        uiSound.click && uiSound.click();
+        uiSound.enter();
         const introOverlay = document.getElementById('intro-overlay');
         const loadingWrap = document.getElementById('intro-loading-bar-wrap');
         const enterBtn = document.getElementById('intro-enter-btn');
@@ -300,6 +300,16 @@ if (logoBtn1) {
         introOverlay.style.display = 'flex';
         introOverlay.style.pointerEvents = 'auto';
         gsap.fromTo(introOverlay, { opacity: 0 }, { opacity: 1, duration: 0.4 });
+    });
+}
+
+// ───────────────────────────────────────────────
+// HEADER LOGO BUTTON 2 — sound on click
+// ───────────────────────────────────────────────
+const logoBtn2 = document.getElementById('logo-btn-2');
+if (logoBtn2) {
+    logoBtn2.addEventListener('click', () => {
+        uiSound.enter();
     });
 }
 
