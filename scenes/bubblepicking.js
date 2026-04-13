@@ -907,28 +907,18 @@ export const bubblepicking = {
 
         // ── Datamosh trail pipeline ──
         if (_rtCurrent && _datamoshMat && _finalMat) {
-            // 1. Render scene (with post-processing) to rtCurrent
-            if (_composer) {
-                _composer.renderToScreen = false;
-                _composer.render();
-                // Copy composer output to rtCurrent
-                const composerRT = _composer.readBuffer || _composer.writeBuffer;
-                _renderer.setRenderTarget(_rtCurrent);
-                _finalMat.uniforms.tFinal.value = composerRT.texture;
-                _renderer.render(_finalScene, _datamoshCamera);
-            } else {
-                _renderer.setRenderTarget(_rtCurrent);
-                _renderer.clear();
-                _renderer.render(bpScene, bpCamera);
-            }
+            // 1. Render clean scene directly to rtCurrent
+            _renderer.setRenderTarget(_rtCurrent);
+            _renderer.clear();
+            _renderer.render(bpScene, bpCamera);
 
             // 2. Update datamosh uniforms
             if (keys.left) _lastTrailDir = -1.0;
             else if (keys.right) _lastTrailDir = 1.0;
 
             const charScreenPos = playerGroup.position.clone().project(bpCamera);
-            _datamoshMat.uniforms.tCurrent.value     = _rtCurrent.texture;
-            _datamoshMat.uniforms.tTrail.value        = _rtTrail.texture;
+            _datamoshMat.uniforms.tCurrent.value      = _rtCurrent.texture;
+            _datamoshMat.uniforms.tTrail.value         = _rtTrail.texture;
             _datamoshMat.uniforms.uTime.value          = time;
             _datamoshMat.uniforms.uCharacterPos.value.set(
                 (charScreenPos.x + 1) / 2,
@@ -947,9 +937,6 @@ export const bubblepicking = {
             _finalMat.uniforms.tFinal.value = _rtTrail.texture;
             _renderer.setRenderTarget(null);
             _renderer.render(_finalScene, _datamoshCamera);
-
-            // Restore composer state
-            if (_composer) _composer.renderToScreen = true;
         } else if (_composer) {
             _composer.render();
         } else {
