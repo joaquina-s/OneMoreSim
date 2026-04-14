@@ -105,7 +105,7 @@ const DatamoshShader = {
         void main() {
             // Trail boundary: midpoint between character and screen center
             float screenCenter = 0.5;
-            float trailBoundary = mix(screenCenter, uCharacterPos.x, 0.3);
+            float trailBoundary = mix(screenCenter, uCharacterPos.x, 0.7);
             float trailSide = uTrailDir > 0.0
                 ? step(vUv.x, trailBoundary)
                 : step(trailBoundary, vUv.x);
@@ -119,7 +119,7 @@ const DatamoshShader = {
             float noiseX = (hash(blockUv + floor(uTime * 6.0) * 0.1) - 0.5) * 0.3;
             vec4 trailCheck = texture2D(tTrail, vUv);
             float corruptionAge = dot(trailCheck.rgb, vec3(0.33));
-            float meltY = -abs(hash(blockUv + 0.77) * 0.5 + 0.5)
+            float meltY = abs(hash(blockUv + 0.77) * 0.5 + 0.5)
                           * uDisplace
                           * (1.5 + corruptionAge * 2.0)
                           * mask;
@@ -398,23 +398,6 @@ function detectRoom() {
     if (detectedId && detectedId !== currentRoomId) {
         currentRoomId = detectedId;
         state.currentRoom = detectedId;
-        const room = roomData.find(r => r.id === currentRoomId);
-        const roomNameDisplay = document.getElementById('room-name-display');
-        const currentRoomText = document.getElementById('current-room-name');
-        if (currentRoomText) {
-            currentRoomText.innerText = room.name;
-            currentRoomText.style.color = '#' + room.emissive.toString(16).padStart(6, '0');
-        }
-        if (roomNameDisplay) {
-            roomNameDisplay.innerText = room.name;
-            roomNameDisplay.style.color = '#' + room.emissive.toString(16).padStart(6, '0');
-            roomNameDisplay.classList.add('visible');
-            clearTimeout(roomOverlayTimeout);
-            roomOverlayTimeout = setTimeout(() => roomNameDisplay.classList.remove('visible'), 2000);
-        }
-        if (detectedId === "2" && !state.room2Entered) { state.room2Entered = true; attachNearestBubble(); }
-        if (detectedId === "3" && !state.room3Entered) { state.room3Entered = true; absorbing = true; }
-        if (detectedId === "4" && !state.room4Entered) { state.room4Entered = true; state.bubbleHasImages = true; fillPlayerBubbleWithImages(); }
     }
 }
 
@@ -510,9 +493,6 @@ export const bubblepicking = {
 
         buildRooms(bpScene);
         simulations.length = 0;
-        initRoom1(bpScene);
-        initRoom2(bpScene);
-        initRoom3(bpScene);
         initRoom4(bpScene);
         createPlayer(bpScene);
 
@@ -629,16 +609,6 @@ export const bubblepicking = {
         bpCamera.lookAt(playerGroup.position.x, playerGroup.position.y + 1, playerGroup.position.z);
         dirLight.position.set(playerGroup.position.x + 5, playerGroup.position.y + 10, playerGroup.position.z + 5);
 
-        // ── Player bubble images ──
-        if (state.bubbleHasImages && playerBubbleImages.length > 0) {
-            playerBubbleImages.forEach(p => {
-                const phase = p.userData.orbitPhase || 0;
-                const r = 0.25;
-                p.position.set(Math.cos(time * 1.2 + phase) * r, Math.sin(time * 1.5 + phase) * r * 0.6, Math.sin(time * 0.9 + phase + 1) * r);
-                p.rotation.y = time + phase;
-            });
-        }
-
         detectRoom();
         simulations.forEach(sim => sim(time));
 
@@ -654,7 +624,7 @@ export const bubblepicking = {
 
             // b. Progressive fade intensity
             if (isMoving) {
-                _trailIntensity = Math.min(1.0, _trailIntensity + delta / 1.0);
+                _trailIntensity = Math.min(1.0, _trailIntensity + delta / 3.0);
             } else {
                 _trailIntensity = Math.max(0.0, _trailIntensity - delta / 4.0);
             }
@@ -669,8 +639,8 @@ export const bubblepicking = {
             _datamoshMat.uniforms.uCharacterPos.value.set((charScreenPos.x + 1) / 2, (charScreenPos.y + 1) / 2);
             _datamoshMat.uniforms.uTrailDir.value      = _lastTrailDir;
             _datamoshMat.uniforms.uActive.value        = _trailIntensity;
-            _datamoshMat.uniforms.uDecay.value         = 0.72 + _trailIntensity * 0.22;
-            _datamoshMat.uniforms.uDisplace.value      = _trailIntensity * 0.018;
+            _datamoshMat.uniforms.uDecay.value         = 0.60 + _trailIntensity * 0.17;
+            _datamoshMat.uniforms.uDisplace.value      = _trailIntensity * 0.009;
 
             // c. Accumulate: (rtCurrent + trailRead) → trailWrite
             _renderer.setRenderTarget(_trailWrite);

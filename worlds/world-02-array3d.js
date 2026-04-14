@@ -56,12 +56,11 @@ export default {
     this.scene.background = new THREE.Color(0x020612);
     this.scene.fog = new THREE.Fog(0x001040, 8, 26);
 
-    // ── Camera — fisheye FOV 120, pulled back, 33° extra X tilt ──
+    // ── Camera — fisheye FOV 120, close to characters, first row at bottom edge ──
     this.camera = new THREE.PerspectiveCamera(120, W / H, 0.1, 100);
-    this.camera.position.set(0, 6, 10);
-    this.camera.lookAt(0, 0.5, 0);
-    // Extra 33° downward pitch for lower camera angle (closer to ground)
-    this.camera.rotateX(-THREE.MathUtils.degToRad(33));
+    this.camera.position.set(0, 4, 6);
+    this.camera.lookAt(0, 0.5, -1);
+    this.camera.rotateX(-THREE.MathUtils.degToRad(25));
 
     // ── Lighting (slightly glowier) ──
     this.scene.add(new THREE.AmbientLight(0x334466, 2.8));
