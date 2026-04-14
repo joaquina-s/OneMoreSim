@@ -392,7 +392,7 @@ const WORLD_DATA = {
     },
     '7': {
         title: '02Ambient_Human_presence',
-        desc: 'Whenever I remember something, it\'s always a little different. It comes with this residual aura.',
+        desc: 'Whenever I remember something, I always remember it differently.',
         accent: '#ffffff',
         iconSvg: `<rect x="8" y="8" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"/>
                   <rect x="26" y="8" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"/>
