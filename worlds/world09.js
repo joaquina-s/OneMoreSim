@@ -94,19 +94,24 @@ const DatamoshShader = {
         void main() { vUv = uv; gl_Position = vec4(position, 1.0); }
     `,
     fragmentShader: `
-        // Camera-motion datamosh (Option B: approximation of shadertoy/tlsSRs back-projection).
-        // Instead of ray-marching geometry to compute per-pixel motion vectors,
-        // we use the camera's inter-frame projection delta (uMotionVec) as a
-        // uniform screen-space motion vector for all pixels. Pixels that land
-        // out-of-bounds get replaced with noise (edge corruption).
+        // Depth-based datamosh — per-pixel temporal reprojection.
+        // Each pixel reconstructs its world-space position from depth + inverse
+        // ProjView of the current camera, then projects that world point through
+        // the PREVIOUS camera's ProjView to find where it was on screen last
+        // frame. Samples the trail buffer at that UV → motion vectors respect
+        // parallax (distant pixels smear less than near ones, just like the
+        // shadertoy tlsSRs).
         uniform sampler2D tCurrent;
         uniform sampler2D tTrail;
+        uniform sampler2D tDepth;
+        uniform mat4      uInvCurrPV;  // inverse of (proj * view) now
+        uniform mat4      uPrevPV;     // (proj * view) last frame
+        uniform bool      uHasPrev;
         uniform float     uTime;
         uniform float     uDecay;
         uniform float     uDisplace;
         uniform float     uBlockSize;
         uniform float     uActive;
-        uniform vec2      uMotionVec;   // UV-space displacement from camera delta
         uniform vec2      uResolution;
         varying vec2 vUv;
 
@@ -117,47 +122,66 @@ const DatamoshShader = {
         void main() {
             vec2 blockUv     = floor(vUv / uBlockSize) * uBlockSize;
             vec2 blockCenter = blockUv + vec2(uBlockSize * 0.5);
+            vec3 curColor    = texture2D(tCurrent, vUv).rgb;
 
-            vec3 curColor = texture2D(tCurrent, vUv).rgb;
+            // ── Per-pixel reprojection ──
+            float depth = texture2D(tDepth, vUv).x;        // [0..1] non-linear
+            vec2  prevUv = vUv;
+            bool  skyPixel = depth > 0.9995;               // skybox / far plane
+            if (uHasPrev && !skyPixel) {
+                // Clip-space of this pixel at current camera
+                vec4 clip = vec4(vUv * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
+                // World-space
+                vec4 world = uInvCurrPV * clip;
+                world.xyz /= world.w;
+                world.w = 1.0;
+                // Project through previous camera → previous clip
+                vec4 prevClip = uPrevPV * world;
+                if (prevClip.w > 0.0) {
+                    vec2 prevNdc = prevClip.xy / prevClip.w;
+                    prevUv = prevNdc * 0.5 + 0.5;
+                }
+            }
 
-            // Main displacement: camera-motion vector (scaled by active intensity)
-            // Amplify slightly so smear is visible over multiple frames.
-            vec2 camShift = uMotionVec * (1.0 + uActive * 2.5);
+            // Motion vector from reprojection (this is the per-pixel, depth-aware shift)
+            vec2 motionVec = prevUv - vUv;
 
-            // Per-block jitter: small random variation for compression-artifact look
+            // Subtle per-block jitter for macroblock aesthetic (compression look)
             vec2 blockJitter = vec2(
                 hash(blockUv + 0.13) - 0.5,
                 hash(blockUv + 0.79) - 0.5
-            ) * uDisplace * uActive;
+            ) * uDisplace * uActive * 0.4;
 
-            vec2 sampleUv = vUv + camShift + blockJitter;
+            vec2 sampleUv = prevUv + blockJitter;
 
-            // Out-of-bounds detection → inject noise (edge corruption)
+            // OOB → edge corruption noise
             bool oob = sampleUv.x < 0.0 || sampleUv.x > 1.0 ||
                        sampleUv.y < 0.0 || sampleUv.y > 1.0;
 
             vec3 trailColor;
             if (oob) {
-                // Fallback noise — looks like broken video codec
                 vec2 n = blockUv + floor(uTime * 1.5) * 0.17;
                 trailColor = vec3(hash(n), hash(n + 0.31), hash(n + 0.71));
             } else {
-                vec3 tcSample = texture2D(tTrail, sampleUv).rgb;
-                // RGB split along motion direction (stronger where camera moves)
-                vec2 rgbShift = camShift * 0.25 + vec2(uDisplace * uActive * 0.3, 0.0);
+                // RGB split aligned with the motion vector (directional chroma shift)
+                vec2 rgbShift = motionVec * 0.35;
                 float r = texture2D(tTrail, clamp(sampleUv + rgbShift, 0.0, 1.0)).r;
+                float g = texture2D(tTrail, sampleUv).g;
                 float b = texture2D(tTrail, clamp(sampleUv - rgbShift, 0.0, 1.0)).b;
-                trailColor = vec3(r, tcSample.g, b);
+                trailColor = vec3(r, g, b);
             }
 
-            // Occasional block freeze — picks a stale lookup for a fraction of blocks
-            float freezeBlock = step(0.82, hash(blockUv + floor(uTime * 1.8) * 0.23));
-            vec2 freezeUv = clamp(blockCenter + camShift * 3.0, 0.0, 1.0);
+            // Occasional block freeze — pick a stale lookup along motion direction
+            float freezeBlock = step(0.85, hash(blockUv + floor(uTime * 1.8) * 0.23));
+            vec2 freezeUv = clamp(blockCenter + motionVec * 2.5, 0.0, 1.0);
             vec3 frozenSample = texture2D(tTrail, freezeUv).rgb;
             trailColor = mix(trailColor, frozenSample, freezeBlock * uActive * 0.5);
 
-            // Feedback accumulation: active = heavy persistence, inactive = track current
-            float decay = mix(0.06, uDecay, uActive);
+            // Sky/background pixels: track current (no smear on flat background)
+            if (skyPixel) trailColor = curColor;
+
+            // Feedback accumulation
+            float decay = mix(0.05, uDecay, uActive);
             vec3  result = mix(curColor, trailColor, decay);
 
             gl_FragColor = vec4(result, 1.0);
@@ -524,7 +548,16 @@ export const bubblepicking = {
 
         _datamoshCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
-        _rtCurrent = new THREE.WebGLRenderTarget(W, H);
+        // rtCurrent carries a depth texture — enables per-pixel temporal
+        // reprojection (parallax-correct motion vectors in the datamosh shader).
+        const _depthTex = new THREE.DepthTexture(W, H);
+        _depthTex.type = THREE.UnsignedShortType;
+        _rtCurrent = new THREE.WebGLRenderTarget(W, H, {
+            depthBuffer:  true,
+            depthTexture: _depthTex,
+            minFilter:    THREE.LinearFilter,
+            magFilter:    THREE.LinearFilter
+        });
         _rtTrailA  = new THREE.WebGLRenderTarget(W, H);
         _rtTrailB  = new THREE.WebGLRenderTarget(W, H);
         _trailRead  = _rtTrailA;
@@ -536,12 +569,15 @@ export const bubblepicking = {
             uniforms: {
                 tCurrent:    { value: null },
                 tTrail:      { value: null },
+                tDepth:      { value: _depthTex },
+                uInvCurrPV:  { value: new THREE.Matrix4() },
+                uPrevPV:     { value: new THREE.Matrix4() },
+                uHasPrev:    { value: false },
                 uTime:       { value: 0 },
                 uDecay:      { value: 0.94 },
                 uDisplace:   { value: 0.018 },
                 uBlockSize:  { value: 0.022 },
                 uActive:     { value: 0.0 },
-                uMotionVec:  { value: new THREE.Vector2(0, 0) },
                 uResolution: { value: new THREE.Vector2(W, H) }
             },
             depthWrite: false,
@@ -650,34 +686,18 @@ export const bubblepicking = {
                 _trailIntensity = Math.max(0.0, _trailIntensity - delta / 4.0);
             }
 
-            // Compute camera-motion vector: project _worldRef through current and
-            // previous PV matrices; delta in NDC → UV-space shift. This is the
-            // "where did this pixel's world point used to be on screen?" vector.
+            // Build current ProjView matrix and its inverse for per-pixel reprojection.
             _currPVMatrix.multiplyMatrices(bpCamera.projectionMatrix, bpCamera.matrixWorldInverse);
 
-            let mvX = 0, mvY = 0;
-            if (_prevMatricesReady) {
-                // Project worldRef with current PV
-                _tmpV4.set(_worldRef.x, _worldRef.y, _worldRef.z, 1.0);
-                _tmpV4.applyMatrix4(_currPVMatrix);
-                const cw = _tmpV4.w || 1e-6;
-                const curNdcX = _tmpV4.x / cw;
-                const curNdcY = _tmpV4.y / cw;
-                // Project worldRef with previous PV
-                _tmpV4.set(_worldRef.x, _worldRef.y, _worldRef.z, 1.0);
-                _tmpV4.applyMatrix4(_prevPVMatrix);
-                const pw = _tmpV4.w || 1e-6;
-                const prevNdcX = _tmpV4.x / pw;
-                const prevNdcY = _tmpV4.y / pw;
-                // NDC delta → UV delta (NDC range [-1,1] → UV [0,1] = /2)
-                mvX = (prevNdcX - curNdcX) * 0.5;
-                mvY = (prevNdcY - curNdcY) * 0.5;
-                // Clamp to reasonable range so huge jumps (world switch) don't explode
-                const clampAmt = 0.08;
-                mvX = Math.max(-clampAmt, Math.min(clampAmt, mvX));
-                mvY = Math.max(-clampAmt, Math.min(clampAmt, mvY));
-            }
-            _motionVec.set(mvX, mvY);
+            const invCurrPV = _datamoshMat.uniforms.uInvCurrPV.value;
+            invCurrPV.copy(_currPVMatrix);
+            if (invCurrPV.invert) invCurrPV.invert();
+            else invCurrPV.getInverse(_currPVMatrix);
+
+            // uPrevPV: last frame's ProjView. On the very first frame we
+            // gate with uHasPrev=false so the shader uses identity (no smear).
+            _datamoshMat.uniforms.uPrevPV.value.copy(_prevPVMatrix);
+            _datamoshMat.uniforms.uHasPrev.value = _prevMatricesReady;
             _prevPVMatrix.copy(_currPVMatrix);
             _prevMatricesReady = true;
 
@@ -687,7 +707,6 @@ export const bubblepicking = {
             _datamoshMat.uniforms.uActive.value   = _trailIntensity;
             _datamoshMat.uniforms.uDecay.value    = 0.88 + _trailIntensity * 0.08;
             _datamoshMat.uniforms.uDisplace.value = 0.002 + _trailIntensity * 0.012;
-            _datamoshMat.uniforms.uMotionVec.value.copy(_motionVec);
 
             // c. Accumulate: (rtCurrent + trailRead) → trailWrite
             _renderer.setRenderTarget(_trailWrite);
