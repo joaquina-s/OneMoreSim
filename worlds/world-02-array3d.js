@@ -58,9 +58,9 @@ export default {
 
     // ── Camera — fisheye FOV 120, close to characters, first row at bottom edge ──
     this.camera = new THREE.PerspectiveCamera(120, W / H, 0.1, 100);
-    this.camera.position.set(0, 4, 6);
+    this.camera.position.set(0, 3.5, 6);
     this.camera.lookAt(0, 0.5, -1);
-    this.camera.rotateX(-THREE.MathUtils.degToRad(25));
+    this.camera.rotateX(-THREE.MathUtils.degToRad(20));
 
     // ── Lighting (slightly glowier) ──
     this.scene.add(new THREE.AmbientLight(0x334466, 2.8));
