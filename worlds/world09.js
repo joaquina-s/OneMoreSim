@@ -86,14 +86,18 @@ const DatamoshShader = {
         void main() { vUv = uv; gl_Position = vec4(position, 1.0); }
     `,
     fragmentShader: `
+        // Motion-based datamosh effect (inspired by shadertoy/tlsSRs):
+        // - detects motion via current-vs-trail difference
+        // - displaces macroblocks by random vectors (P-frame-style corruption)
+        // - freezes some blocks randomly (compression glitch)
+        // - RGB channel split on moving blocks
+        // - where static: trail quickly tracks current (clean image)
         uniform sampler2D tCurrent;
         uniform sampler2D tTrail;
         uniform float     uTime;
         uniform float     uDecay;
         uniform float     uDisplace;
         uniform float     uBlockSize;
-        uniform vec2      uCharacterPos;
-        uniform float     uTrailDir;
         uniform float     uActive;
         uniform vec2      uResolution;
         varying vec2 vUv;
@@ -103,50 +107,52 @@ const DatamoshShader = {
         }
 
         void main() {
-            // Trail boundary: midpoint between character and screen center
-            float screenCenter = 0.5;
-            float trailBoundary = mix(screenCenter, uCharacterPos.x, 0.7);
-            float trailSide = uTrailDir > 0.0
-                ? step(vUv.x, trailBoundary)
-                : step(trailBoundary, vUv.x);
-            float distFromBoundary = abs(vUv.x - trailBoundary);
-            float trailFalloff = smoothstep(0.0, 0.12, distFromBoundary);
-            float mask = trailSide * trailFalloff * uActive;
+            vec2 blockUv     = floor(vUv / uBlockSize) * uBlockSize;
+            vec2 blockCenter = blockUv + vec2(uBlockSize * 0.5);
 
-            vec2 blockUv = floor(vUv / uBlockSize) * uBlockSize;
+            vec3 curColor   = texture2D(tCurrent, vUv).rgb;
+            vec3 trailColor = texture2D(tTrail,   vUv).rgb;
 
-            // Melt downward displacement
-            float noiseX = (hash(blockUv + floor(uTime * 6.0) * 0.1) - 0.5) * 0.3;
-            vec4 trailCheck = texture2D(tTrail, vUv);
-            float corruptionAge = dot(trailCheck.rgb, vec3(0.33));
-            float meltY = abs(hash(blockUv + 0.77) * 0.5 + 0.5)
-                          * uDisplace
-                          * (1.5 + corruptionAge * 2.0)
-                          * mask;
-            float meltX = noiseX * uDisplace * 0.4 * mask;
-            vec2 displacement = vec2(meltX, meltY);
+            // Motion detection: current vs trail (both per-pixel and per-block)
+            float pixMotion   = length(curColor - trailColor);
+            vec3  curBlock    = texture2D(tCurrent, blockCenter).rgb;
+            vec3  trailBlock  = texture2D(tTrail,   blockCenter).rgb;
+            float blockMotion = length(curBlock - trailBlock);
+            float motion      = max(pixMotion, blockMotion);
 
-            vec2 trailUv = clamp(vUv + displacement, 0.0, 1.0);
-            vec4 trailSample = texture2D(tTrail, trailUv);
-            vec4 currentSample = texture2D(tCurrent, vUv);
+            // Motion mask with smooth threshold, scaled by uActive
+            float moshMask = smoothstep(0.015, 0.12, motion) * uActive;
 
-            float shiftAmt = uDisplace * mask * 0.008;
-            vec4 shifted;
-            shifted.r = texture2D(tTrail, trailUv + vec2( shiftAmt, 0.0)).r;
-            shifted.g = trailSample.g;
-            shifted.b = texture2D(tTrail, trailUv + vec2(-shiftAmt, 0.0)).b;
-            shifted.a = 1.0;
+            // Per-block random motion vector (P-frame style),
+            // biased slightly downward to suggest melt/drift
+            vec2 blockDir;
+            blockDir.x = hash(blockUv + 0.11) - 0.5;
+            blockDir.y = abs(hash(blockUv + 0.73) - 0.5) + 0.15;
+            blockDir *= uDisplace * (0.5 + moshMask * 1.8);
 
-            float freezeBlock = step(0.7, hash(blockUv + 0.42));
-            vec2 frozenUv = clamp(blockUv + vec2(uBlockSize * 0.5) + displacement, 0.0, 1.0);
-            vec4 frozenSample = texture2D(tTrail, frozenUv);
+            // Sample trail at displaced position
+            vec2 displacedUv    = clamp(vUv + blockDir, 0.0, 1.0);
+            vec3 displacedTrail = texture2D(tTrail, displacedUv).rgb;
 
-            vec4 corrupted = mix(shifted, frozenSample, freezeBlock * mask * 0.4);
+            // RGB channel split (stronger where motion is high)
+            float shift = uDisplace * moshMask * 1.4;
+            vec3  split;
+            split.r = texture2D(tTrail, displacedUv + vec2( shift, 0.0)).r;
+            split.g = displacedTrail.g;
+            split.b = texture2D(tTrail, displacedUv + vec2(-shift, 0.0)).b;
 
-            float decay = mix(1.0, uDecay, mask);
-            vec4 result = mix(currentSample, corrupted, decay * mask);
+            // Block freeze: some blocks stop updating (compression artifact)
+            float freezeBlock  = step(0.75, hash(blockUv + floor(uTime * 2.0) * 0.17));
+            vec3  frozenSample = texture2D(tTrail, blockCenter + blockDir * 0.5).rgb;
+            vec3  corrupted    = mix(split, frozenSample, freezeBlock * moshMask * 0.55);
 
-            gl_FragColor = mix(currentSample, result, mask);
+            // Feedback blend:
+            //   static regions (moshMask≈0) → track current quickly (no persistence)
+            //   moving regions (moshMask≈1) → heavy persistence of corrupted trail
+            float decay  = mix(0.08, uDecay, moshMask);
+            vec3  result = mix(curColor, corrupted, decay);
+
+            gl_FragColor = vec4(result, 1.0);
         }
     `
 };
@@ -512,16 +518,14 @@ export const bubblepicking = {
             vertexShader: DatamoshShader.vertexShader,
             fragmentShader: DatamoshShader.fragmentShader,
             uniforms: {
-                tCurrent:      { value: null },
-                tTrail:        { value: null },
-                uTime:         { value: 0 },
-                uDecay:        { value: 0.94 },
-                uDisplace:     { value: 0.018 },
-                uBlockSize:    { value: 0.012 },
-                uCharacterPos: { value: new THREE.Vector2(0.5, 0.5) },
-                uTrailDir:     { value: 1.0 },
-                uActive:       { value: 0.0 },
-                uResolution:   { value: new THREE.Vector2(W, H) }
+                tCurrent:    { value: null },
+                tTrail:      { value: null },
+                uTime:       { value: 0 },
+                uDecay:      { value: 0.94 },
+                uDisplace:   { value: 0.018 },
+                uBlockSize:  { value: 0.022 },
+                uActive:     { value: 0.0 },
+                uResolution: { value: new THREE.Vector2(W, H) }
             },
             depthWrite: false,
             depthTest: false
@@ -629,18 +633,12 @@ export const bubblepicking = {
                 _trailIntensity = Math.max(0.0, _trailIntensity - delta / 4.0);
             }
 
-            if (keys.left) _lastTrailDir = -1.0;
-            else if (keys.right) _lastTrailDir = 1.0;
-
-            const charScreenPos = playerGroup.position.clone().project(bpCamera);
-            _datamoshMat.uniforms.tCurrent.value      = _rtCurrent.texture;
-            _datamoshMat.uniforms.tTrail.value         = _trailRead.texture;
-            _datamoshMat.uniforms.uTime.value          = time;
-            _datamoshMat.uniforms.uCharacterPos.value.set((charScreenPos.x + 1) / 2, (charScreenPos.y + 1) / 2);
-            _datamoshMat.uniforms.uTrailDir.value      = _lastTrailDir;
-            _datamoshMat.uniforms.uActive.value        = _trailIntensity;
-            _datamoshMat.uniforms.uDecay.value         = 0.66 + _trailIntensity * 0.20;
-            _datamoshMat.uniforms.uDisplace.value      = _trailIntensity * 0.014;
+            _datamoshMat.uniforms.tCurrent.value  = _rtCurrent.texture;
+            _datamoshMat.uniforms.tTrail.value    = _trailRead.texture;
+            _datamoshMat.uniforms.uTime.value     = time;
+            _datamoshMat.uniforms.uActive.value   = _trailIntensity;
+            _datamoshMat.uniforms.uDecay.value    = 0.72 + _trailIntensity * 0.22;
+            _datamoshMat.uniforms.uDisplace.value = 0.004 + _trailIntensity * 0.018;
 
             // c. Accumulate: (rtCurrent + trailRead) → trailWrite
             _renderer.setRenderTarget(_trailWrite);
