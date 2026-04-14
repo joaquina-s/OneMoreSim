@@ -113,6 +113,8 @@ const DatamoshShader = {
         uniform float     uBlockSize;
         uniform float     uActive;
         uniform vec2      uResolution;
+        uniform vec2      uCharacterPos;  // character screen pos in [0..1]
+        uniform float     uTrailDir;      // -1 = walking left (effect on right), +1 = walking right (effect on left)
         varying vec2 vUv;
 
         float hash(vec2 p) {
@@ -146,13 +148,23 @@ const DatamoshShader = {
             // Motion vector from reprojection (this is the per-pixel, depth-aware shift)
             vec2 motionVec = prevUv - vUv;
 
+            // ── Half-screen side mask ──
+            // If character walks left (uTrailDir = -1), effect shows on the right side.
+            // If character walks right (uTrailDir = +1), effect shows on the left side.
+            float boundary = mix(0.5, uCharacterPos.x, 0.7);
+            float sideRaw = (vUv.x - boundary) * -uTrailDir;
+            float trailMask = smoothstep(-0.08, 0.08, sideRaw) * uActive;
+
+            // Downward displacement bias (content melts downward within the masked side)
+            vec2 downBias = vec2(0.0, uDisplace * 2.5 * trailMask);
+
             // Subtle per-block jitter for macroblock aesthetic (compression look)
             vec2 blockJitter = vec2(
                 hash(blockUv + 0.13) - 0.5,
                 hash(blockUv + 0.79) - 0.5
-            ) * uDisplace * uActive * 0.4;
+            ) * uDisplace * trailMask * 0.4;
 
-            vec2 sampleUv = prevUv + blockJitter;
+            vec2 sampleUv = mix(vUv, prevUv, trailMask) + blockJitter + downBias;
 
             // OOB → edge corruption noise
             bool oob = sampleUv.x < 0.0 || sampleUv.x > 1.0 ||
@@ -180,8 +192,8 @@ const DatamoshShader = {
             // Sky/background pixels: track current (no smear on flat background)
             if (skyPixel) trailColor = curColor;
 
-            // Feedback accumulation
-            float decay = mix(0.05, uDecay, uActive);
+            // Feedback accumulation — only on the masked side
+            float decay = mix(0.05, uDecay, trailMask);
             vec3  result = mix(curColor, trailColor, decay);
 
             gl_FragColor = vec4(result, 1.0);
@@ -511,17 +523,18 @@ export const bubblepicking = {
         _prevMatricesReady = false;
 
         bpScene = new THREE.Scene();
-        bpScene.background = new THREE.Color(0x010814);
-        bpScene.fog = new THREE.FogExp2(0x020d1f, 0.018);
+        // Beach-night lighting (matching World 06 Super_Me_Era)
+        bpScene.background = new THREE.Color(0x020612);
+        bpScene.fog = new THREE.Fog(0x001040, 8, 26);
         this.scene = bpScene;
 
         bpCamera = new THREE.PerspectiveCamera(120, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.camera = bpCamera;
 
-        ambientLight = new THREE.AmbientLight(0x0a1a3f, 0.8);
+        ambientLight = new THREE.AmbientLight(0x334466, 3.4);
         bpScene.add(ambientLight);
 
-        dirLight = new THREE.DirectionalLight(0xc8d8ff, 1.8);
+        dirLight = new THREE.DirectionalLight(0xffffff, 2.4);
         dirLight.castShadow = deviceProfile.useShadows;
         dirLight.shadow.mapSize.width = deviceProfile.shadowMapSize;
         dirLight.shadow.mapSize.height = deviceProfile.shadowMapSize;
@@ -534,8 +547,9 @@ export const bubblepicking = {
         dirLight.shadow.camera.bottom = -d;
         bpScene.add(dirLight);
 
-        const hemiLight = new THREE.HemisphereLight(0x0a1a4a, 0x001133, 0.6);
-        bpScene.add(hemiLight);
+        const fillLight = new THREE.DirectionalLight(0x7d85b4, 2.0);
+        fillLight.position.set(-5, 3, 8);
+        bpScene.add(fillLight);
 
         buildRooms(bpScene);
         simulations.length = 0;
@@ -576,9 +590,11 @@ export const bubblepicking = {
                 uTime:       { value: 0 },
                 uDecay:      { value: 0.94 },
                 uDisplace:   { value: 0.018 },
-                uBlockSize:  { value: 0.022 },
+                uBlockSize:  { value: 0.010 },
                 uActive:     { value: 0.0 },
-                uResolution: { value: new THREE.Vector2(W, H) }
+                uResolution: { value: new THREE.Vector2(W, H) },
+                uCharacterPos: { value: new THREE.Vector2(0.5, 0.5) },
+                uTrailDir:     { value: 1.0 }
             },
             depthWrite: false,
             depthTest: false
@@ -594,7 +610,7 @@ export const bubblepicking = {
                 varying vec2 vUv;
                 void main() {
                     vec4 color = texture2D(tFinal, vUv);
-                    float spread = 0.008;
+                    float spread = 0.003;
                     vec4 glow = vec4(0.0);
                     glow += texture2D(tFinal, vUv + vec2( spread,  0.0));
                     glow += texture2D(tFinal, vUv + vec2(-spread,  0.0));
@@ -611,7 +627,7 @@ export const bubblepicking = {
             `,
             uniforms: {
                 tFinal:       { value: null },
-                uGlowStrength: { value: 0.35 }
+                uGlowStrength: { value: 0.10 }
             },
             depthWrite: false,
             depthTest: false
@@ -707,6 +723,20 @@ export const bubblepicking = {
             _datamoshMat.uniforms.uActive.value   = _trailIntensity;
             _datamoshMat.uniforms.uDecay.value    = 0.88 + _trailIntensity * 0.08;
             _datamoshMat.uniforms.uDisplace.value = 0.002 + _trailIntensity * 0.012;
+
+            // Track walk direction: left key → -1 (effect on right), right key → +1 (effect on left)
+            if (keys.left)       _lastTrailDir = -1.0;
+            else if (keys.right) _lastTrailDir =  1.0;
+            _datamoshMat.uniforms.uTrailDir.value = _lastTrailDir;
+
+            // Project character world position to screen UV [0..1]
+            const _charProj = playerGroup.position.clone();
+            _charProj.y += 1.0;
+            _charProj.project(bpCamera);
+            _datamoshMat.uniforms.uCharacterPos.value.set(
+                (_charProj.x + 1) * 0.5,
+                (_charProj.y + 1) * 0.5
+            );
 
             // c. Accumulate: (rtCurrent + trailRead) → trailWrite
             _renderer.setRenderTarget(_trailWrite);
