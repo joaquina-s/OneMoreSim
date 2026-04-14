@@ -45,6 +45,14 @@ let _lastTrailDir = 1.0;
 let _trailIntensity = 0.0;
 let _lastTime = 0;
 
+// ─── Camera-motion tracking (Option B back-projection approximation) ───
+let _prevPVMatrix = null;
+let _currPVMatrix = null;
+let _motionVec = null;       // THREE.Vector2, UV-space displacement
+let _worldRef = null;        // THREE.Vector3, reference point to track
+let _tmpV4 = null;           // THREE.Vector4, scratch for projection
+let _prevMatricesReady = false;
+
 // ─── Textures ───
 let floorTex = null;
 let wallTextures = {};
@@ -86,12 +94,11 @@ const DatamoshShader = {
         void main() { vUv = uv; gl_Position = vec4(position, 1.0); }
     `,
     fragmentShader: `
-        // Motion-based datamosh effect (inspired by shadertoy/tlsSRs):
-        // - detects motion via current-vs-trail difference
-        // - displaces macroblocks by random vectors (P-frame-style corruption)
-        // - freezes some blocks randomly (compression glitch)
-        // - RGB channel split on moving blocks
-        // - where static: trail quickly tracks current (clean image)
+        // Camera-motion datamosh (Option B: approximation of shadertoy/tlsSRs back-projection).
+        // Instead of ray-marching geometry to compute per-pixel motion vectors,
+        // we use the camera's inter-frame projection delta (uMotionVec) as a
+        // uniform screen-space motion vector for all pixels. Pixels that land
+        // out-of-bounds get replaced with noise (edge corruption).
         uniform sampler2D tCurrent;
         uniform sampler2D tTrail;
         uniform float     uTime;
@@ -99,6 +106,7 @@ const DatamoshShader = {
         uniform float     uDisplace;
         uniform float     uBlockSize;
         uniform float     uActive;
+        uniform vec2      uMotionVec;   // UV-space displacement from camera delta
         uniform vec2      uResolution;
         varying vec2 vUv;
 
@@ -110,47 +118,47 @@ const DatamoshShader = {
             vec2 blockUv     = floor(vUv / uBlockSize) * uBlockSize;
             vec2 blockCenter = blockUv + vec2(uBlockSize * 0.5);
 
-            vec3 curColor   = texture2D(tCurrent, vUv).rgb;
-            vec3 trailColor = texture2D(tTrail,   vUv).rgb;
+            vec3 curColor = texture2D(tCurrent, vUv).rgb;
 
-            // Motion detection: current vs trail (both per-pixel and per-block)
-            float pixMotion   = length(curColor - trailColor);
-            vec3  curBlock    = texture2D(tCurrent, blockCenter).rgb;
-            vec3  trailBlock  = texture2D(tTrail,   blockCenter).rgb;
-            float blockMotion = length(curBlock - trailBlock);
-            float motion      = max(pixMotion, blockMotion);
+            // Main displacement: camera-motion vector (scaled by active intensity)
+            // Amplify slightly so smear is visible over multiple frames.
+            vec2 camShift = uMotionVec * (1.0 + uActive * 2.5);
 
-            // Motion mask with smooth threshold, scaled by uActive
-            float moshMask = smoothstep(0.015, 0.12, motion) * uActive;
+            // Per-block jitter: small random variation for compression-artifact look
+            vec2 blockJitter = vec2(
+                hash(blockUv + 0.13) - 0.5,
+                hash(blockUv + 0.79) - 0.5
+            ) * uDisplace * uActive;
 
-            // Per-block random motion vector (P-frame style),
-            // biased slightly downward to suggest melt/drift
-            vec2 blockDir;
-            blockDir.x = hash(blockUv + 0.11) - 0.5;
-            blockDir.y = abs(hash(blockUv + 0.73) - 0.5) + 0.15;
-            blockDir *= uDisplace * (0.5 + moshMask * 1.8);
+            vec2 sampleUv = vUv + camShift + blockJitter;
 
-            // Sample trail at displaced position
-            vec2 displacedUv    = clamp(vUv + blockDir, 0.0, 1.0);
-            vec3 displacedTrail = texture2D(tTrail, displacedUv).rgb;
+            // Out-of-bounds detection → inject noise (edge corruption)
+            bool oob = sampleUv.x < 0.0 || sampleUv.x > 1.0 ||
+                       sampleUv.y < 0.0 || sampleUv.y > 1.0;
 
-            // RGB channel split (stronger where motion is high)
-            float shift = uDisplace * moshMask * 1.4;
-            vec3  split;
-            split.r = texture2D(tTrail, displacedUv + vec2( shift, 0.0)).r;
-            split.g = displacedTrail.g;
-            split.b = texture2D(tTrail, displacedUv + vec2(-shift, 0.0)).b;
+            vec3 trailColor;
+            if (oob) {
+                // Fallback noise — looks like broken video codec
+                vec2 n = blockUv + floor(uTime * 1.5) * 0.17;
+                trailColor = vec3(hash(n), hash(n + 0.31), hash(n + 0.71));
+            } else {
+                vec3 tcSample = texture2D(tTrail, sampleUv).rgb;
+                // RGB split along motion direction (stronger where camera moves)
+                vec2 rgbShift = camShift * 0.25 + vec2(uDisplace * uActive * 0.3, 0.0);
+                float r = texture2D(tTrail, clamp(sampleUv + rgbShift, 0.0, 1.0)).r;
+                float b = texture2D(tTrail, clamp(sampleUv - rgbShift, 0.0, 1.0)).b;
+                trailColor = vec3(r, tcSample.g, b);
+            }
 
-            // Block freeze: some blocks stop updating (compression artifact)
-            float freezeBlock  = step(0.75, hash(blockUv + floor(uTime * 2.0) * 0.17));
-            vec3  frozenSample = texture2D(tTrail, blockCenter + blockDir * 0.5).rgb;
-            vec3  corrupted    = mix(split, frozenSample, freezeBlock * moshMask * 0.55);
+            // Occasional block freeze — picks a stale lookup for a fraction of blocks
+            float freezeBlock = step(0.82, hash(blockUv + floor(uTime * 1.8) * 0.23));
+            vec2 freezeUv = clamp(blockCenter + camShift * 3.0, 0.0, 1.0);
+            vec3 frozenSample = texture2D(tTrail, freezeUv).rgb;
+            trailColor = mix(trailColor, frozenSample, freezeBlock * uActive * 0.5);
 
-            // Feedback blend:
-            //   static regions (moshMask≈0) → track current quickly (no persistence)
-            //   moving regions (moshMask≈1) → heavy persistence of corrupted trail
-            float decay  = mix(0.08, uDecay, moshMask);
-            vec3  result = mix(curColor, corrupted, decay);
+            // Feedback accumulation: active = heavy persistence, inactive = track current
+            float decay = mix(0.06, uDecay, uActive);
+            vec3  result = mix(curColor, trailColor, decay);
 
             gl_FragColor = vec4(result, 1.0);
         }
@@ -470,6 +478,14 @@ export const bubblepicking = {
         _lastTime = 0;
         _lastTrailDir = 1.0;
 
+        // Camera-motion tracking
+        _prevPVMatrix = new THREE.Matrix4();
+        _currPVMatrix = new THREE.Matrix4();
+        _motionVec = new THREE.Vector2(0, 0);
+        _worldRef = new THREE.Vector3(0, 1, 0);
+        _tmpV4 = new THREE.Vector4();
+        _prevMatricesReady = false;
+
         bpScene = new THREE.Scene();
         bpScene.background = new THREE.Color(0x010814);
         bpScene.fog = new THREE.FogExp2(0x020d1f, 0.018);
@@ -525,6 +541,7 @@ export const bubblepicking = {
                 uDisplace:   { value: 0.018 },
                 uBlockSize:  { value: 0.022 },
                 uActive:     { value: 0.0 },
+                uMotionVec:  { value: new THREE.Vector2(0, 0) },
                 uResolution: { value: new THREE.Vector2(W, H) }
             },
             depthWrite: false,
@@ -633,12 +650,44 @@ export const bubblepicking = {
                 _trailIntensity = Math.max(0.0, _trailIntensity - delta / 4.0);
             }
 
+            // Compute camera-motion vector: project _worldRef through current and
+            // previous PV matrices; delta in NDC → UV-space shift. This is the
+            // "where did this pixel's world point used to be on screen?" vector.
+            _currPVMatrix.multiplyMatrices(bpCamera.projectionMatrix, bpCamera.matrixWorldInverse);
+
+            let mvX = 0, mvY = 0;
+            if (_prevMatricesReady) {
+                // Project worldRef with current PV
+                _tmpV4.set(_worldRef.x, _worldRef.y, _worldRef.z, 1.0);
+                _tmpV4.applyMatrix4(_currPVMatrix);
+                const cw = _tmpV4.w || 1e-6;
+                const curNdcX = _tmpV4.x / cw;
+                const curNdcY = _tmpV4.y / cw;
+                // Project worldRef with previous PV
+                _tmpV4.set(_worldRef.x, _worldRef.y, _worldRef.z, 1.0);
+                _tmpV4.applyMatrix4(_prevPVMatrix);
+                const pw = _tmpV4.w || 1e-6;
+                const prevNdcX = _tmpV4.x / pw;
+                const prevNdcY = _tmpV4.y / pw;
+                // NDC delta → UV delta (NDC range [-1,1] → UV [0,1] = /2)
+                mvX = (prevNdcX - curNdcX) * 0.5;
+                mvY = (prevNdcY - curNdcY) * 0.5;
+                // Clamp to reasonable range so huge jumps (world switch) don't explode
+                const clampAmt = 0.08;
+                mvX = Math.max(-clampAmt, Math.min(clampAmt, mvX));
+                mvY = Math.max(-clampAmt, Math.min(clampAmt, mvY));
+            }
+            _motionVec.set(mvX, mvY);
+            _prevPVMatrix.copy(_currPVMatrix);
+            _prevMatricesReady = true;
+
             _datamoshMat.uniforms.tCurrent.value  = _rtCurrent.texture;
             _datamoshMat.uniforms.tTrail.value    = _trailRead.texture;
             _datamoshMat.uniforms.uTime.value     = time;
             _datamoshMat.uniforms.uActive.value   = _trailIntensity;
-            _datamoshMat.uniforms.uDecay.value    = 0.72 + _trailIntensity * 0.22;
-            _datamoshMat.uniforms.uDisplace.value = 0.004 + _trailIntensity * 0.018;
+            _datamoshMat.uniforms.uDecay.value    = 0.88 + _trailIntensity * 0.08;
+            _datamoshMat.uniforms.uDisplace.value = 0.002 + _trailIntensity * 0.012;
+            _datamoshMat.uniforms.uMotionVec.value.copy(_motionVec);
 
             // c. Accumulate: (rtCurrent + trailRead) → trailWrite
             _renderer.setRenderTarget(_trailWrite);
@@ -695,6 +744,13 @@ export const bubblepicking = {
         _datamoshScene = null;
         _finalScene = null;
         _datamoshCamera = null;
+
+        _prevPVMatrix = null;
+        _currPVMatrix = null;
+        _motionVec = null;
+        _worldRef = null;
+        _tmpV4 = null;
+        _prevMatricesReady = false;
 
         this.scene = null;
         this.camera = null;
