@@ -937,6 +937,9 @@ button {
     display: block;
     height: 100%;
     width: auto;
+    position: absolute;
+    right: 0;
+    top: 0;
     filter: brightness(0.9) contrast(1.1);
     mix-blend-mode: screen;
 }
