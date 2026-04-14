@@ -67,7 +67,7 @@ export default {
     const dirLight = new THREE.DirectionalLight(0xffffff, 2.4);
     dirLight.position.set(5, 10, 5);
     this.scene.add(dirLight);
-    const fillLight = new THREE.DirectionalLight(0x7d85b4, 1.5);
+    const fillLight = new THREE.DirectionalLight(0x7d85b4, 2.0);
     fillLight.position.set(-5, 3, 8);
     this.scene.add(fillLight);
 
@@ -269,8 +269,12 @@ export default {
       
         const row = Math.floor(i / 10);
         const col = i % 10;
+        // V-shape flock formation: center cols pushed forward (toward camera),
+        // edge cols further back, with slight random variation
+        const centerDist = Math.abs(col - 4.5);
+        const flockOffset = (4.5 - centerDist) * 0.5;
         const x = (col - 4.5) * 2.0 + (Math.random() - 0.5) * 1.4;
-        const z = (row - 2.5) * 1.8 + (Math.random() - 0.5) * 1.6;
+        const z = (row - 2.5) * 1.8 + flockOffset + (Math.random() - 0.5) * 0.9;
       
         clone.position.set(x, 0, z);
       
