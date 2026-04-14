@@ -21,3 +21,4 @@ inspect.mjs
 
 # Node (if ever added)
 node_modules/
+.claude/
