@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <title>One More Sim</title>
-    <link rel="stylesheet" href="style.css?v=25">
+    <link rel="stylesheet" href="style.css?v=26">
     <link
         href="https://fonts.googleapis.com/css2?family=Averia+Libre:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap"
         rel="stylesheet">
@@ -189,9 +189,12 @@
             <!-- Old carousel-container becomes the canvas mount point -->
             <div id="carousel-container"></div>
 
-            <!-- World 00 overlay: world01bw left side, full height -->
+            <!-- World 00 overlay: world01bw left side + world01bw2 right side (symmetric) -->
             <div id="world-00-overlay">
                 <img src="assets/BWUI/world01bw.png" id="egg-bw-img" alt=""/>
+            </div>
+            <div id="world-00-overlay-right">
+                <img src="assets/BWUI/world01bw2.png" id="egg-bw-img-2" alt=""/>
             </div>
             <div id="text-overlay-container"></div>
             <div id="room-name-display" class="hidden"></div>
@@ -211,7 +214,7 @@
             <div id="memorypicker-title">Memorypicker</div>
         <nav id="world-nav">
             <button class="world-btn active" data-world="0" data-btn="1">
-                <img src="assets/tex/Buttons/worldBH1.png" alt="01Core_Unit" class="world-btn-img" />
+                <img src="assets/tex/Buttons/worldBH1.png" alt="01Embryo" class="world-btn-img" />
             </button>
             <button class="world-btn" data-world="7" data-btn="2">
                 <img src="assets/tex/Buttons/worldB2.png" alt="02Ambient_Human_presence" class="world-btn-img" />
@@ -390,7 +393,7 @@
         </div>
     </div>
 
-    <script type="module" src="index.js?v=40"></script>
+    <script type="module" src="index.js?v=41"></script>
 </body>
 
 </html>

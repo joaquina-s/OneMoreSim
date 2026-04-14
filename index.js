@@ -247,6 +247,8 @@ function enterExperience() {
                 // Show world-00 overlay (we start at world 0)
                 const ov = document.getElementById('world-00-overlay');
                 if (ov) ov.classList.add('visible');
+                const ovR = document.getElementById('world-00-overlay-right');
+                if (ovR) ovR.classList.add('visible');
 
                 // Init world tracker playlist panel
                 initWorldTracker();
@@ -319,7 +321,7 @@ if (logoBtn2) {
 
 const WORLD_DATA = {
     '0': {
-        title: '01Core_Unit',
+        title: '01Embryo',
         desc: 'Here is where the sea was. now just different memories scattered and an egg keeping systems together',
         accent: '#8899cc',
         iconSvg: `<path d="M16 26 C8 24 8 16 16 6 C24 16 24 24 16 26 Z" fill="none" stroke="currentColor" stroke-width="2"/>
@@ -434,7 +436,7 @@ function typeWorldDesc(text) {
 
 // ── Instruction image per world (header-credits panel) ──
 const WORLD_INSTRUCTION_IMG = {
-    '0': 'assets/texto/RotateCam.png',      // 01Core_Unit
+    '0': 'assets/texto/RotateCam.png',      // 01Embryo
     '7': 'assets/texto/clickCells.png',      // 02Ambient_Human_presence
     '2': 'assets/texto/TapChair.png',        // 03Presentation_Club
     '9': 'assets/texto/RotateCam.png',       // 04Inner_World
@@ -461,7 +463,7 @@ function updateWorldInfo(worldId) {
 // ── World Tracker (car-stereo playlist panel) ──
 const WORLD_ORDER = ['0','7','2','9','6','3','5','4','1'];
 const WORLD_DISPLAY_NAMES = {
-    '0': '01  Core_Unit',
+    '0': '01  Embryo',
     '7': '02  Ambient_Human_presence',
     '2': '03  Presentation_Club',
     '9': '04  Inner_World',
@@ -750,6 +752,8 @@ document.querySelectorAll('.world-btn').forEach(btn => {
         // World-specific overlays
         const ov = document.getElementById('world-00-overlay');
         if (ov) ov.classList.toggle('visible', btn.dataset.world === '0');
+        const ovR = document.getElementById('world-00-overlay-right');
+        if (ovR) ovR.classList.toggle('visible', btn.dataset.world === '0');
 
         if (btn.dataset.world === '3') {
             showWorld03Overlay();

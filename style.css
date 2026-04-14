@@ -891,12 +891,13 @@ button {
     background: #000;
 }
 
-/* World 00 — world01bw left side, full height */
+/* World 00 — world01bw left side (15% smaller) */
 #world-00-overlay {
     position: absolute;
-    top: 0;
+    top: 50%;
     left: 0;
-    height: 100%;
+    height: 85%;
+    transform: translateY(-50%);
     z-index: 6;
     pointer-events: none;
     opacity: 0;
@@ -908,6 +909,31 @@ button {
 }
 
 #egg-bw-img {
+    display: block;
+    height: 100%;
+    width: auto;
+    filter: brightness(0.9) contrast(1.1);
+    mix-blend-mode: screen;
+}
+
+/* World 00 — world01bw2 right side, symmetric mirror */
+#world-00-overlay-right {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    height: 85%;
+    transform: translateY(-50%);
+    z-index: 6;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+}
+
+#world-00-overlay-right.visible {
+    opacity: 1;
+}
+
+#egg-bw-img-2 {
     display: block;
     height: 100%;
     width: auto;
