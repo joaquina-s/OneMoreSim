@@ -639,8 +639,8 @@ export const bubblepicking = {
             _datamoshMat.uniforms.uCharacterPos.value.set((charScreenPos.x + 1) / 2, (charScreenPos.y + 1) / 2);
             _datamoshMat.uniforms.uTrailDir.value      = _lastTrailDir;
             _datamoshMat.uniforms.uActive.value        = _trailIntensity;
-            _datamoshMat.uniforms.uDecay.value         = 0.60 + _trailIntensity * 0.17;
-            _datamoshMat.uniforms.uDisplace.value      = _trailIntensity * 0.009;
+            _datamoshMat.uniforms.uDecay.value         = 0.66 + _trailIntensity * 0.20;
+            _datamoshMat.uniforms.uDisplace.value      = _trailIntensity * 0.014;
 
             // c. Accumulate: (rtCurrent + trailRead) → trailWrite
             _renderer.setRenderTarget(_trailWrite);
