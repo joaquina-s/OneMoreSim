@@ -63,11 +63,11 @@ export default {
     this.camera.rotateX(-THREE.MathUtils.degToRad(20));
 
     // ── Lighting (slightly glowier) ──
-    this.scene.add(new THREE.AmbientLight(0x334466, 2.8));
-    const dirLight = new THREE.DirectionalLight(0xffffff, 2.0);
+    this.scene.add(new THREE.AmbientLight(0x334466, 3.4));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 2.4);
     dirLight.position.set(5, 10, 5);
     this.scene.add(dirLight);
-    const fillLight = new THREE.DirectionalLight(0x7d85b4, 1.2);
+    const fillLight = new THREE.DirectionalLight(0x7d85b4, 1.5);
     fillLight.position.set(-5, 3, 8);
     this.scene.add(fillLight);
 
@@ -269,8 +269,8 @@ export default {
       
         const row = Math.floor(i / 10);
         const col = i % 10;
-        const x = (col - 4.5) * 2.0 + (Math.random() - 0.5) * 0.5;
-        const z = (row - 2.5) * 2.5 + (Math.random() - 0.5) * 0.8;
+        const x = (col - 4.5) * 2.0 + (Math.random() - 0.5) * 1.4;
+        const z = (row - 2.5) * 1.8 + (Math.random() - 0.5) * 1.6;
       
         clone.position.set(x, 0, z);
       
@@ -345,8 +345,8 @@ export default {
     img.style.left = randX + '%';
     img.style.top  = randY + '%';
 
-    // Random size between 0.6 and 1.0
-    const scale = 0.6 + Math.random() * 0.4;
+    // Random size between 0.5 and 0.8
+    const scale = 0.5 + Math.random() * 0.3;
     // Subtle random rotation
     const rotation = (Math.random() - 0.5) * 6;
     img.style.transform = 'rotate(' + rotation + 'deg) scale(' + scale + ')';
