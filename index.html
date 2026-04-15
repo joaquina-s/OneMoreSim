@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <title>One More Sim</title>
-    <link rel="stylesheet" href="style.css?v=30">
+    <link rel="stylesheet" href="style.css?v=31">
     <link
         href="https://fonts.googleapis.com/css2?family=Averia+Libre:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap"
         rel="stylesheet">
@@ -393,7 +393,23 @@
         </div>
     </div>
 
-    <script type="module" src="index.js?v=44"></script>
+    <!-- Tutorial mode overlay (activated by A1button1) -->
+    <div id="tutorial-dim"></div>
+    <button id="tutorial-close" aria-label="Close tutorial">×</button>
+    <div class="tutorial-label" id="tutorial-label-world">
+        <strong>MemoryPicking Panel</strong>
+        click to Jump between worlds.
+    </div>
+    <div class="tutorial-label" id="tutorial-label-skin">
+        <strong>Skin Panel</strong>
+        Click to change your look.
+    </div>
+    <div class="tutorial-label" id="tutorial-label-sound">
+        <strong>Sound engine</strong>
+        click to activate music layers.
+    </div>
+
+    <script type="module" src="index.js?v=45"></script>
 </body>
 
 </html>

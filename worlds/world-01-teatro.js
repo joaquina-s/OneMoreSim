@@ -125,23 +125,21 @@ const WorldTeatro = {
           child.material = screenMaterial;
         }
 
-        // Identify silla groups.
-        //   - Skip meshes whose name happens to include "silla"/"chair" —
-        //     those are leaf geometry, not chair roots, and registering them
-        //     as their own chair group caused clicks to snap the camera to a
-        //     tiny sub-mesh instead of the real chair (the "teleport" bug).
-        //   - Skip a chair-named node if ANY descendant is ALSO chair-named
-        //     and non-mesh (that means this is an umbrella like "Sillas",
-        //     and the inner nodes are the real chairs).
-        if (!child.isMesh && (name.includes('silla') || name.includes('chair'))) {
-          let hasInnerChair = false;
-          child.traverse(d => {
-            if (d === child) return;
-            if (d.isMesh) return;
-            const dn = (d.name || '').toLowerCase();
-            if (dn.includes('silla') || dn.includes('chair')) hasInnerChair = true;
-          });
-          if (hasInnerChair) return;
+        // Identify silla groups — accept any chair-named node.
+        // Skip if the node is a Mesh AND has a chair-named ancestor: that
+        // ancestor is a better chair group (prevents clicks from snapping to
+        // a sub-mesh's tiny bounding box).
+        if (name.includes('silla') || name.includes('chair')) {
+          if (child.isMesh) {
+            let anc = child.parent;
+            let hasChairAnc = false;
+            while (anc) {
+              const an = (anc.name || '').toLowerCase();
+              if (an.includes('silla') || an.includes('chair')) { hasChairAnc = true; break; }
+              anc = anc.parent;
+            }
+            if (hasChairAnc) return; // let the ancestor be the chair group
+          }
 
           const meshes = [];
           child.traverse((descendant) => {
@@ -162,17 +160,19 @@ const WorldTeatro = {
               descendant.material = upgraded;
             }
 
-            // Store original emissive so we can restore after hover
-            this._chairOriginalEmissive.set(descendant, {
-              emissive: descendant.material.emissive.clone(),
-              intensity: descendant.material.emissiveIntensity || 0
-            });
+            // Store original emissive so we can restore after hover (only once)
+            if (!this._chairOriginalEmissive.has(descendant)) {
+              this._chairOriginalEmissive.set(descendant, {
+                emissive: descendant.material.emissive.clone(),
+                intensity: descendant.material.emissiveIntensity || 0
+              });
+            }
 
             meshes.push(descendant);
             if (!this._chairs.includes(descendant)) {
               this._chairs.push(descendant);
             }
-            // Always map to the outermost chair ancestor (this root chair group)
+            // Innermost chair-named ancestor (last write in traverse order wins)
             this._chairGroupOf.set(descendant, child);
           });
           this._chairGroupMeshes.set(child, meshes);

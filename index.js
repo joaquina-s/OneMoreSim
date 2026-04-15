@@ -72,7 +72,7 @@ if (window.matchMedia('(pointer: fine)').matches && cursor) {
 // Register all 8 worlds
 worldManager.register('0', () => import('./worlds/world-00-huevo.js?v=2').then(m => m.default));
 worldManager.register('1', () => Promise.resolve(bubblepicking));
-worldManager.register('2', () => import('./worlds/world-01-teatro.js?v=4').then(m => m.default));
+worldManager.register('2', () => import('./worlds/world-01-teatro.js?v=5').then(m => m.default));
 worldManager.register('3', () => import('./worlds/world-02-array3d.js?v=35').then(m => m.default));
 worldManager.register('4', () => import('./worlds/world-03-tunnel.js?v=3').then(m => m.default));
 worldManager.register('5', () => import('./worlds/world-04-drawrange.js?v=2').then(m => m.default));
@@ -285,25 +285,81 @@ document.getElementById('intro-enter-btn').addEventListener('click', () => {
 });
 
 // ───────────────────────────────────────────────
-// HEADER LOGO BUTTON 1 → re-open welcome overlay
+// HEADER LOGO BUTTON 1 → activate tutorial mode
 // ───────────────────────────────────────────────
+function positionTutorialLabel(labelId, targetId, placement) {
+    const label = document.getElementById(labelId);
+    const target = document.getElementById(targetId);
+    if (!label || !target) return;
+    const r = target.getBoundingClientRect();
+    const margin = 14;
+    const lw = label.offsetWidth || 220;
+    const lh = label.offsetHeight || 48;
+    let top = 0, left = 0;
+    switch (placement) {
+        case 'right':
+            top  = r.top + (r.height - lh) / 2;
+            left = r.right + margin;
+            break;
+        case 'left':
+            top  = r.top + (r.height - lh) / 2;
+            left = r.left - lw - margin;
+            break;
+        case 'above':
+            top  = r.top - lh - margin;
+            left = r.left + (r.width - lw) / 2;
+            break;
+        case 'below':
+        default:
+            top  = r.bottom + margin;
+            left = r.left + (r.width - lw) / 2;
+            break;
+    }
+    // Keep label on-screen
+    top  = Math.max(8, Math.min(top,  window.innerHeight - lh - 8));
+    left = Math.max(8, Math.min(left, window.innerWidth  - lw - 8));
+    label.style.top  = top  + 'px';
+    label.style.left = left + 'px';
+}
+
+function layoutTutorialLabels() {
+    positionTutorialLabel('tutorial-label-world', 'world-nav-wrap',   'above');
+    positionTutorialLabel('tutorial-label-skin',  'character-panel',  'right');
+    positionTutorialLabel('tutorial-label-sound', 'layer-toggles',    'left');
+}
+
+function openTutorial() {
+    document.body.classList.add('tutorial-mode');
+    // Wait one frame so the labels are visible/measurable before positioning.
+    requestAnimationFrame(layoutTutorialLabels);
+}
+function closeTutorial() {
+    document.body.classList.remove('tutorial-mode');
+}
+
 const logoBtn1 = document.getElementById('logo-btn-1');
 if (logoBtn1) {
     logoBtn1.addEventListener('click', () => {
         uiSound.enter();
-        const introOverlay = document.getElementById('intro-overlay');
-        const loadingWrap = document.getElementById('intro-loading-bar-wrap');
-        const enterBtn = document.getElementById('intro-enter-btn');
-        if (!introOverlay) return;
-        // Hide loading bar (already loaded), show enter button
-        if (loadingWrap) loadingWrap.style.display = 'none';
-        if (enterBtn) enterBtn.style.display = 'flex';
-        // Re-enable and fade back in
-        introOverlay.style.display = 'flex';
-        introOverlay.style.pointerEvents = 'auto';
-        gsap.fromTo(introOverlay, { opacity: 0 }, { opacity: 1, duration: 0.4 });
+        openTutorial();
     });
 }
+
+const tutorialClose = document.getElementById('tutorial-close');
+if (tutorialClose) {
+    tutorialClose.addEventListener('click', () => {
+        uiSound.enter();
+        closeTutorial();
+    });
+}
+window.addEventListener('resize', () => {
+    if (document.body.classList.contains('tutorial-mode')) layoutTutorialLabels();
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.body.classList.contains('tutorial-mode')) {
+        closeTutorial();
+    }
+});
 
 // ───────────────────────────────────────────────
 // HEADER LOGO BUTTON 2 — sound on click

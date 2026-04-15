@@ -81,6 +81,12 @@ button {
     outline: none;
     background: none;
     color: inherit;
+    /* Subtle global glow, matching text accent */
+    filter: drop-shadow(0 0 6px rgba(136, 153, 204, 0.35));
+    transition: filter 0.2s ease;
+}
+button:hover {
+    filter: drop-shadow(0 0 10px rgba(136, 153, 204, 0.65));
 }
 
 
@@ -2035,4 +2041,86 @@ button {
 
 .pmap-trajectory {
   animation: pathTrace 1.5s ease forwards;
+}
+
+/* ════════════════════════════════════════════════
+   TUTORIAL MODE (triggered by A1button1)
+   ════════════════════════════════════════════════ */
+#tutorial-dim {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 9990;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+body.tutorial-mode #tutorial-dim {
+    opacity: 1;
+    pointer-events: auto;
+}
+/* Lift the three highlighted panels above the dim layer so they stay bright */
+body.tutorial-mode #world-nav-wrap,
+body.tutorial-mode #character-panel,
+body.tutorial-mode #layer-toggles {
+    position: relative;
+    z-index: 9992;
+    box-shadow: 0 0 24px rgba(136, 153, 204, 0.5);
+    border-radius: 6px;
+}
+
+#tutorial-close {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    width: 40px;
+    height: 40px;
+    border: 1px solid #8899cc;
+    background: rgba(29, 21, 43, 0.95);
+    color: #e0d8f0;
+    font-size: 24px;
+    font-weight: bold;
+    line-height: 1;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', 'Share Tech Mono', monospace;
+    box-shadow: 0 0 12px rgba(136, 153, 204, 0.7);
+}
+body.tutorial-mode #tutorial-close {
+    display: flex;
+}
+#tutorial-close:hover {
+    background: rgba(50, 40, 70, 1);
+    box-shadow: 0 0 18px rgba(136, 153, 204, 1);
+}
+
+.tutorial-label {
+    position: fixed;
+    background: rgba(29, 21, 43, 0.95);
+    color: #e0d8f0;
+    border: 1px solid #8899cc;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-family: 'Orbitron', 'Share Tech Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    line-height: 1.35;
+    max-width: 240px;
+    z-index: 9995;
+    display: none;
+    pointer-events: none;
+    box-shadow: 0 0 14px rgba(136, 153, 204, 0.6);
+}
+body.tutorial-mode .tutorial-label {
+    display: block;
+}
+.tutorial-label strong {
+    color: #a8b6dc;
+    display: block;
+    margin-bottom: 2px;
+    font-size: 13px;
 }
