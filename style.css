@@ -82,11 +82,19 @@ button {
     background: none;
     color: inherit;
     /* Subtle global glow, matching text accent */
-    filter: drop-shadow(0 0 6px rgba(136, 153, 204, 0.35));
+    filter: drop-shadow(0 0 8px rgba(168, 190, 255, 0.75))
+            drop-shadow(0 0 16px rgba(136, 153, 204, 0.45));
     transition: filter 0.2s ease;
 }
+button img {
+    filter: drop-shadow(0 0 6px rgba(168, 190, 255, 0.7));
+}
 button:hover {
-    filter: drop-shadow(0 0 10px rgba(136, 153, 204, 0.65));
+    filter: drop-shadow(0 0 14px rgba(200, 220, 255, 1))
+            drop-shadow(0 0 28px rgba(168, 190, 255, 0.7));
+}
+button:hover img {
+    filter: drop-shadow(0 0 12px rgba(200, 220, 255, 1));
 }
 
 
@@ -2059,14 +2067,18 @@ body.tutorial-mode #tutorial-dim {
     opacity: 1;
     pointer-events: auto;
 }
-/* Lift the three highlighted panels above the dim layer so they stay bright */
-body.tutorial-mode #world-nav-wrap,
-body.tutorial-mode #character-panel,
-body.tutorial-mode #layer-toggles {
-    position: relative;
-    z-index: 9992;
-    box-shadow: 0 0 24px rgba(136, 153, 204, 0.5);
-    border-radius: 6px;
+/* Individual button clones placed above the dim layer so only BUTTONS stay
+   bright while their containing panels remain dimmed along with the rest. */
+.tutorial-button-clone {
+    position: fixed;
+    z-index: 9993;
+    pointer-events: none;
+    box-shadow: 0 0 14px rgba(168, 190, 255, 0.7),
+                0 0 28px rgba(136, 153, 204, 0.4);
+    border-radius: 4px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 #tutorial-close {

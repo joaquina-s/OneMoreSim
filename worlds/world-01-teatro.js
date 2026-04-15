@@ -329,15 +329,16 @@ const WorldTeatro = {
 
     if (intersects.length > 0) {
       const hitMesh = intersects[0].object;
+      const hitPoint = intersects[0].point.clone();
       // Find the chair group this mesh belongs to
       const chairGroup = this._chairGroupOf.get(hitMesh);
       if (chairGroup) {
-        this._sitOnChair(chairGroup);
+        this._sitOnChair(chairGroup, hitPoint);
       }
     }
   },
 
-  _sitOnChair(chairGroup) {
+  _sitOnChair(chairGroup, hitPoint) {
     this._isSeated = true;
     this._btnVolver.style.display = 'block';
 
@@ -347,12 +348,13 @@ const WorldTeatro = {
       if (this._video.paused) this._video.play().catch(e => console.log(e));
     }
 
-    // Use the entire chair group's bounding box for accurate positioning
-    const box = new THREE.Box3().setFromObject(chairGroup);
-    const center = new THREE.Vector3();
-    box.getCenter(center);
-
-    const chairPos = center.clone();
+    // Use the raycast hit point (world space) as the chair reference — this
+    // prevents the camera from snapping to the center of a mesh that encompasses
+    // multiple chairs (when the GLB merges all chairs into one mesh).
+    const chairPos = hitPoint ? hitPoint.clone() : (() => {
+      const box = new THREE.Box3().setFromObject(chairGroup);
+      const c = new THREE.Vector3(); box.getCenter(c); return c;
+    })();
     chairPos.y += 0.8;
     chairPos.z += 0.8;
     if (chairPos.y < 1.0) chairPos.y = 1.0;

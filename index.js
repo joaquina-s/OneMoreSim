@@ -72,7 +72,7 @@ if (window.matchMedia('(pointer: fine)').matches && cursor) {
 // Register all 8 worlds
 worldManager.register('0', () => import('./worlds/world-00-huevo.js?v=2').then(m => m.default));
 worldManager.register('1', () => Promise.resolve(bubblepicking));
-worldManager.register('2', () => import('./worlds/world-01-teatro.js?v=5').then(m => m.default));
+worldManager.register('2', () => import('./worlds/world-01-teatro.js?v=6').then(m => m.default));
 worldManager.register('3', () => import('./worlds/world-02-array3d.js?v=35').then(m => m.default));
 worldManager.register('4', () => import('./worlds/world-03-tunnel.js?v=3').then(m => m.default));
 worldManager.register('5', () => import('./worlds/world-04-drawrange.js?v=2').then(m => m.default));
@@ -328,13 +328,62 @@ function layoutTutorialLabels() {
     positionTutorialLabel('tutorial-label-sound', 'layer-toggles',    'left');
 }
 
+let _tutorialClones = [];
+function buildTutorialButtonClones() {
+    clearTutorialButtonClones();
+    const panelIds = ['world-nav-wrap', 'character-panel', 'layer-toggles'];
+    panelIds.forEach((pid) => {
+        const panel = document.getElementById(pid);
+        if (!panel) return;
+        const buttons = panel.querySelectorAll('button');
+        buttons.forEach((btn) => {
+            const r = btn.getBoundingClientRect();
+            if (r.width < 2 || r.height < 2) return;
+            const clone = document.createElement('div');
+            clone.className = 'tutorial-button-clone';
+            clone.style.left   = r.left   + 'px';
+            clone.style.top    = r.top    + 'px';
+            clone.style.width  = r.width  + 'px';
+            clone.style.height = r.height + 'px';
+            // Prefer the inner <img>'s src as a background so the button's icon
+            // stays fully visible even while its panel is dimmed.
+            const img = btn.querySelector('img');
+            if (img && img.src) {
+                clone.style.backgroundImage = `url("${img.src}")`;
+            } else {
+                // Text-only button: snapshot label text
+                clone.textContent = btn.textContent.trim();
+                clone.style.display = 'flex';
+                clone.style.alignItems = 'center';
+                clone.style.justifyContent = 'center';
+                clone.style.color = '#e0d8f0';
+                clone.style.fontFamily = "'Orbitron','Share Tech Mono',monospace";
+                clone.style.fontSize = '11px';
+                clone.style.letterSpacing = '0.05em';
+                clone.style.background = 'rgba(29,21,43,0.95)';
+                clone.style.border = '1px solid #8899cc';
+            }
+            document.body.appendChild(clone);
+            _tutorialClones.push(clone);
+        });
+    });
+}
+function clearTutorialButtonClones() {
+    _tutorialClones.forEach(c => c.remove());
+    _tutorialClones = [];
+}
+
 function openTutorial() {
     document.body.classList.add('tutorial-mode');
     // Wait one frame so the labels are visible/measurable before positioning.
-    requestAnimationFrame(layoutTutorialLabels);
+    requestAnimationFrame(() => {
+        layoutTutorialLabels();
+        buildTutorialButtonClones();
+    });
 }
 function closeTutorial() {
     document.body.classList.remove('tutorial-mode');
+    clearTutorialButtonClones();
 }
 
 const logoBtn1 = document.getElementById('logo-btn-1');
@@ -353,7 +402,10 @@ if (tutorialClose) {
     });
 }
 window.addEventListener('resize', () => {
-    if (document.body.classList.contains('tutorial-mode')) layoutTutorialLabels();
+    if (document.body.classList.contains('tutorial-mode')) {
+        layoutTutorialLabels();
+        buildTutorialButtonClones();
+    }
 });
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && document.body.classList.contains('tutorial-mode')) {
