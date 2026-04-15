@@ -52,6 +52,7 @@ let _motionVec = null;       // THREE.Vector2, UV-space displacement
 let _worldRef = null;        // THREE.Vector3, reference point to track
 let _tmpV4 = null;           // THREE.Vector4, scratch for projection
 let _prevMatricesReady = false;
+let _charProjScratch = null;
 
 // ─── Textures ───
 let floorTex = null;
@@ -212,7 +213,7 @@ function buildRooms(scene) {
     floorTex.repeat.set(4, 4);
 
     const floorMat = new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.8, metalness: 0.2 });
-    const floor = new THREE.Mesh(new THREE.CircleGeometry(25, 64), floorMat);
+    const floor = new THREE.Mesh(new THREE.CircleGeometry(25, 32), floorMat);
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
     scene.add(floor);
@@ -262,7 +263,7 @@ function buildRooms(scene) {
 // ═══════════════════════════════════════════════
 function initRoom1(scene) {
     const geo = new THREE.BufferGeometry();
-    const count = 1200;
+    const count = 500;
     const pos = new Float32Array(count * 3);
     const pRoom = roomData.find(r => r.id === "1");
     for (let i = 0; i < count; i++) {
@@ -289,7 +290,7 @@ function initRoom2(scene) {
     bubbles = [];
     for (let i = 0; i < 20; i++) {
         const r = 0.17 + Math.random() * 0.40;
-        const geo = new THREE.SphereGeometry(r, 16, 16);
+        const geo = new THREE.SphereGeometry(r, 10, 8);
         const mat = new THREE.MeshStandardMaterial({
             color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.1,
             transparent: true, opacity: 0.3 + Math.random() * 0.2, roughness: 0.1, metalness: 0.1
@@ -334,7 +335,7 @@ function initRoom3(scene) {
         scene.add(mesh);
         floatingImages.push(mesh);
     }
-    const bubbleGeo = new THREE.SphereGeometry(4.0, 32, 32);
+    const bubbleGeo = new THREE.SphereGeometry(4.0, 16, 16);
     const bubbleMat = new THREE.MeshStandardMaterial({
         color: 0xaaddff, emissive: 0x224466, emissiveIntensity: 0.2,
         transparent: true, opacity: 0.25, roughness: 0.05, metalness: 0.4
@@ -521,6 +522,7 @@ export const bubblepicking = {
         _worldRef = new THREE.Vector3(0, 1, 0);
         _tmpV4 = new THREE.Vector4();
         _prevMatricesReady = false;
+        _charProjScratch = new THREE.Vector3();
 
         bpScene = new THREE.Scene();
         // Beach-night lighting (matching World 06 Super_Me_Era)
@@ -683,10 +685,34 @@ export const bubblepicking = {
         dirLight.position.set(playerGroup.position.x + 5, playerGroup.position.y + 10, playerGroup.position.z + 5);
 
         detectRoom();
-        simulations.forEach(sim => sim(time));
+        // Run only simulations for the current room — rooms the player isn't
+        // in don't need per-frame updates (big CPU win when not moving).
+        if (currentRoomId !== null) {
+            const simIdx = parseInt(currentRoomId, 10) - 1;
+            if (simulations[simIdx]) simulations[simIdx](time);
+        }
+
+        // ── Progressive fade intensity (computed every frame) ──
+        if (isMoving) {
+            _trailIntensity = Math.min(1.0, _trailIntensity + delta / 3.0);
+        } else {
+            _trailIntensity = Math.max(0.0, _trailIntensity - delta / 4.0);
+        }
+
+        // ── Skip datamosh entirely when the effect is inactive ──
+        // Renders the scene directly to screen → saves 2 fullscreen passes +
+        // depth-texture sampling + ping-pong swap per frame.
+        const datamoshActive = _trailIntensity > 0.002;
+        if (!datamoshActive || !_rtCurrent || !_datamoshMat || !_finalMat) {
+            _renderer.setRenderTarget(null);
+            _renderer.render(bpScene, bpCamera);
+            // Reset prev matrices so next activation starts clean (no stale smear)
+            _prevMatricesReady = false;
+            return;
+        }
 
         // ── Datamosh render pipeline (world06 pattern) ──
-        if (_rtCurrent && _datamoshMat && _finalMat && _trailRead && _trailWrite) {
+        {
             const autoClear = _renderer.autoClear;
             _renderer.autoClear = false;
 
@@ -694,13 +720,6 @@ export const bubblepicking = {
             _renderer.setRenderTarget(_rtCurrent);
             _renderer.clear();
             _renderer.render(bpScene, bpCamera);
-
-            // b. Progressive fade intensity
-            if (isMoving) {
-                _trailIntensity = Math.min(1.0, _trailIntensity + delta / 3.0);
-            } else {
-                _trailIntensity = Math.max(0.0, _trailIntensity - delta / 4.0);
-            }
 
             // Build current ProjView matrix and its inverse for per-pixel reprojection.
             _currPVMatrix.multiplyMatrices(bpCamera.projectionMatrix, bpCamera.matrixWorldInverse);
@@ -730,12 +749,12 @@ export const bubblepicking = {
             _datamoshMat.uniforms.uTrailDir.value = _lastTrailDir;
 
             // Project character world position to screen UV [0..1]
-            const _charProj = playerGroup.position.clone();
-            _charProj.y += 1.0;
-            _charProj.project(bpCamera);
+            _charProjScratch.copy(playerGroup.position);
+            _charProjScratch.y += 1.0;
+            _charProjScratch.project(bpCamera);
             _datamoshMat.uniforms.uCharacterPos.value.set(
-                (_charProj.x + 1) * 0.5,
-                (_charProj.y + 1) * 0.5
+                (_charProjScratch.x + 1) * 0.5,
+                (_charProjScratch.y + 1) * 0.5
             );
 
             // c. Accumulate: (rtCurrent + trailRead) → trailWrite
@@ -755,9 +774,6 @@ export const bubblepicking = {
             _renderer.render(_finalScene, _datamoshCamera);
 
             _renderer.autoClear = autoClear;
-        } else {
-            // Fallback: direct render
-            _renderer.render(bpScene, bpCamera);
         }
     },
 

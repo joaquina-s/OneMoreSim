@@ -7,8 +7,10 @@ function buildProfile() {
         isMobile: w < 768,
         isTablet: w >= 768 && w < 1024,
         isDesktop: w >= 1024,
-        dpr: Math.min(devicePixelRatio, w < 768 ? 1.5 : 2),
-        shadowMapSize: w < 768 ? 512 : 2048,
+        // DPR capped at 1.5 on desktop: going to 2 quadruples pixel count
+        // with very little visible gain past 1.5 at normal viewing distances.
+        dpr: Math.min(devicePixelRatio, w < 768 ? 1.25 : 1.5),
+        shadowMapSize: w < 768 ? 512 : 1024,
         targetFPS: w < 768 ? 30 : 60,
         useShadows: w >= 768,
         usePostFX: w >= 768,
