@@ -94,11 +94,11 @@ const WorldChase = {
      ════════════════════════════════════════════ */
   _setupLighting() {
     // 1. Deep blue ambient — base
-    const ambient = new THREE.AmbientLight(0x0a1a3f, 0.8);
+    const ambient = new THREE.AmbientLight(0x2a3a6f, 1.4);
     this.scene.add(ambient);
 
     // 2. Moonlight — directional, white-blue, shadows
-    const moonLight = new THREE.DirectionalLight(0xc8d8ff, 1.8);
+    const moonLight = new THREE.DirectionalLight(0xd8e4ff, 2.8);
     moonLight.position.set(8, 12, -5);
     moonLight.castShadow = true;
     moonLight.shadow.mapSize.width = 2048;
@@ -112,16 +112,16 @@ const WorldChase = {
     this.scene.add(moonLight);
 
     // 3. Bioluminescent water rim light from below
-    const rimLight = new THREE.PointLight(0x0044ff, 1.2, 30);
+    const rimLight = new THREE.PointLight(0x0066ff, 2.0, 35);
     rimLight.position.set(0, -0.5, 2);
     this.scene.add(rimLight);
 
     // 4. Hemisphere for subtle warm/cool split
-    const hemiLight = new THREE.HemisphereLight(0x0a1a4a, 0x001133, 0.6);
+    const hemiLight = new THREE.HemisphereLight(0x2a3a7a, 0x112255, 1.1);
     this.scene.add(hemiLight);
 
-    // 5. Dedicated lancha fill light (dimmer, blue-tinted)
-    const lanchaLight = new THREE.DirectionalLight(0x8899cc, 1.0);
+    // 5. Dedicated lancha fill light (brighter, blue-tinted)
+    const lanchaLight = new THREE.DirectionalLight(0xa8b8e0, 1.8);
     lanchaLight.position.set(0, 5, 5);
     this.scene.add(lanchaLight);
   },
@@ -493,7 +493,7 @@ const WorldChase = {
       this._lancha = gltf.scene;
 
       this._lancha.scale.setScalar(1);
-      this._lancha.position.set(0, 0.5, -6);
+      this._lancha.position.set(0, 0.5, -2);
       this._lancha.rotation.y = -Math.PI / 2;
 
       // Preservar materiales + texturas; fallback visible si no hay map
@@ -539,25 +539,8 @@ const WorldChase = {
         console.log('[world06] lanchachar mixer started,', gltf.animations.length, 'clips');
       }
 
-      // Wake (Estela)
-      const wakeGeo = new THREE.PlaneGeometry(0.5, 4);
-      const wakeMat = new THREE.MeshBasicMaterial({
-        color: 0x4466aa,
-        transparent: true,
-        opacity: 0.5
-      });
-
-      const wake1 = new THREE.Mesh(wakeGeo, wakeMat);
-      wake1.rotation.x = -Math.PI / 2;
-      wake1.position.set(-0.8, -0.1, 2);
-      this._lancha.add(wake1);
-
-      const wake2 = new THREE.Mesh(wakeGeo, wakeMat);
-      wake2.rotation.x = -Math.PI / 2;
-      wake2.position.set(0.8, -0.1, 2);
-      this._lancha.add(wake2);
-
-      this._wakePlanes = [wake1, wake2];
+      // Wake planes removed per request (they showed up as two bars under the lancha)
+      this._wakePlanes = [];
     }, undefined, (e) => console.error('[world06] lanchachar load error:', e));
   },
 
@@ -565,27 +548,7 @@ const WorldChase = {
      CHARACTER
      ════════════════════════════════════════════ */
   _loadCharacter() {
-    // Video texture setup — Seq01.mp4 loop muted
-    const video = document.createElement('video');
-    video.src = 'assets/videos/Seq01.mp4';
-    video.loop = true;
-    video.muted = true;
-    video.playsInline = true;
-    video.crossOrigin = 'anonymous';
-    video.preload = 'auto';
-    video.autoplay = true;
-    const tryPlay = () => video.play().catch(() => {});
-    video.addEventListener('canplaythrough', tryPlay);
-    tryPlay();
-    this._video = video;
-
-    const videoTexture = new THREE.VideoTexture(video);
-    videoTexture.minFilter = THREE.LinearFilter;
-    videoTexture.magFilter = THREE.LinearFilter;
-    videoTexture.format = THREE.RGBAFormat;
-    videoTexture.encoding = THREE.sRGBEncoding;
-    this._videoTexture = videoTexture;
-
+    // Character now uses the original GLB texture — no video texture setup.
     const loader = new THREE.GLTFLoader();
     loader.load('assets/3D/walk.glb', (gltf) => {
       this._character = THREE.SkeletonUtils ? THREE.SkeletonUtils.clone(gltf.scene) : gltf.scene;
@@ -593,16 +556,22 @@ const WorldChase = {
       this._character.scale.setScalar(0.5);
       this._character.rotation.y = Math.PI;
 
-      // Texture = video map, with skinning enabled
+      // Keep original GLB materials/textures (no video map override).
       this._character.traverse(child => {
         if (child.isMesh) {
-          child.material = new THREE.MeshStandardMaterial({
-            map: videoTexture,
-            roughness: 0.8,
-            metalness: 0.1,
-            skinning: true
-          });
           child.castShadow = true;
+          if (child.material) {
+            // Clone so changes don't leak across instances
+            child.material = child.material.clone();
+            if (child.material.map) {
+              child.material.map.encoding = THREE.sRGBEncoding;
+              child.material.map.needsUpdate = true;
+            }
+            if (child.isSkinnedMesh && 'skinning' in child.material) {
+              child.material.skinning = true;
+            }
+            child.material.needsUpdate = true;
+          }
         }
       });
 
