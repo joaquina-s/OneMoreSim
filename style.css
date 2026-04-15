@@ -916,16 +916,14 @@ button {
     mix-blend-mode: screen;
 }
 
-/* World 00 — world01bw2 right side, symmetric mirror.
-   Full viewport width so the right-anchored image is never clipped by a
-   shrink-to-fit container collapsing to 0 width. */
+/* World 00 — world01bw2 anchored to top-right corner, 30% of canvas height
+   (70% smaller than the full-height reference). */
 #world-00-overlay-right {
     position: absolute;
-    top: 50%;
+    top: 0;
     left: 0;
     right: 0;
-    height: 85%;
-    transform: translateY(-50%);
+    height: 30%;
     z-index: 6;
     pointer-events: none;
     opacity: 0;
@@ -940,7 +938,7 @@ button {
     display: block;
     height: 100%;
     width: auto;
-    margin-left: auto;   /* pushes image to the right edge of the full-width container */
+    margin-left: auto;   /* pushes image to the right edge */
     filter: brightness(0.9) contrast(1.1);
     mix-blend-mode: screen;
 }
