@@ -921,12 +921,18 @@ button {
     position: absolute;
     top: 50%;
     right: 0;
+    bottom: auto;
+    left: auto;
     height: 85%;
+    width: auto;
     transform: translateY(-50%);
     z-index: 6;
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.6s ease;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
 }
 
 #world-00-overlay-right.visible {
@@ -937,9 +943,6 @@ button {
     display: block;
     height: 100%;
     width: auto;
-    position: absolute;
-    right: 0;
-    top: 0;
     filter: brightness(0.9) contrast(1.1);
     mix-blend-mode: screen;
 }

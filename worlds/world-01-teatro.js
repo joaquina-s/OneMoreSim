@@ -125,8 +125,24 @@ const WorldTeatro = {
           child.material = screenMaterial;
         }
 
-        // Identify silla groups — register group + clone materials for hover
-        if (name.includes('silla') || name.includes('chair')) {
+        // Identify silla groups.
+        //   - Skip meshes whose name happens to include "silla"/"chair" —
+        //     those are leaf geometry, not chair roots, and registering them
+        //     as their own chair group caused clicks to snap the camera to a
+        //     tiny sub-mesh instead of the real chair (the "teleport" bug).
+        //   - Skip a chair-named node if ANY descendant is ALSO chair-named
+        //     and non-mesh (that means this is an umbrella like "Sillas",
+        //     and the inner nodes are the real chairs).
+        if (!child.isMesh && (name.includes('silla') || name.includes('chair'))) {
+          let hasInnerChair = false;
+          child.traverse(d => {
+            if (d === child) return;
+            if (d.isMesh) return;
+            const dn = (d.name || '').toLowerCase();
+            if (dn.includes('silla') || dn.includes('chair')) hasInnerChair = true;
+          });
+          if (hasInnerChair) return;
+
           const meshes = [];
           child.traverse((descendant) => {
             if (!descendant.isMesh) return;
@@ -156,6 +172,7 @@ const WorldTeatro = {
             if (!this._chairs.includes(descendant)) {
               this._chairs.push(descendant);
             }
+            // Always map to the outermost chair ancestor (this root chair group)
             this._chairGroupOf.set(descendant, child);
           });
           this._chairGroupMeshes.set(child, meshes);
@@ -181,11 +198,12 @@ const WorldTeatro = {
       position: absolute;
       top: 12px;
       left: 12px;
-      z-index: 10;
+      z-index: 9999;
       padding: 6px 12px;
       background: rgba(29, 21, 43, 0.9);
       color: #e0d8f0;
       border: 1px solid #8899cc;
+      pointer-events: auto;
       border-radius: 6px;
       cursor: pointer;
       display: none;
@@ -251,7 +269,10 @@ const WorldTeatro = {
       this._dragStart = null;
     };
 
-    this._handlers.btnClick = () => this._onVolver();
+    this._handlers.btnClick = (e) => {
+      if (e) { e.stopPropagation(); e.preventDefault(); }
+      this._onVolver();
+    };
     this._handlers.touch = (e) => {
       if (e.touches.length > 0 && !this._isDragging) {
         this._onClick(e.touches[0]);
@@ -264,6 +285,13 @@ const WorldTeatro = {
     window.addEventListener('mouseup', this._handlers.up);
     window.addEventListener('touchstart', this._handlers.touch, { passive: false });
     this._btnVolver.addEventListener('click', this._handlers.btnClick);
+    this._btnVolver.addEventListener('pointerdown', (e) => { e.stopPropagation(); });
+    this._btnVolver.addEventListener('mousedown', (e) => { e.stopPropagation(); });
+    this._btnVolver.addEventListener('touchstart', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      this._onVolver();
+    }, { passive: false });
   },
 
   // Apply or remove emissive glow from all meshes in a chair group
@@ -390,6 +418,8 @@ const WorldTeatro = {
           this._isAnimating = false;
           this._orbitControls.enabled = true;
           this._isSeated = false;
+          // Sync orbit internal state with the new camera/target
+          this._orbitControls.update();
         }
       });
     } else {
