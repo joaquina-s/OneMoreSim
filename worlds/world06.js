@@ -94,11 +94,11 @@ const WorldChase = {
      ════════════════════════════════════════════ */
   _setupLighting() {
     // 1. Deep blue ambient — base
-    const ambient = new THREE.AmbientLight(0x2a3a6f, 1.4);
+    const ambient = new THREE.AmbientLight(0x4a5a9a, 2.0);
     this.scene.add(ambient);
 
     // 2. Moonlight — directional, white-blue, shadows
-    const moonLight = new THREE.DirectionalLight(0xd8e4ff, 2.8);
+    const moonLight = new THREE.DirectionalLight(0xe4ecff, 3.6);
     moonLight.position.set(8, 12, -5);
     moonLight.castShadow = true;
     moonLight.shadow.mapSize.width = 2048;
@@ -112,18 +112,27 @@ const WorldChase = {
     this.scene.add(moonLight);
 
     // 3. Bioluminescent water rim light from below
-    const rimLight = new THREE.PointLight(0x0066ff, 2.0, 35);
+    const rimLight = new THREE.PointLight(0x3388ff, 3.0, 40);
     rimLight.position.set(0, -0.5, 2);
     this.scene.add(rimLight);
 
     // 4. Hemisphere for subtle warm/cool split
-    const hemiLight = new THREE.HemisphereLight(0x2a3a7a, 0x112255, 1.1);
+    const hemiLight = new THREE.HemisphereLight(0x4a5a9a, 0x223377, 1.6);
     this.scene.add(hemiLight);
 
     // 5. Dedicated lancha fill light (brighter, blue-tinted)
-    const lanchaLight = new THREE.DirectionalLight(0xa8b8e0, 1.8);
+    const lanchaLight = new THREE.DirectionalLight(0xc8d4f0, 2.4);
     lanchaLight.position.set(0, 5, 5);
     this.scene.add(lanchaLight);
+
+    // 6. Character-focused fill — keeps the walker well-lit against the dark water
+    const charLight = new THREE.PointLight(0xe0e8ff, 2.2, 10);
+    charLight.position.set(0, 2.5, 3.5);
+    this.scene.add(charLight);
+
+    const charRim = new THREE.DirectionalLight(0xa8c0ff, 1.2);
+    charRim.position.set(-3, 2, 4);
+    this.scene.add(charRim);
   },
 
   /* ════════════════════════════════════════════
@@ -493,7 +502,7 @@ const WorldChase = {
       this._lancha = gltf.scene;
 
       this._lancha.scale.setScalar(1);
-      this._lancha.position.set(0, 0.5, -2);
+      this._lancha.position.set(0, 0.5, -3.5);
       this._lancha.rotation.y = -Math.PI / 2;
 
       // Preservar materiales + texturas; fallback visible si no hay map
@@ -513,6 +522,11 @@ const WorldChase = {
             }
             if (child.isSkinnedMesh) {
               child.material.skinning = true;
+            }
+            // Subtle glow so the lancha reads brighter against the water
+            if ('emissive' in child.material) {
+              child.material.emissive = new THREE.Color(0x4466aa);
+              child.material.emissiveIntensity = 0.25;
             }
             child.material.needsUpdate = true;
           } else {
@@ -570,10 +584,23 @@ const WorldChase = {
             if (child.isSkinnedMesh && 'skinning' in child.material) {
               child.material.skinning = true;
             }
+            // Soft self-glow so the walker reads brightly against the dark water
+            if ('emissive' in child.material) {
+              child.material.emissive = new THREE.Color(0x6688cc);
+              child.material.emissiveIntensity = 0.35;
+              if (child.material.map && 'emissiveMap' in child.material) {
+                child.material.emissiveMap = child.material.map;
+              }
+            }
             child.material.needsUpdate = true;
           }
         }
       });
+
+      // Personal spotlight that follows the character for extra glow
+      this._charGlow = new THREE.PointLight(0xbcd0ff, 2.5, 6);
+      this._charGlow.position.set(0, 1.5, 0);
+      this._character.add(this._charGlow);
 
       this.scene.add(this._character);
 
