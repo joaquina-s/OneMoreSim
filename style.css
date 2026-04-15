@@ -274,16 +274,43 @@ button:hover img {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 40px;
+    /* Keep content fully on-screen and leave room for loading bar + enter btn */
+    max-width: 100vw;
+    max-height: 100vh;
+    padding: 24px;
+    box-sizing: border-box;
 }
 
 #intro-welcome-img {
     display: block;
-    max-width: min(1428px, 98vw);
-    width: 100%;
+    /* Preserve the PNG's natural aspect ratio and ensure it's never cropped.
+       Width is capped to the design max (1428px @ 1920x1080) and to the
+       viewport; height is capped to leave ~30% of the viewport for the
+       loading bar + enter button underneath. `height:auto`+`width:auto`
+       with max-* bounds makes the browser fit both while preserving AR. */
+    width: auto;
     height: auto;
+    max-width: min(1428px, 92vw);
+    max-height: 70vh;
+    object-fit: contain;
     filter: drop-shadow(0 0 24px rgba(180, 210, 255, 0.55))
             drop-shadow(0 0 64px rgba(140, 180, 255, 0.25));
+}
+
+/* Tight screens (short Macs, small laptops): shrink gap & give image more room */
+@media (max-height: 820px) {
+    #intro-content { gap: 24px; padding: 16px; }
+    #intro-welcome-img { max-height: 62vh; }
+}
+@media (max-height: 640px) {
+    #intro-content { gap: 16px; padding: 10px; }
+    #intro-welcome-img { max-height: 56vh; }
+}
+/* Narrow screens */
+@media (max-width: 640px) {
+    #intro-welcome-img { max-width: 96vw; }
 }
 
 /* Loading bar shown while preloading worlds */
