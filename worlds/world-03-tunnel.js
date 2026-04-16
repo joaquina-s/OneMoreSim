@@ -84,17 +84,9 @@ const WorldBanera = {
     this._eggLight.position.set(-0.02, 0.24, 0)
     this.scene.add(this._eggLight)
 
-    // ── COMPOSER LOCAL CON BLOOM ──
+    // ── COMPOSER LOCAL (sin bloom — godrays eliminados) ──
     this._localComposer = new THREE.EffectComposer(renderer)
     this._localComposer.addPass(new THREE.RenderPass(this.scene, this.camera))
-    const res = new THREE.Vector2(window.innerWidth, window.innerHeight)
-    const bloomPass = new THREE.UnrealBloomPass(
-      res,
-      0.28,  // strength — 50% reduced from 0.56
-      0.9,   // radius  — wider spread
-      0.35   // threshold — lower so more surfaces bloom → light-shaft effect
-    )
-    this._localComposer.addPass(bloomPass)
 
     // ── CARGAR GLB ──
     const loader = new THREE.GLTFLoader()
@@ -150,17 +142,12 @@ const WorldBanera = {
             this.scene.add(egg)
         })
 
-        // ── FALLBACK: si ningún mesh del GLB tiene nombre de agua/plano,
-        //    crear un plano propio al nivel del agua dentro de la bañera ──
-        if (!this._wordPlaneMesh && this._wordMaterial) {
-          const planeGeo = new THREE.PlaneGeometry(1.1, 0.5, 20, 20)
-          const waterPlane = new THREE.Mesh(planeGeo, this._wordMaterial)
-          waterPlane.rotation.x = -Math.PI / 2   // horizontal
-          waterPlane.position.set(0, 0.06, 0)    // ligeramente sobre el fondo
-          waterPlane.renderOrder = 1
-          this.scene.add(waterPlane)
-          this._wordPlaneMesh = waterPlane
-          console.log('[Fetal] waterText fallback plane added at y=0.06')
+        // Log del mesh donde se aplicó el shader del agua (para debug)
+        if (this._wordPlaneMesh) {
+          console.log('[Fetal] water shader aplicado a mesh:', this._wordPlaneMesh.name)
+        } else {
+          console.warn('[Fetal] no se encontró mesh de agua en el GLB — listado de meshes:')
+          gltf.scene.traverse(c => { if (c.isMesh) console.warn('  -', c.name) })
         }
       },
       undefined,
@@ -240,19 +227,38 @@ const WorldBanera = {
         varying vec2      vUv;
         varying float     vWave;
         void main() {
+          // Distorsión del UV simulando refracción del agua
           vec2 uv = vUv;
           uv.x += sin(uv.y * 9.0 + uTime * uSpeed * 0.6) * 0.012;
           uv.y += cos(uv.x * 9.0 + uTime * uSpeed * 0.5) * 0.012;
           uv.x += uTime * 0.018;
           uv.y -= uTime * 0.012;
-          vec4  tex   = texture2D(uTexture, uv);
-          // Use luminance so any waterText.png (color or grayscale) reads correctly
-          float lum   = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
-          vec3  base  = vec3(0.00, 0.05, 0.15);
-          vec3  textColor = vec3(0.7, 0.9, 1.0);
-          vec3  color = mix(base, textColor, clamp(lum * 2.0, 0.0, 1.0));
+
+          vec4 tex = texture2D(uTexture, uv);
+
+          // Color base del agua (azul oscuro)
+          vec3 base = vec3(0.05, 0.18, 0.38);
+
+          // Mostrar los colores REALES de waterText.png sobre la base.
+          // Usar el alpha del PNG si existe, si no usar la luminancia
+          // invertida (asumiendo texto oscuro sobre fondo claro/transparente).
+          float lum  = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
+          float mask = max(tex.a, 1.0 - lum);   // 1.0 donde hay texto visible
+          mask = clamp(mask * 1.2, 0.0, 1.0);
+
+          // Mezclar la textura sobre el agua: donde hay texto se ve la
+          // textura tal cual (con brillo añadido), el resto queda azul.
+          vec3 texColor = tex.rgb;
+          // Si la textura es muy oscura (texto negro), mostrarla como blanco
+          // brillante para que sea legible sobre el fondo azul
+          texColor = mix(vec3(0.95, 0.98, 1.0), texColor, lum);
+
+          vec3 color = mix(base, texColor, mask);
+
+          // Brillo de la cresta de las olas
           float crest = max(0.0, vWave) * 0.45;
           color += vec3(0.05, 0.15, 0.4) * crest;
+
           gl_FragColor = vec4(color, uOpacity);
         }
       `
