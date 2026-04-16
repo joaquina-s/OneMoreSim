@@ -589,20 +589,30 @@ body.landing-video-ready #enter-button-img {
     flex: 34;
     transition: box-shadow 0.3s ease;
 }
+/* When glowing, lift the panel above its siblings so the shadow isn't buried */
+#hud-header.credits-glowing {
+    overflow: visible;   /* let the glow bleed past the header edge */
+}
+#hud-header.credits-glowing #header-credits {
+    z-index: 10;         /* above sibling header sections */
+    overflow: visible;   /* let box-shadow escape the element clip */
+}
 /* Pulsing electric-blue glow for 10s when a new world is entered */
 @keyframes headerCreditsPulse {
     0%, 100% {
-        box-shadow: 0 0 6px 2px rgba(0, 160, 255, 0.5),
-                    inset 0 0 10px rgba(0, 120, 255, 0.2);
+        box-shadow: 0 0 0 2px rgba(0, 0, 255, 0.7),
+                    0 0 10px 3px rgba(0, 0, 255, 0.6),
+                    inset 0 0 8px rgba(0, 0, 255, 0.15);
     }
     50% {
-        box-shadow: 0 0 22px 7px rgba(0, 200, 255, 1),
-                    0 0 44px 14px rgba(0, 130, 255, 0.6),
-                    inset 0 0 20px rgba(0, 180, 255, 0.3);
+        box-shadow: 0 0 0 2px #3333ff,
+                    0 0 18px 6px rgba(50, 50, 255, 0.95),
+                    0 0 32px 10px rgba(0, 0, 200, 0.5),
+                    inset 0 0 16px rgba(0, 0, 255, 0.2);
     }
 }
 #header-credits.world-enter-glow {
-    animation: headerCreditsPulse 0.85s ease-in-out 12;
+    animation: headerCreditsPulse 1.1s ease-in-out 9; /* ~10s total */
 }
 
 .header-section-img {
@@ -1193,24 +1203,25 @@ body.landing-video-ready #enter-button-img {
     filter: brightness(1.1);
 }
 
-.world-btn.active {
+.world-btn.active,
+.texture-btn.active {
     background: transparent;
     border-radius: 6px;
-    box-shadow: 0 0 0 2px #00b4ff,
-                0 0 10px 3px rgba(0, 160, 255, 0.85),
-                0 0 22px 7px rgba(0, 110, 255, 0.45);
-    animation: worldBtnActivePulse 1.6s ease-in-out infinite;
+    box-shadow: 0 0 0 2px #0000ff,
+                0 0 8px 2px rgba(0, 0, 255, 0.8),
+                0 0 14px 4px rgba(0, 0, 220, 0.4);
+    animation: worldBtnActivePulse 2.4s ease-in-out infinite;
 }
 @keyframes worldBtnActivePulse {
     0%, 100% {
-        box-shadow: 0 0 0 2px #00b4ff,
-                    0 0 10px 3px rgba(0, 160, 255, 0.85),
-                    0 0 22px 7px rgba(0, 110, 255, 0.45);
+        box-shadow: 0 0 0 2px #0000ff,
+                    0 0 8px 2px rgba(0, 0, 255, 0.8),
+                    0 0 14px 4px rgba(0, 0, 220, 0.4);
     }
     50% {
-        box-shadow: 0 0 0 2px #55d4ff,
-                    0 0 16px 5px rgba(0, 210, 255, 1),
-                    0 0 30px 10px rgba(0, 150, 255, 0.65);
+        box-shadow: 0 0 0 2px #3333ff,
+                    0 0 12px 3px rgba(50, 50, 255, 1),
+                    0 0 20px 6px rgba(0, 0, 200, 0.55);
     }
 }
 
@@ -1382,24 +1393,25 @@ body.landing-video-ready #enter-button-img {
     z-index: 0;
 }
 
-.world-btn.active {
+.world-btn.active,
+.texture-btn.active {
     background: transparent;
     border-radius: 6px;
-    box-shadow: 0 0 0 2px #00b4ff,
-                0 0 10px 3px rgba(0, 160, 255, 0.85),
-                0 0 22px 7px rgba(0, 110, 255, 0.45);
-    animation: worldBtnActivePulse 1.6s ease-in-out infinite;
+    box-shadow: 0 0 0 2px #0000ff,
+                0 0 8px 2px rgba(0, 0, 255, 0.8),
+                0 0 14px 4px rgba(0, 0, 220, 0.4);
+    animation: worldBtnActivePulse 2.4s ease-in-out infinite;
 }
 @keyframes worldBtnActivePulse {
     0%, 100% {
-        box-shadow: 0 0 0 2px #00b4ff,
-                    0 0 10px 3px rgba(0, 160, 255, 0.85),
-                    0 0 22px 7px rgba(0, 110, 255, 0.45);
+        box-shadow: 0 0 0 2px #0000ff,
+                    0 0 8px 2px rgba(0, 0, 255, 0.8),
+                    0 0 14px 4px rgba(0, 0, 220, 0.4);
     }
     50% {
-        box-shadow: 0 0 0 2px #55d4ff,
-                    0 0 16px 5px rgba(0, 210, 255, 1),
-                    0 0 30px 10px rgba(0, 150, 255, 0.65);
+        box-shadow: 0 0 0 2px #3333ff,
+                    0 0 12px 3px rgba(50, 50, 255, 1),
+                    0 0 20px 6px rgba(0, 0, 200, 0.55);
     }
 }
 

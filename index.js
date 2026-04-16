@@ -655,16 +655,21 @@ function updateWorldInfo(worldId) {
     if (creditsImg) {
         creditsImg.src = WORLD_INSTRUCTION_IMG[worldId] || 'assets/texto/RotateCam.png';
     }
-    // Pulse the header-credits panel with electric-blue glow for ~10s on world enter
+    // Pulse the header-credits panel with electric-blue glow for ~10s on world enter.
+    // We also lift the hud-header's overflow so the glow isn't clipped by siblings.
     const creditsPanel = document.getElementById('header-credits');
+    const hudHeader    = document.getElementById('hud-header');
     if (creditsPanel) {
         creditsPanel.classList.remove('world-enter-glow');
-        // Force reflow so removing+re-adding the class restarts the animation
+        if (hudHeader) hudHeader.classList.remove('credits-glowing');
+        // Force reflow so removing+re-adding the classes restarts the animation
         void creditsPanel.offsetWidth;
         creditsPanel.classList.add('world-enter-glow');
+        if (hudHeader) hudHeader.classList.add('credits-glowing');
         clearTimeout(creditsPanel._glowTimer);
         creditsPanel._glowTimer = setTimeout(() => {
             creditsPanel.classList.remove('world-enter-glow');
+            if (hudHeader) hudHeader.classList.remove('credits-glowing');
         }, 10200);
     }
 }
