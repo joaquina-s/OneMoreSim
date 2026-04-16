@@ -185,7 +185,10 @@ const WorldBanera = {
     const texLoader = new THREE.TextureLoader()
     const tex = texLoader.load('assets/texto/waterText.png')
     tex.wrapS = tex.wrapT = THREE.RepeatWrapping
-    tex.repeat.set(2.5, 1.5)
+    tex.repeat.set(1.0, 1.0)        // 1×1 para que el texto se vea grande
+    tex.premultiplyAlpha = false     // mantener el alpha del PNG sin premultiplicar
+    tex.minFilter = THREE.LinearFilter
+    tex.magFilter = THREE.LinearFilter
 
     this._waterUniforms = {
       uTime:     { value: 0.0 },
@@ -239,27 +242,28 @@ const WorldBanera = {
           // Color base del agua (azul oscuro)
           vec3 base = vec3(0.05, 0.18, 0.38);
 
-          // Mostrar los colores REALES de waterText.png sobre la base.
-          // Usar el alpha del PNG si existe, si no usar la luminancia
-          // invertida (asumiendo texto oscuro sobre fondo claro/transparente).
-          float lum  = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
-          float mask = max(tex.a, 1.0 - lum);   // 1.0 donde hay texto visible
-          mask = clamp(mask * 1.2, 0.0, 1.0);
+          // La textura tiene tipografía BLANCA sobre fondo TRANSPARENTE.
+          // Usar SOLO el alpha del PNG como máscara — donde hay texto el
+          // alpha es 1.0, donde es transparente el alpha es 0.0.
+          // Boost del alpha para que el anti-aliasing se vea bien definido.
+          float mask = clamp(tex.a * 1.3, 0.0, 1.0);
 
-          // Mezclar la textura sobre el agua: donde hay texto se ve la
-          // textura tal cual (con brillo añadido), el resto queda azul.
-          vec3 texColor = tex.rgb;
-          // Si la textura es muy oscura (texto negro), mostrarla como blanco
-          // brillante para que sea legible sobre el fondo azul
-          texColor = mix(vec3(0.95, 0.98, 1.0), texColor, lum);
+          // Color del texto: el blanco del PNG, con un leve toque celeste
+          // para que se integre con la paleta del agua.
+          vec3 textColor = tex.rgb * vec3(0.98, 1.0, 1.05);
 
-          vec3 color = mix(base, texColor, mask);
+          // Mezclar el texto blanco sobre el agua azul según la máscara.
+          vec3 color = mix(base, textColor, mask);
 
           // Brillo de la cresta de las olas
           float crest = max(0.0, vWave) * 0.45;
           color += vec3(0.05, 0.15, 0.4) * crest;
 
-          gl_FragColor = vec4(color, uOpacity);
+          // Opacidad: agua semi-transparente donde no hay texto, opaca
+          // donde sí lo hay (para que el texto se lea bien).
+          float finalAlpha = mix(uOpacity, 1.0, mask);
+
+          gl_FragColor = vec4(color, finalAlpha);
         }
       `
     })
