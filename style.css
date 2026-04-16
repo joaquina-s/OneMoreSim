@@ -81,20 +81,24 @@ button {
     outline: none;
     background: none;
     color: inherit;
-    /* Subtle global glow, matching text accent */
-    filter: drop-shadow(0 0 8px rgba(168, 190, 255, 0.75))
-            drop-shadow(0 0 16px rgba(136, 153, 204, 0.45));
+    /* Intense global glow, matching text accent */
+    filter: drop-shadow(0 0 10px rgba(190, 215, 255, 1))
+            drop-shadow(0 0 22px rgba(168, 190, 255, 0.85))
+            drop-shadow(0 0 40px rgba(136, 153, 204, 0.55));
     transition: filter 0.2s ease;
 }
 button img {
-    filter: drop-shadow(0 0 6px rgba(168, 190, 255, 0.7));
+    filter: drop-shadow(0 0 10px rgba(200, 220, 255, 1))
+            drop-shadow(0 0 22px rgba(168, 190, 255, 0.75));
 }
 button:hover {
-    filter: drop-shadow(0 0 14px rgba(200, 220, 255, 1))
-            drop-shadow(0 0 28px rgba(168, 190, 255, 0.7));
+    filter: drop-shadow(0 0 18px rgba(220, 235, 255, 1))
+            drop-shadow(0 0 36px rgba(190, 215, 255, 0.95))
+            drop-shadow(0 0 60px rgba(168, 190, 255, 0.6));
 }
 button:hover img {
-    filter: drop-shadow(0 0 12px rgba(200, 220, 255, 1));
+    filter: drop-shadow(0 0 16px rgba(220, 235, 255, 1))
+            drop-shadow(0 0 32px rgba(190, 215, 255, 0.85));
 }
 
 
