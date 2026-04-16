@@ -27,9 +27,9 @@ const WorldBanera = {
     const H = renderer.domElement.clientHeight
 
     // ── CÁMARA — moderate fisheye, closer to bathtub ──
-    // FOV: 80 | position: (0, 1.6, 1.8) | lookAt: (0, 0.0, 0)
+    // FOV: 80 | position: (0, 1.4, 1.4) | lookAt: (0, 0.0, 0)
     this.camera = new THREE.PerspectiveCamera(80, W / H, 0.1, 100)
-    this.camera.position.set(0, 1.6, 1.8)
+    this.camera.position.set(0, 1.4, 1.4)
     this.camera.lookAt(0, 0.0, 0)
 
     // ── ESCENA BASE ──
@@ -90,7 +90,7 @@ const WorldBanera = {
     const res = new THREE.Vector2(window.innerWidth, window.innerHeight)
     const bloomPass = new THREE.UnrealBloomPass(
       res,
-      0.56,  // strength — 80% reduced from original 2.8
+      0.28,  // strength — 50% reduced from 0.56
       0.9,   // radius  — wider spread
       0.35   // threshold — lower so more surfaces bloom → light-shaft effect
     )
@@ -124,8 +124,13 @@ const WorldBanera = {
             toMove.push(child)
             this._eggs.push(child)
 
-          } else if (name.includes('plane') || name.includes('plano')) {
-            // ── PLANE: aplicar textura de palabras en movimiento ──
+          } else if (
+            name.includes('plane') || name.includes('plano') ||
+            name.includes('agua')  || name.includes('water') ||
+            name.includes('surface') || name.includes('sup') ||
+            name.includes('liquid') || name.includes('wave')
+          ) {
+            // ── WATER SURFACE: aplicar textura de palabras en movimiento ──
             if (this._wordMaterial) {
               child.material = this._wordMaterial
               this._wordPlaneMesh = child
@@ -144,6 +149,19 @@ const WorldBanera = {
             // Keep them in the base scene since we're using threshold bloom now
             this.scene.add(egg)
         })
+
+        // ── FALLBACK: si ningún mesh del GLB tiene nombre de agua/plano,
+        //    crear un plano propio al nivel del agua dentro de la bañera ──
+        if (!this._wordPlaneMesh && this._wordMaterial) {
+          const planeGeo = new THREE.PlaneGeometry(1.1, 0.5, 20, 20)
+          const waterPlane = new THREE.Mesh(planeGeo, this._wordMaterial)
+          waterPlane.rotation.x = -Math.PI / 2   // horizontal
+          waterPlane.position.set(0, 0.06, 0)    // ligeramente sobre el fondo
+          waterPlane.renderOrder = 1
+          this.scene.add(waterPlane)
+          this._wordPlaneMesh = waterPlane
+          console.log('[Fetal] waterText fallback plane added at y=0.06')
+        }
       },
       undefined,
       (err) => {
