@@ -85,6 +85,21 @@ worldManager.register('9', () => import('./worlds/world-layer.js?v=2').then(m =>
 // ───────────────────────────────────────────────
 const landingVideo = document.getElementById('landing-video');
 if (landingVideo) {
+    // Show the Enter button only once the landing video is ready (or has actually
+    // started playing). Until then, the CSS keeps it hidden.
+    let _enterRevealed = false;
+    const revealEnter = () => {
+        if (_enterRevealed) return;
+        _enterRevealed = true;
+        document.body.classList.add('landing-video-ready');
+    };
+    landingVideo.addEventListener('canplay',        revealEnter, { once: true });
+    landingVideo.addEventListener('playing',        revealEnter, { once: true });
+    landingVideo.addEventListener('loadeddata',     revealEnter, { once: true });
+    // Safety net: if the video never reports ready (network/codec issue),
+    // reveal the button after 5s so the user is never stuck on a blank screen.
+    setTimeout(revealEnter, 5000);
+
     landingVideo.play().catch(() => {
         // If it fails, try on first click
         const playOnClick = () => {
