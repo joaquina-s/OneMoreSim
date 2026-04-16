@@ -127,7 +127,7 @@ export default {
         );
         this.camera.position.z = 1;
 
-        // Videos setup — ensure both play reliably
+        // Videos setup — ensure both play reliably and self-recover from stalls
         const makeVideo = (src) => {
             const v = document.createElement('video');
             v.src = src;
@@ -136,10 +136,27 @@ export default {
             v.playsInline = true;
             v.crossOrigin = 'anonymous';
             v.preload = 'auto';
-            // Try play immediately; if it fails, retry on canplaythrough
+
             const tryPlay = () => v.play().catch(() => {});
             tryPlay();
             v.addEventListener('canplaythrough', tryPlay, { once: true });
+
+            // Self-recovery: browsers sometimes freeze looping videos under
+            // memory pressure or after many loops without firing 'stalled'.
+            // These listeners kick the video back to playing immediately.
+            v.addEventListener('stalled',  tryPlay);
+            v.addEventListener('waiting',  tryPlay);
+            v.addEventListener('suspend',  () => { if (v.paused) tryPlay(); });
+            v.addEventListener('pause',    () => { if (!v._intentPause) tryPlay(); });
+
+            // Watchdog: check every 3s — if paused when it shouldn't be, restart.
+            v._intentPause = false;
+            v._watchdog = setInterval(() => {
+                if (!v._intentPause && (v.paused || v.ended || v.readyState < 3)) {
+                    tryPlay();
+                }
+            }, 3000);
+
             return v;
         };
         this.vid1 = makeVideo('assets/videos/mar_1.mp4');
@@ -355,11 +372,15 @@ export default {
         }
 
         if (this.vid1) {
+            this.vid1._intentPause = true;
+            clearInterval(this.vid1._watchdog);
             this.vid1.pause();
             this.vid1.removeAttribute('src');
             this.vid1.load();
         }
         if (this.vid2) {
+            this.vid2._intentPause = true;
+            clearInterval(this.vid2._watchdog);
             this.vid2.pause();
             this.vid2.removeAttribute('src');
             this.vid2.load();

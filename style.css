@@ -587,6 +587,22 @@ body.landing-video-ready #enter-button-img {
 
 #header-credits {
     flex: 34;
+    transition: box-shadow 0.3s ease;
+}
+/* Pulsing electric-blue glow for 10s when a new world is entered */
+@keyframes headerCreditsPulse {
+    0%, 100% {
+        box-shadow: 0 0 6px 2px rgba(0, 160, 255, 0.5),
+                    inset 0 0 10px rgba(0, 120, 255, 0.2);
+    }
+    50% {
+        box-shadow: 0 0 22px 7px rgba(0, 200, 255, 1),
+                    0 0 44px 14px rgba(0, 130, 255, 0.6),
+                    inset 0 0 20px rgba(0, 180, 255, 0.3);
+    }
+}
+#header-credits.world-enter-glow {
+    animation: headerCreditsPulse 0.85s ease-in-out 12;
 }
 
 .header-section-img {
@@ -1179,6 +1195,23 @@ body.landing-video-ready #enter-button-img {
 
 .world-btn.active {
     background: transparent;
+    border-radius: 6px;
+    box-shadow: 0 0 0 2px #00b4ff,
+                0 0 10px 3px rgba(0, 160, 255, 0.85),
+                0 0 22px 7px rgba(0, 110, 255, 0.45);
+    animation: worldBtnActivePulse 1.6s ease-in-out infinite;
+}
+@keyframes worldBtnActivePulse {
+    0%, 100% {
+        box-shadow: 0 0 0 2px #00b4ff,
+                    0 0 10px 3px rgba(0, 160, 255, 0.85),
+                    0 0 22px 7px rgba(0, 110, 255, 0.45);
+    }
+    50% {
+        box-shadow: 0 0 0 2px #55d4ff,
+                    0 0 16px 5px rgba(0, 210, 255, 1),
+                    0 0 30px 10px rgba(0, 150, 255, 0.65);
+    }
 }
 
 .world-btn.loading .world-icon {
@@ -1290,6 +1323,17 @@ body.landing-video-ready #enter-button-img {
     filter: brightness(1.15);
     z-index: 2;
 }
+/* Side decoration panels are not clickable — no hover movement */
+#img-panel-1:hover,
+#img-panel-3:hover {
+    transform: none;
+    filter: none;
+    cursor: default;
+}
+#img-panel-1,
+#img-panel-3 {
+    cursor: default;
+}
 
 .panel-img {
     width: 100%;
@@ -1340,6 +1384,23 @@ body.landing-video-ready #enter-button-img {
 
 .world-btn.active {
     background: transparent;
+    border-radius: 6px;
+    box-shadow: 0 0 0 2px #00b4ff,
+                0 0 10px 3px rgba(0, 160, 255, 0.85),
+                0 0 22px 7px rgba(0, 110, 255, 0.45);
+    animation: worldBtnActivePulse 1.6s ease-in-out infinite;
+}
+@keyframes worldBtnActivePulse {
+    0%, 100% {
+        box-shadow: 0 0 0 2px #00b4ff,
+                    0 0 10px 3px rgba(0, 160, 255, 0.85),
+                    0 0 22px 7px rgba(0, 110, 255, 0.45);
+    }
+    50% {
+        box-shadow: 0 0 0 2px #55d4ff,
+                    0 0 16px 5px rgba(0, 210, 255, 1),
+                    0 0 30px 10px rgba(0, 150, 255, 0.65);
+    }
 }
 
 .world-btn.loading .world-icon {

@@ -351,12 +351,13 @@ const WorldTeatro = {
     // Use the raycast hit point (world space) as the chair reference — this
     // prevents the camera from snapping to the center of a mesh that encompasses
     // multiple chairs (when the GLB merges all chairs into one mesh).
+    // No Z offset: adding +Z was moving the camera into the next row of chairs,
+    // causing the "jump to front chair" bug. Just sit at eye level above the seat.
     const chairPos = hitPoint ? hitPoint.clone() : (() => {
       const box = new THREE.Box3().setFromObject(chairGroup);
       const c = new THREE.Vector3(); box.getCenter(c); return c;
     })();
-    chairPos.y += 0.8;
-    chairPos.z += 0.8;
+    chairPos.y += 0.9;   // eye height above the seat surface
     if (chairPos.y < 1.0) chairPos.y = 1.0;
 
     const lookPos = new THREE.Vector3();
