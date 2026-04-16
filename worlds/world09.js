@@ -533,10 +533,10 @@ export const bubblepicking = {
         bpCamera = new THREE.PerspectiveCamera(120, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.camera = bpCamera;
 
-        ambientLight = new THREE.AmbientLight(0x334466, 3.4);
+        ambientLight = new THREE.AmbientLight(0x1a3a7a, 3.4);
         bpScene.add(ambientLight);
 
-        dirLight = new THREE.DirectionalLight(0xffffff, 2.4);
+        dirLight = new THREE.DirectionalLight(0x9ab4ff, 2.4);
         dirLight.castShadow = deviceProfile.useShadows;
         dirLight.shadow.mapSize.width = deviceProfile.shadowMapSize;
         dirLight.shadow.mapSize.height = deviceProfile.shadowMapSize;
@@ -549,7 +549,7 @@ export const bubblepicking = {
         dirLight.shadow.camera.bottom = -d;
         bpScene.add(dirLight);
 
-        const fillLight = new THREE.DirectionalLight(0x7d85b4, 2.0);
+        const fillLight = new THREE.DirectionalLight(0x4466cc, 2.0);
         fillLight.position.set(-5, 3, 8);
         bpScene.add(fillLight);
 
@@ -694,7 +694,7 @@ export const bubblepicking = {
 
         // ── Progressive fade intensity (computed every frame) ──
         if (isMoving) {
-            _trailIntensity = Math.min(1.0, _trailIntensity + delta / 3.0);
+            _trailIntensity = Math.min(1.0, _trailIntensity + delta / 0.8); // fast warmup
         } else {
             _trailIntensity = Math.max(0.0, _trailIntensity - delta / 4.0);
         }

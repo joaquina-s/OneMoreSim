@@ -56,10 +56,10 @@ export default {
     this.scene.background = new THREE.Color(0x020612);
     this.scene.fog = new THREE.Fog(0x001040, 8, 26);
 
-    // ── Camera — moderate fisheye FOV 95 (less distortion), slightly more overhead ──
-    // position: (0, 2.8, 5.5) | lookAt: (0, 0.3, -1) | rotateX: -23°
+    // ── Camera — moderate fisheye FOV 95, 23° overhead ──
+    // position: (0, 2.5, 5.5) | lookAt: (0, 0.3, -1) | rotateX: -23°
     this.camera = new THREE.PerspectiveCamera(95, W / H, 0.1, 100);
-    this.camera.position.set(0, 2.8, 5.5);
+    this.camera.position.set(0, 2.5, 5.5);
     this.camera.lookAt(0, 0.3, -1);
     this.camera.rotateX(-THREE.MathUtils.degToRad(23));
 
@@ -344,14 +344,27 @@ export default {
     img.src       = src;
     img.className = 'floating-text';
 
-    // Random viewport position — full screen spread
-    const randX = (2 + Math.random() * 90);
-    const randY = (2 + Math.random() * 88);
+    // Avoid spawning over the world-nav-wrap panel
+    const navWrap = document.getElementById('world-nav-wrap');
+    const navR    = navWrap ? navWrap.getBoundingClientRect() : null;
+
+    // Spawn range 30% smaller: was 2-92% X and 2-90% Y, now ~23-69% X / 23-67% Y
+    let randX, randY, attempts = 0;
+    do {
+      randX = 23 + Math.random() * 46;  // 23–69 % of viewport width
+      randY = 23 + Math.random() * 44;  // 23–67 % of viewport height
+      const px = randX / 100 * window.innerWidth;
+      const py = randY / 100 * window.innerHeight;
+      const inNav = navR && px >= navR.left && px <= navR.right
+                          && py >= navR.top  && py <= navR.bottom;
+      if (!inNav) break;
+    } while (++attempts < 8);
+
     img.style.left = randX + '%';
     img.style.top  = randY + '%';
 
-    // Random size between 0.5 and 0.8
-    const scale = 0.5 + Math.random() * 0.3;
+    // Scale variation: 0.3–0.9 (wider range)
+    const scale = 0.3 + Math.random() * 0.6;
     // Subtle random rotation
     const rotation = (Math.random() - 0.5) * 6;
     img.style.transform = 'rotate(' + rotation + 'deg) scale(' + scale + ')';

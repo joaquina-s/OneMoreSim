@@ -26,10 +26,10 @@ const WorldBanera = {
     const W = renderer.domElement.clientWidth
     const H = renderer.domElement.clientHeight
 
-    // ── CÁMARA — moderate fisheye, slightly overhead ──
-    // FOV: 80 | position: (0, 2.0, 2.8) | lookAt: (0, 0.0, 0)
+    // ── CÁMARA — moderate fisheye, closer to bathtub ──
+    // FOV: 80 | position: (0, 1.6, 1.8) | lookAt: (0, 0.0, 0)
     this.camera = new THREE.PerspectiveCamera(80, W / H, 0.1, 100)
-    this.camera.position.set(0, 2.0, 2.8)
+    this.camera.position.set(0, 1.6, 1.8)
     this.camera.lookAt(0, 0.0, 0)
 
     // ── ESCENA BASE ──
@@ -90,9 +90,9 @@ const WorldBanera = {
     const res = new THREE.Vector2(window.innerWidth, window.innerHeight)
     const bloomPass = new THREE.UnrealBloomPass(
       res,
-      1.8,   // strength
-      0.6,   // radius
-      0.85   // threshold (only bright emissive objects bloom)
+      2.8,   // strength — stronger for god-rays look
+      0.9,   // radius  — wider spread
+      0.35   // threshold — lower so more surfaces bloom → light-shaft effect
     )
     this._localComposer.addPass(bloomPass)
 
@@ -155,8 +155,7 @@ const WorldBanera = {
     // ── WORD TEXTURE (se aplica al plane del GLB) ──
     this._createWordMaterial()
 
-    // ── VOLUMETRIC LIGHT CONE ──
-    this._createVolumetricLight()
+    // Volumetric cone removed (replaced by god-rays bloom effect)
 
     // ── FLOOR (studyingMyPain.png) ──
     this._createFloor()
@@ -229,9 +228,11 @@ const WorldBanera = {
           uv.x += uTime * 0.018;
           uv.y -= uTime * 0.012;
           vec4  tex   = texture2D(uTexture, uv);
+          // Use luminance so any waterText.png (color or grayscale) reads correctly
+          float lum   = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
           vec3  base  = vec3(0.00, 0.05, 0.15);
           vec3  textColor = vec3(0.7, 0.9, 1.0);
-          vec3  color = mix(base, textColor, tex.r * 1.5);
+          vec3  color = mix(base, textColor, clamp(lum * 2.0, 0.0, 1.0));
           float crest = max(0.0, vWave) * 0.45;
           color += vec3(0.05, 0.15, 0.4) * crest;
           gl_FragColor = vec4(color, uOpacity);
