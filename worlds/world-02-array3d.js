@@ -57,9 +57,9 @@ export default {
     this.scene.fog = new THREE.Fog(0x001040, 8, 26);
 
     // ── Camera — moderate fisheye FOV 95, 23° overhead ──
-    // position: (0, 2.5, 5.5) | lookAt: (0, 0.3, -1) | rotateX: -23°
+    // position: (0, 2.7, 5.2) | lookAt: (0, 0.3, -1) | rotateX: -23°
     this.camera = new THREE.PerspectiveCamera(95, W / H, 0.1, 100);
-    this.camera.position.set(0, 2.5, 5.5);
+    this.camera.position.set(0, 2.7, 5.2);
     this.camera.lookAt(0, 0.3, -1);
     this.camera.rotateX(-THREE.MathUtils.degToRad(23));
 

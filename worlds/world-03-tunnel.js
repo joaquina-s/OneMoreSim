@@ -90,7 +90,7 @@ const WorldBanera = {
     const res = new THREE.Vector2(window.innerWidth, window.innerHeight)
     const bloomPass = new THREE.UnrealBloomPass(
       res,
-      2.8,   // strength — stronger for god-rays look
+      0.56,  // strength — 80% reduced from original 2.8
       0.9,   // radius  — wider spread
       0.35   // threshold — lower so more surfaces bloom → light-shaft effect
     )

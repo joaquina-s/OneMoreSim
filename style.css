@@ -360,8 +360,8 @@ body.landing-video-ready #enter-button-img {
     display: block;
     width: auto;
     height: auto;
-    max-width: 256px;
-    max-height: 96px;
+    max-width: 154px;
+    max-height: 58px;
     object-fit: contain;
     pointer-events: none;
 }
@@ -577,7 +577,7 @@ body.landing-video-ready #enter-button-img {
 
 /* Shift A1button1 more to the right */
 #logo-btn-slot-1 {
-    padding-left: 28px;
+    padding-left: 35px;
 }
 
 #header-map {

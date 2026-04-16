@@ -91,7 +91,7 @@ export default {
         const aspect = W / H;
         const imgWidthFrac = (500 / 1200) / aspect;           // ~0.234 at 16:9
         const ndcOffset = ((imgWidthFrac + 1) / 2) - 0.5;     // ~0.117
-        const camZ = 2.24;                                     // 20% closer than 2.8
+        const camZ = 1.5;                                      // closer to camera
         const frustumH = 2 * camZ * Math.tan(THREE.MathUtils.degToRad(60 / 2));
         const frustumW = frustumH * aspect;
         this._eggOffsetX = ndcOffset * frustumW;               // scene-space X shift

@@ -348,24 +348,21 @@ const WorldTeatro = {
       if (this._video.paused) this._video.play().catch(e => console.log(e));
     }
 
-    // Use the raycast hit point (world space) as the chair reference — this
-    // prevents the camera from snapping to the center of a mesh that encompasses
-    // multiple chairs (when the GLB merges all chairs into one mesh).
-    // No Z offset: adding +Z was moving the camera into the next row of chairs,
-    // causing the "jump to front chair" bug. Just sit at eye level above the seat.
-    const chairPos = hitPoint ? hitPoint.clone() : (() => {
-      const box = new THREE.Box3().setFromObject(chairGroup);
-      const c = new THREE.Vector3(); box.getCenter(c); return c;
-    })();
-    chairPos.y += 0.9;   // eye height above the seat surface
+    // Use the chair GROUP's world position for X/Z — this is more reliable than
+    // hitPoint.z, which was causing back-row chairs (5&6) to snap to middle-row
+    // (3&4) position. The group node transform gives the correct row position.
+    // Use hitPoint.y (if available) for the seat surface height, since rows may
+    // sit at different elevations.
+    const chairWorldPos = new THREE.Vector3();
+    chairGroup.getWorldPosition(chairWorldPos);
+
+    const seatY = hitPoint ? hitPoint.y : chairWorldPos.y;
+    const chairPos = new THREE.Vector3(chairWorldPos.x, seatY + 0.9, chairWorldPos.z);
     if (chairPos.y < 1.0) chairPos.y = 1.0;
 
-    const lookPos = new THREE.Vector3();
-    if (this._pizarra) {
-      this._pizarra.getWorldPosition(lookPos);
-    } else {
-      lookPos.set(0, 1.5, -5);
-    }
+    // Fixed look target — avoids inconsistent OrbitControls behaviour caused
+    // by varying pizarra world positions per row/chair.
+    const lookPos = new THREE.Vector3(0, 1.5, -5);
 
     this._orbitControls.enabled = false;
     this._isAnimating = true;
@@ -383,8 +380,11 @@ const WorldTeatro = {
         onUpdate: () => { this.camera.lookAt(this._orbitControls.target); },
         onComplete: () => {
           this._isAnimating = false;
-          // Sync OrbitControls' internal spherical state to the GSAP-animated
-          // camera+target so the first OrbitControls.update() doesn't snap back.
+          // Explicitly pin camera to the computed seat position and re-derive
+          // OrbitControls' internal spherical from the new camera/target pair
+          // so the first update() after re-enabling doesn't snap the camera.
+          this.camera.position.copy(chairPos);
+          this.camera.lookAt(lookPos);
           this._orbitControls.target.copy(lookPos);
           this._orbitControls.update();
           this._orbitControls.enabled = true;
