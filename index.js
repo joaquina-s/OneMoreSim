@@ -287,7 +287,7 @@ document.getElementById('intro-enter-btn').addEventListener('click', () => {
 // ───────────────────────────────────────────────
 // HEADER LOGO BUTTON 1 → activate tutorial mode
 // ───────────────────────────────────────────────
-function positionTutorialLabel(labelId, targetId, placement) {
+function positionTutorialLabel(labelId, targetId, placement, opts) {
     const label = document.getElementById(labelId);
     const target = document.getElementById(targetId);
     if (!label || !target) return;
@@ -298,6 +298,7 @@ function positionTutorialLabel(labelId, targetId, placement) {
     let top = 0, left = 0;
     switch (placement) {
         case 'right':
+            // Sit just to the right of the panel, vertically centered.
             top  = r.top + (r.height - lh) / 2;
             left = r.right + margin;
             break;
@@ -309,12 +310,30 @@ function positionTutorialLabel(labelId, targetId, placement) {
             top  = r.top - lh - margin;
             left = r.left + (r.width - lw) / 2;
             break;
+        case 'above-firstchild': {
+            // Center vertically above the panel, but align left with the panel's
+            // first <button> (or first child) — used for MemoryPicking label.
+            const firstBtn = target.querySelector('button') || target.firstElementChild;
+            const fr = firstBtn ? firstBtn.getBoundingClientRect() : r;
+            top  = r.top - lh - margin;
+            left = fr.left;
+            break;
+        }
+        case 'right-of-panel': {
+            // Place starting where the panel ends (its right edge), vertically
+            // centered — used for SoundLayer label.
+            top  = r.top + (r.height - lh) / 2;
+            left = r.right + margin;
+            break;
+        }
         case 'below':
         default:
             top  = r.bottom + margin;
             left = r.left + (r.width - lw) / 2;
             break;
     }
+    if (opts && typeof opts.dx === 'number') left += opts.dx;
+    if (opts && typeof opts.dy === 'number') top  += opts.dy;
     // Keep label on-screen
     top  = Math.max(8, Math.min(top,  window.innerHeight - lh - 8));
     left = Math.max(8, Math.min(left, window.innerWidth  - lw - 8));
@@ -323,9 +342,13 @@ function positionTutorialLabel(labelId, targetId, placement) {
 }
 
 function layoutTutorialLabels() {
-    positionTutorialLabel('tutorial-label-world', 'world-nav-wrap',   'above');
+    // MemoryPicking: aligned with the first world button on the X axis,
+    // floating above the world-nav panel (Y stays as-is = above the panel).
+    positionTutorialLabel('tutorial-label-world', 'world-nav-wrap',   'above-firstchild');
+    // SkinPanel: just to the right of the character (skin) panel.
     positionTutorialLabel('tutorial-label-skin',  'character-panel',  'right');
-    positionTutorialLabel('tutorial-label-sound', 'layer-toggles',    'left');
+    // SoundLayer: a bit further right, anchored to where the layer-toggles panel ends.
+    positionTutorialLabel('tutorial-label-sound', 'layer-toggles',    'right-of-panel', { dx: 8 });
 }
 
 let _tutorialClones = [];
@@ -414,14 +437,46 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ───────────────────────────────────────────────
-// HEADER LOGO BUTTON 2 — sound on click
+// HEADER LOGO BUTTON 2 → toggle Credits overlay
 // ───────────────────────────────────────────────
+function openCredits() {
+    document.body.classList.add('credits-open');
+}
+function closeCredits() {
+    document.body.classList.remove('credits-open');
+}
 const logoBtn2 = document.getElementById('logo-btn-2');
 if (logoBtn2) {
     logoBtn2.addEventListener('click', () => {
         uiSound.enter();
+        if (document.body.classList.contains('credits-open')) closeCredits();
+        else openCredits();
     });
 }
+const creditsClose = document.getElementById('credits-close');
+if (creditsClose) {
+    creditsClose.addEventListener('click', () => {
+        uiSound.enter();
+        closeCredits();
+    });
+}
+// Click outside the credits image to close
+const creditsOverlay = document.getElementById('credits-overlay');
+if (creditsOverlay) {
+    creditsOverlay.addEventListener('click', (e) => {
+        if (e.target === creditsOverlay ||
+            e.target.id === 'credits-blur-bg' ||
+            e.target.id === 'credits-godrays' ||
+            e.target.id === 'credits-center-glow') {
+            closeCredits();
+        }
+    });
+}
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.body.classList.contains('credits-open')) {
+        closeCredits();
+    }
+});
 
 // ───────────────────────────────────────────────
 // HUD WORLD DATA & UPDATE LOGIC

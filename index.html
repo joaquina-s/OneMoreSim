@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <title>One More Sim</title>
-    <link rel="stylesheet" href="style.css?v=34">
+    <link rel="stylesheet" href="style.css?v=35">
     <link
         href="https://fonts.googleapis.com/css2?family=Averia+Libre:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap"
         rel="stylesheet">
@@ -395,21 +395,33 @@
 
     <!-- Tutorial mode overlay (activated by A1button1) -->
     <div id="tutorial-dim"></div>
-    <button id="tutorial-close" aria-label="Close tutorial">×</button>
+    <button id="tutorial-close" aria-label="Close tutorial">
+        <img src="assets/UIText/cross.png" alt="Close"/>
+    </button>
     <div class="tutorial-label" id="tutorial-label-world">
-        <strong>MemoryPicking Panel</strong>
-        click to Jump between worlds.
+        <img src="assets/UIText/MemoryPicking.png" alt="MemoryPicking Panel"/>
     </div>
     <div class="tutorial-label" id="tutorial-label-skin">
-        <strong>Skin Panel</strong>
-        Click to change your look.
+        <img src="assets/UIText/SkinPanel.png" alt="Skin Panel"/>
     </div>
     <div class="tutorial-label" id="tutorial-label-sound">
-        <strong>Sound engine</strong>
-        click to activate music layers.
+        <img src="assets/UIText/SoundLayer.png" alt="Sound Layer"/>
     </div>
 
-    <script type="module" src="index.js?v=46"></script>
+    <!-- Credits overlay (activated by A1button2) -->
+    <div id="credits-overlay">
+        <div id="credits-blur-bg"></div>
+        <div id="credits-godrays"></div>
+        <div id="credits-center-glow"></div>
+        <button id="credits-close" aria-label="Close credits">
+            <img src="assets/UIText/cross.png" alt="Close"/>
+        </button>
+        <div id="credits-content">
+            <img src="assets/UIText/credits.png" id="credits-img" alt="Credits"/>
+        </div>
+    </div>
+
+    <script type="module" src="index.js?v=47"></script>
 </body>
 
 </html>
