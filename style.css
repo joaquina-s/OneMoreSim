@@ -597,7 +597,7 @@ body.landing-video-ready #enter-button-img {
     z-index: 10;         /* above sibling header sections */
     overflow: visible;   /* let box-shadow escape the element clip */
 }
-/* Pulsing electric-blue glow for 10s when a new world is entered */
+/* Pulsing electric-blue glow — runs forever while .world-enter-glow is active */
 @keyframes headerCreditsPulse {
     0%, 100% {
         box-shadow: 0 0 0 2px rgba(0, 0, 255, 0.7),
@@ -612,7 +612,7 @@ body.landing-video-ready #enter-button-img {
     }
 }
 #header-credits.world-enter-glow {
-    animation: headerCreditsPulse 1.1s ease-in-out 9; /* ~10s total */
+    animation: headerCreditsPulse 2.4s ease-in-out infinite;
 }
 
 .header-section-img {

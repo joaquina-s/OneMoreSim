@@ -383,6 +383,10 @@ const WorldTeatro = {
         onUpdate: () => { this.camera.lookAt(this._orbitControls.target); },
         onComplete: () => {
           this._isAnimating = false;
+          // Sync OrbitControls' internal spherical state to the GSAP-animated
+          // camera+target so the first OrbitControls.update() doesn't snap back.
+          this._orbitControls.target.copy(lookPos);
+          this._orbitControls.update();
           this._orbitControls.enabled = true;
           this._orbitControls.minDistance = 0.1;
           this._orbitControls.maxDistance = 8;

@@ -33,9 +33,28 @@ const WorldChase = {
   _TERRAIN_DEPTH: 80,
   _TERRAIN_SPEED: 0.08,
 
+  // Loading tracker
+  _pendingLoads: 0,
+  _loadingEl: null,
+
   init(renderer, composer) {
     this._renderer = renderer;
     this._clock = new THREE.Clock();
+    this._pendingLoads = 0; // lanchachar + walk + palm1 + palm2 = 4 GLBs
+
+    // ── LOADING TEXT (removed once all GLBs are loaded) ──
+    this._loadingEl = document.createElement('div');
+    this._loadingEl.style.cssText = `
+      position:absolute; top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      color:#8899cc; font-family:'Orbitron','Share Tech Mono',monospace;
+      font-size:13px; letter-spacing:0.15em; text-align:center;
+      pointer-events:none; z-index:5;
+      text-shadow: 0 0 10px #8899cc;
+    `;
+    this._loadingEl.textContent = 'LOADING AQUA_RACE...';
+    const canvasArea = document.getElementById('canvas-area');
+    if (canvasArea) canvasArea.appendChild(this._loadingEl);
 
     const W = renderer.domElement.clientWidth;
     const H = renderer.domElement.clientHeight;
@@ -84,9 +103,21 @@ const WorldChase = {
     // ── POSTPROCESSING ──
     this._setupPostProcessing(W, H);
 
+    // 4 GLBs need to land before we clear the loading screen
+    this._pendingLoads = 4;
+
     // Enable shadows on renderer
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  },
+
+  // Called after each GLB finishes loading. When all 4 are done, remove overlay.
+  _onGlbLoaded() {
+    this._pendingLoads = Math.max(0, this._pendingLoads - 1);
+    if (this._pendingLoads === 0 && this._loadingEl) {
+      this._loadingEl.remove();
+      this._loadingEl = null;
+    }
   },
 
   /* ════════════════════════════════════════════
@@ -407,13 +438,15 @@ const WorldChase = {
       console.log('[world06] palm1.1 loaded', gltf);
       palm1Proto = gltf.scene;
       placePalms();
-    }, undefined, (e) => console.error('[world06] palm1.1 load error:', e));
+      this._onGlbLoaded();
+    }, undefined, (e) => { console.error('[world06] palm1.1 load error:', e); this._onGlbLoaded(); });
 
     loader.load('assets/3D/palm2.1.glb', (gltf) => {
       console.log('[world06] palm2.1 loaded', gltf);
       palm2Proto = gltf.scene;
       placePalms();
-    }, undefined, (e) => console.error('[world06] palm2.1 load error:', e));
+      this._onGlbLoaded();
+    }, undefined, (e) => { console.error('[world06] palm2.1 load error:', e); this._onGlbLoaded(); });
   },
 
   /* ════════════════════════════════════════════
@@ -555,7 +588,8 @@ const WorldChase = {
 
       // Wake planes removed per request (they showed up as two bars under the lancha)
       this._wakePlanes = [];
-    }, undefined, (e) => console.error('[world06] lanchachar load error:', e));
+      this._onGlbLoaded();
+    }, undefined, (e) => { console.error('[world06] lanchachar load error:', e); this._onGlbLoaded(); });
   },
 
   /* ════════════════════════════════════════════
@@ -612,7 +646,8 @@ const WorldChase = {
         // Animación SIEMPRE activa (no pausar cuando no se mueve)
         this._walkAction.paused = false;
       }
-    }, undefined, (e) => console.error(e));
+      this._onGlbLoaded();
+    }, undefined, (e) => { console.error(e); this._onGlbLoaded(); });
   },
 
   /* ════════════════════════════════════════════

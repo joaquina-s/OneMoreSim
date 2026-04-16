@@ -26,8 +26,9 @@ const WorldBanera = {
     const W = renderer.domElement.clientWidth
     const H = renderer.domElement.clientHeight
 
-    // ── CÁMARA ──
-    this.camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 100)
+    // ── CÁMARA — moderate fisheye, slightly overhead ──
+    // FOV: 80 | position: (0, 2.0, 2.8) | lookAt: (0, 0.0, 0)
+    this.camera = new THREE.PerspectiveCamera(80, W / H, 0.1, 100)
     this.camera.position.set(0, 2.0, 2.8)
     this.camera.lookAt(0, 0.0, 0)
 
@@ -176,49 +177,9 @@ const WorldBanera = {
 
   // ─────────────────────────────────────────
   _createWordMaterial() {
-    const texSize = 1024
-    const c = document.createElement('canvas')
-    c.width = c.height = texSize
-    const ctx = c.getContext('2d')
-
-    // Fondo negro
-    ctx.fillStyle = '#000000'
-    ctx.fillRect(0, 0, texSize, texSize)
-
-    // Palabras de la obra
-    const words = [
-      'latente', 'espectro', 'algoritmo', 'conexión', 'distancia',
-      'amor', 'interfaz', 'señal', 'ruido', 'memoria', 'vector',
-      'embedding', 'deseo', 'proximidad', 'ausencia', 'dato',
-      'cuerpo', 'red', 'nodo', 'latencia', 'espacio', 'interior',
-      'representación', 'fantasma', 'potencial', 'umbral', 'bucle',
-      'reflejo', 'superficie', 'profundidad', 'simulacro', 'código',
-      'piel', 'translúcido', 'noosfera', 'vínculo', 'frecuencia',
-      'latent space', 'ghost', 'signal', 'noise', 'threshold'
-    ]
-
-    // Seed determinístico para reproducibilidad
-    let seed = 137
-    const rand = () => {
-      seed = (seed * 16807) % 2147483647
-      return (seed - 1) / 2147483646
-    }
-
-    ctx.font = 'bold 32px monospace'
-    let y = 30
-    while (y < texSize) {
-      let x = -(rand() * 40)
-      while (x < texSize) {
-        const word  = words[Math.floor(rand() * words.length)]
-        const alpha = 0.6 + rand() * 0.4
-        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`
-        ctx.fillText(word, x, y)
-        x += ctx.measureText(word).width + 8 + rand() * 20
-      }
-      y += 36 + rand() * 5
-    }
-
-    const tex = new THREE.CanvasTexture(c)
+    // Load waterText.png as the water surface texture
+    const texLoader = new THREE.TextureLoader()
+    const tex = texLoader.load('assets/texto/waterText.png')
     tex.wrapS = tex.wrapT = THREE.RepeatWrapping
     tex.repeat.set(2.5, 1.5)
 
@@ -325,7 +286,7 @@ const WorldBanera = {
       map: this._floorTex,
       side: THREE.DoubleSide,
     })
-    const floorGeo = new THREE.PlaneGeometry(6, 6)
+    const floorGeo = new THREE.PlaneGeometry(12, 12)  // double size
     this._floorMesh = new THREE.Mesh(floorGeo, floorMat)
     this._floorMesh.rotation.x = -Math.PI / 2
     this._floorMesh.position.set(0, -0.35, 0)
