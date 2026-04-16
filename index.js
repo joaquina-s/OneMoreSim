@@ -326,6 +326,25 @@ function positionTutorialLabel(labelId, targetId, placement, opts) {
             left = r.right + margin;
             break;
         }
+        case 'right-of-buttons': {
+            // Place to the right of the panel's actual buttons (not the panel
+            // chrome). Uses the union bbox of all <button> children so the label
+            // sits just beside the buttons themselves — used for SkinPanel.
+            const btns = target.querySelectorAll('button');
+            let bRight = r.right, bTop = r.top, bBottom = r.bottom;
+            if (btns.length > 0) {
+                bRight = -Infinity; bTop = Infinity; bBottom = -Infinity;
+                btns.forEach((b) => {
+                    const br = b.getBoundingClientRect();
+                    if (br.right  > bRight)  bRight  = br.right;
+                    if (br.top    < bTop)    bTop    = br.top;
+                    if (br.bottom > bBottom) bBottom = br.bottom;
+                });
+            }
+            top  = bTop + ((bBottom - bTop) - lh) / 2;
+            left = bRight + margin;
+            break;
+        }
         case 'below':
         default:
             top  = r.bottom + margin;
@@ -345,8 +364,8 @@ function layoutTutorialLabels() {
     // MemoryPicking: aligned with the first world button on the X axis,
     // floating above the world-nav panel (Y stays as-is = above the panel).
     positionTutorialLabel('tutorial-label-world', 'world-nav-wrap',   'above-firstchild');
-    // SkinPanel: just to the right of the character (skin) panel.
-    positionTutorialLabel('tutorial-label-skin',  'character-panel',  'right');
+    // SkinPanel: just to the right of the actual skin buttons (not the panel chrome).
+    positionTutorialLabel('tutorial-label-skin',  'character-panel',  'right-of-buttons');
     // SoundLayer: a bit further right, anchored to where the layer-toggles panel ends.
     positionTutorialLabel('tutorial-label-sound', 'layer-toggles',    'right-of-panel', { dx: 8 });
 }
