@@ -309,80 +309,90 @@ function initRoom1(scene) {
     });
 }
 
-// ── Room 2 — c02.png: 10 flores en posiciones random ──
+// Helper: sample an (x,z) point inside the room quadrant AND inside the
+// circular floor of radius FLOOR_R centered at origin.
+function sampleInsideFloor(pRoom, halfRange, floorR) {
+    for (let i = 0; i < 40; i++) {
+        const x = pRoom.cx + (Math.random() - 0.5) * 2 * halfRange;
+        const z = pRoom.cz + (Math.random() - 0.5) * 2 * halfRange;
+        if (Math.sqrt(x * x + z * z) <= floorR) return { x, z };
+    }
+    // fallback: pull toward room center
+    return { x: pRoom.cx * 0.6, z: pRoom.cz * 0.6 };
+}
+
+// ── Room 2 — c02.png: 10 flores cerca del piso, dentro del círculo ──
 function initRoom2(scene) {
     const pRoom = roomData.find(r => r.id === "2");
     const texLoader = new THREE.TextureLoader();
     const tex = texLoader.load('assets/tex/c02.png');
     const flowers = [];
+    const FLOOR_R = 23.5;   // dentro del piso redondo (r=25)
     for (let i = 0; i < 10; i++) {
-        const size = 1.5 + Math.random() * 1.0;
+        // 30% más pequeñas: antes 1.5–2.5 → ahora 1.05–1.75
+        const size = 1.05 + Math.random() * 0.7;
         const geo = new THREE.PlaneGeometry(size, size);
         const mat = new THREE.MeshBasicMaterial({
             map: tex, transparent: true, side: THREE.DoubleSide,
             opacity: 0.92, depthWrite: false
         });
         const mesh = new THREE.Mesh(geo, mat);
-        mesh.position.set(
-            pRoom.cx + (Math.random() - 0.5) * 18,
-            1.0 + Math.random() * 7,
-            pRoom.cz + (Math.random() - 0.5) * 18
-        );
+        const p = sampleInsideFloor(pRoom, 7.5, FLOOR_R);
+        // apoyar cerca del suelo: centro = size/2 + pequeño margen
+        mesh.position.set(p.x, size * 0.5 + 0.05, p.z);
         mesh.userData.phase = Math.random() * Math.PI * 2;
         mesh.userData.baseY = mesh.position.y;
         scene.add(mesh);
         flowers.push(mesh);
     }
-    bubbles = [];  // legacy array (bubble pickup mechanic)
+    bubbles = [];
     simulations.push((time) => {
         flowers.forEach(f => {
-            f.position.y = f.userData.baseY + Math.sin(time * 0.6 + f.userData.phase) * 0.28;
+            // bob pequeño alrededor de baseY, nunca atraviesa el piso
+            f.position.y = f.userData.baseY + Math.abs(Math.sin(time * 0.6 + f.userData.phase)) * 0.12;
             billboardToCamera(f);
         });
     });
 }
 
-// ── Room 3 — c03.png: 10 elementos random (igual que room 2) ──
+// ── Room 3 — c03.png: 10 elementos cerca del piso (igual que room 2) ──
 function initRoom3(scene) {
     const pRoom = roomData.find(r => r.id === "3");
     const texLoader = new THREE.TextureLoader();
     const tex = texLoader.load('assets/tex/c03.png');
     const items = [];
+    const FLOOR_R = 23.5;
     for (let i = 0; i < 10; i++) {
-        const size = 1.5 + Math.random() * 1.0;
+        const size = 1.05 + Math.random() * 0.7;
         const geo = new THREE.PlaneGeometry(size, size);
         const mat = new THREE.MeshBasicMaterial({
             map: tex, transparent: true, side: THREE.DoubleSide,
             opacity: 0.92, depthWrite: false
         });
         const mesh = new THREE.Mesh(geo, mat);
-        mesh.position.set(
-            pRoom.cx + (Math.random() - 0.5) * 18,
-            1.0 + Math.random() * 7,
-            pRoom.cz + (Math.random() - 0.5) * 18
-        );
+        const p = sampleInsideFloor(pRoom, 7.5, FLOOR_R);
+        mesh.position.set(p.x, size * 0.5 + 0.05, p.z);
         mesh.userData.phase = Math.random() * Math.PI * 2;
         mesh.userData.baseY = mesh.position.y;
         scene.add(mesh);
         items.push(mesh);
     }
-    floatingImages = [];  // legacy array reset
+    floatingImages = [];
     simulations.push((time) => {
         items.forEach(f => {
-            f.position.y = f.userData.baseY + Math.sin(time * 0.6 + f.userData.phase) * 0.28;
+            f.position.y = f.userData.baseY + Math.abs(Math.sin(time * 0.6 + f.userData.phase)) * 0.12;
             billboardToCamera(f);
         });
     });
 }
 
-// ── Room 4 — c04.png: 2 elementos simétricos en las puntas de la sala ──
+// ── Room 4 — c04.png: 2 elementos simétricos, más centrados y dentro del piso ──
 function initRoom4(scene) {
     const pRoom = roomData.find(r => r.id === "4");
     const texLoader = new THREE.TextureLoader();
     const tex = texLoader.load('assets/tex/c04.png');
-    // Room 4 está en cuadrante (+x, -z). Las "dos puntas" son las esquinas
-    // opuestas (-x/+x dentro de la room, manteniendo simetría sobre room center).
-    const offset = 9;
+    // "Más centrados": reduzco el offset para que queden dentro del piso r=25
+    const offset = 5;
     const items = [];
     [[-offset, 0], [offset, 0]].forEach(([dx, dz]) => {
         const size = 3.4;
