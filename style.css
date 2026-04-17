@@ -1819,16 +1819,19 @@ body.landing-video-ready #enter-button-img {
    ════════════════════════════════════════════════ */
 
 #custom-cursor {
-    width: 16px;
-    height: 16px;
-    border: 2px solid var(--color-accent);
-    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    background: url('assets/tex/pointer.png') no-repeat center center;
+    background-size: contain;
+    border: none;
+    border-radius: 0;
     position: fixed;
     pointer-events: none;
     /* MUST BE HERE TO PREVENT BLOCKING CLICKS */
     z-index: 99999;
     transform: translate(-50%, -50%);
-    transition: width 150ms, height 150ms, border-color 150ms;
+    transition: width 150ms, height 150ms, filter 180ms;
+    filter: drop-shadow(0 0 2px rgba(180, 200, 255, 0.3));
 }
 
 @media (pointer: fine) {
@@ -1836,15 +1839,20 @@ body.landing-video-ready #enter-button-img {
         cursor: none;
     }
 
+    /* Mini glow cuando el cursor está sobre un elemento clickeable */
     #custom-cursor.hover {
-        width: 32px;
-        height: 32px;
-        border-color: #ffffff;
-        background: rgba(255, 255, 255, 0.1);
+        width: 36px;
+        height: 36px;
+        filter:
+            drop-shadow(0 0 6px rgba(180, 210, 255, 0.95))
+            drop-shadow(0 0 14px rgba(120, 170, 255, 0.7))
+            drop-shadow(0 0 22px rgba(90, 140, 255, 0.45));
     }
 
     #custom-cursor.flash {
-        background: white;
+        filter:
+            drop-shadow(0 0 10px rgba(255, 255, 255, 1))
+            drop-shadow(0 0 18px rgba(200, 230, 255, 0.9));
         transition: none;
     }
 }
