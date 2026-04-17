@@ -76,7 +76,7 @@ worldManager.register('2', () => import('./worlds/world-01-teatro.js?v=9').then(
 worldManager.register('3', () => import('./worlds/world-02-array3d.js?v=38').then(m => m.default));
 worldManager.register('4', () => import('./worlds/world-03-tunnel.js?v=10').then(m => m.default));
 worldManager.register('5', () => import('./worlds/world-04-drawrange.js?v=2').then(m => m.default));
-worldManager.register('6', () => import('./worlds/world06.js?v=6').then(m => m.default));
+worldManager.register('6', () => import('./worlds/world06.js?v=7').then(m => m.default));
 worldManager.register('7', () => import('./worlds/world07.js?v=2').then(m => m.default));
 worldManager.register('9', () => import('./worlds/world-layer.js?v=2').then(m => m.default));
 
