@@ -190,9 +190,7 @@ const WorldBanera = {
       (err) => console.error('[Fetal] error cargando watertext.png:', err)
     )
     tex.wrapS = tex.wrapT = THREE.RepeatWrapping
-    // Flip horizontal: palabras se leen en el sentido correcto
-    tex.repeat.set(-1.0, 1.0)
-    tex.offset.set(1.0, 0.0)
+    tex.repeat.set(1.0, 1.0)
     tex.premultiplyAlpha = false
     tex.minFilter = THREE.LinearFilter
     tex.magFilter = THREE.LinearFilter
@@ -237,8 +235,9 @@ const WorldBanera = {
         varying vec2      vUv;
         varying float     vWave;
         void main() {
-          // Distorsión del UV simulando refracción del agua
-          vec2 uv = vUv;
+          // Flip horizontal: palabras se leen en el sentido correcto
+          // (custom shaders ignoran tex.repeat/offset, por eso va acá).
+          vec2 uv = vec2(1.0 - vUv.x, vUv.y);
           uv.x += sin(uv.y * 9.0 + uTime * uSpeed * 0.6) * 0.012;
           uv.y += cos(uv.x * 9.0 + uTime * uSpeed * 0.5) * 0.012;
           uv.x += uTime * 0.018;

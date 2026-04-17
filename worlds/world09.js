@@ -321,16 +321,17 @@ function sampleInsideFloor(pRoom, halfRange, floorR) {
     return { x: pRoom.cx * 0.6, z: pRoom.cz * 0.6 };
 }
 
-// ── Room 2 — c02.png: 10 flores cerca del piso, dentro del círculo ──
+// ── Room 2 — c02.png: 20 flores cerca del piso, dentro del círculo ──
 function initRoom2(scene) {
     const pRoom = roomData.find(r => r.id === "2");
     const texLoader = new THREE.TextureLoader();
     const tex = texLoader.load('assets/tex/c02.png');
     const flowers = [];
     const FLOOR_R = 23.5;   // dentro del piso redondo (r=25)
-    for (let i = 0; i < 10; i++) {
-        // 30% más pequeñas: antes 1.5–2.5 → ahora 1.05–1.75
-        const size = 1.05 + Math.random() * 0.7;
+    for (let i = 0; i < 20; i++) {
+        // base 1.05–1.75, variación hasta +40% → multiplicador 1.0–1.4
+        const baseSize = 1.05 + Math.random() * 0.7;
+        const size = baseSize * (1.0 + Math.random() * 0.4);
         const geo = new THREE.PlaneGeometry(size, size);
         const mat = new THREE.MeshBasicMaterial({
             map: tex, transparent: true, side: THREE.DoubleSide,
@@ -355,7 +356,7 @@ function initRoom2(scene) {
     });
 }
 
-// ── Room 3 — c03.png: 10 elementos cerca del piso (igual que room 2) ──
+// ── Room 3 — c03.png: 20 elementos cerca del piso (igual que room 2) ──
 function initRoom3(scene) {
     const pRoom = roomData.find(r => r.id === "3");
     const texLoader = new THREE.TextureLoader();
@@ -363,7 +364,8 @@ function initRoom3(scene) {
     const items = [];
     const FLOOR_R = 23.5;
     for (let i = 0; i < 20; i++) {
-        const size = 1.05 + Math.random() * 0.7;
+        const baseSize = 1.05 + Math.random() * 0.7;
+        const size = baseSize * (1.0 + Math.random() * 0.4);
         const geo = new THREE.PlaneGeometry(size, size);
         const mat = new THREE.MeshBasicMaterial({
             map: tex, transparent: true, side: THREE.DoubleSide,
@@ -396,8 +398,8 @@ function initRoom4(scene) {
     const items = [];
     [[-offset, 0], [offset, 0]].forEach(([dx, dz]) => {
         const size = 3.4;
-        // 40% más alto en height (Y), manteniendo width (X)
-        const geo = new THREE.PlaneGeometry(size, size * 1.4);
+        // 30% más alto en height (Y), manteniendo width (X)
+        const geo = new THREE.PlaneGeometry(size, size * 1.3);
         const mat = new THREE.MeshBasicMaterial({
             map: tex, transparent: true, side: THREE.DoubleSide,
             opacity: 0.95, depthWrite: false

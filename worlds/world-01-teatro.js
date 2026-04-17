@@ -119,8 +119,11 @@ const WorldTeatro = {
       gltf.scene.traverse((child) => {
         const name = child.name.toLowerCase();
 
-        // Identify Pizarra
-        if (child.isMesh && (name.includes('pizarra') || name.includes('board') || name.includes('screen'))) {
+        // Identify video screen mesh — now called "Plane" in the new GLB
+        // (replaces the old "Pizarra" node). Keep legacy names for safety.
+        if (child.isMesh && (
+              name === 'plane' || name.startsWith('plane') ||
+              name.includes('pizarra') || name.includes('board') || name.includes('screen'))) {
           this._pizarra = child;
           child.material = screenMaterial;
         }

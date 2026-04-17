@@ -1915,14 +1915,16 @@ body.landing-video-ready #enter-button-img {
     opacity: 0;
     max-width: 55%;
     height: auto;
+    --s: 1;           /* inline override carries per-spawn scale */
+    --rot: 0deg;      /* inline override carries per-spawn rotation */
     animation: textAppear 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     transition: opacity 7s ease-out;
     transform-origin: center center;
 }
 
 @keyframes textAppear {
-    0%   { opacity: 0; transform: scale(0.85) translateY(8px); }
-    100% { opacity: 1; transform: scale(1) translateY(0); }
+    0%   { opacity: 0; transform: rotate(var(--rot)) scale(calc(var(--s) * 0.85)) translateY(8px); }
+    100% { opacity: 1; transform: rotate(var(--rot)) scale(var(--s))             translateY(0); }
 }
 
 .floating-text.fading {

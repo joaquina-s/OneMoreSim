@@ -59,12 +59,15 @@ export default {
     this.scene.background = new THREE.Color(0x020612);
     this.scene.fog = new THREE.Fog(0x001040, 8, 26);
 
-    // ── Camera — moderate fisheye FOV 95, 23° overhead ──
-    // position: (0, 2.7, 4.8) | lookAt: (0, 0.3, -1) | rotateX: -23°
+    // ── Camera — moderate fisheye FOV 95, tilted down ──
+    // Fixed pose. Target baked so look direction includes the 23° downward tilt.
+    // pos=(0,2.7,4.8) · total tilt ≈ 45.5° down → target ≈ (0,-0.72,1.44)
     this.camera = new THREE.PerspectiveCamera(95, W / H, 0.1, 100);
     this.camera.position.set(0, 2.7, 4.8);
-    this.camera.lookAt(0, 0.3, -1);
-    this.camera.rotateX(-THREE.MathUtils.degToRad(23));
+    this.camera.lookAt(0, -0.72, 1.44);
+    // Snapshot the desired pose so update() can reassert every frame.
+    this._fixedCamPos  = new THREE.Vector3(0, 2.7, 4.8);
+    this._fixedCamLook = new THREE.Vector3(0, -0.72, 1.44);
 
     // ── Lighting (slightly glowier) ──
     this.scene.add(new THREE.AmbientLight(0x334466, 3.4));
@@ -107,14 +110,10 @@ export default {
       this._composer = null;
     }
 
-    // ── OrbitControls — disabled, camera is fixed ──
-    this._orbitControls = new THREE.OrbitControls(this.camera, renderer.domElement);
-    this._orbitControls.enabled       = false;
-    this._orbitControls.enableZoom    = false;
-    this._orbitControls.enablePan     = false;
-    this._orbitControls.enableRotate  = false;
-    this._orbitControls.autoRotate    = false;
-    this._orbitControls.target.set(0, 1.5, 0);
+    // OrbitControls removed — they were re-baselining the camera each frame
+    // (update() calls camera.lookAt(target) regardless of `enabled`), which
+    // caused the initial pose to drift slightly every time the level loaded.
+    this._orbitControls = null;
 
     // ── Event handlers ──
     this._handlers.down = () => {};
@@ -384,11 +383,13 @@ export default {
     img.style.left = randX + '%';
     img.style.top  = randY + '%';
 
-    // Scale variation: 0.21–0.63 (30% smaller than before: was 0.3–0.9)
+    // Scale variation: 0.21–0.63 (30% smaller than before: was 0.3–0.9).
+    // Values flow through CSS vars so the keyframe animation keeps them
+    // (previously the 100% keyframe forced scale(1), overriding inline scale).
     const scale = 0.21 + Math.random() * 0.42;
-    // Subtle random rotation
     const rotation = (Math.random() - 0.5) * 6;
-    img.style.transform = 'rotate(' + rotation + 'deg) scale(' + scale + ')';
+    img.style.setProperty('--s',   scale);
+    img.style.setProperty('--rot', rotation + 'deg');
 
     container.appendChild(img);
     this._spawnedTexts.push(img);
@@ -398,7 +399,11 @@ export default {
   update(time, keys) {
     if (!this.scene || !this.camera) return;
 
-    if (this._orbitControls) this._orbitControls.update();
+    // Reassert fixed camera pose every frame (prevents any external drift)
+    if (this._fixedCamPos && this.camera) {
+      this.camera.position.copy(this._fixedCamPos);
+      this.camera.lookAt(this._fixedCamLook);
+    }
 
     // Calculate real deltaTime instead of fixed 1/60 to prevent jumpiness
     if (this._lastTime === undefined) this._lastTime = time;
