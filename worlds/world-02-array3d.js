@@ -59,15 +59,14 @@ export default {
     this.scene.background = new THREE.Color(0x020612);
     this.scene.fog = new THREE.Fog(0x001040, 8, 26);
 
-    // ── Camera — moderate fisheye FOV 95, tilted down ──
-    // Fixed pose. Target baked so look direction includes the 23° downward tilt.
-    // pos=(0,2.7,4.8) · total tilt ≈ 45.5° down → target ≈ (0,-0.72,1.44)
+    // ── Camera — moderate fisheye FOV 95, tilt 50° down ──
+    // pos=(0,2.7,4.8) · 50° downward tilt → target = pos + (0,-sin50°,-cos50°)*4.8
+    //                                              ≈ (0, -0.98, 1.71)
     this.camera = new THREE.PerspectiveCamera(95, W / H, 0.1, 100);
     this.camera.position.set(0, 2.7, 4.8);
-    this.camera.lookAt(0, -0.72, 1.44);
-    // Snapshot the desired pose so update() can reassert every frame.
+    this.camera.lookAt(0, -0.98, 1.71);
     this._fixedCamPos  = new THREE.Vector3(0, 2.7, 4.8);
-    this._fixedCamLook = new THREE.Vector3(0, -0.72, 1.44);
+    this._fixedCamLook = new THREE.Vector3(0, -0.98, 1.71);
 
     // ── Lighting (slightly glowier) ──
     this.scene.add(new THREE.AmbientLight(0x334466, 3.4));
@@ -383,13 +382,10 @@ export default {
     img.style.left = randX + '%';
     img.style.top  = randY + '%';
 
-    // Scale variation: 0.21–0.63 (30% smaller than before: was 0.3–0.9).
-    // Values flow through CSS vars so the keyframe animation keeps them
-    // (previously the 100% keyframe forced scale(1), overriding inline scale).
-    const scale = 0.21 + Math.random() * 0.42;
-    const rotation = (Math.random() - 0.5) * 6;
+    // Scale variation: 0.61–0.83 (no rotation, per spec).
+    const scale = 0.61 + Math.random() * 0.22;
     img.style.setProperty('--s',   scale);
-    img.style.setProperty('--rot', rotation + 'deg');
+    img.style.setProperty('--rot', '0deg');
 
     container.appendChild(img);
     this._spawnedTexts.push(img);

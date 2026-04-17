@@ -995,14 +995,15 @@ body.landing-video-ready #enter-button-img {
     mix-blend-mode: screen;
 }
 
-/* World 00 — world01bw2 anchored to top-right corner, 30% of canvas height
-   (70% smaller than the full-height reference). */
+/* World 00 — world01bw2 mirrored on the right side, same scale/proportions
+   as world01bw.png on the left (85% height, vertically centered). */
 #world-00-overlay-right {
     position: absolute;
-    top: 0;
-    left: 0;
+    top: 50%;
     right: 0;
-    height: 30%;
+    left: auto;
+    height: 85%;
+    transform: translateY(-50%);
     z-index: 6;
     pointer-events: none;
     opacity: 0;

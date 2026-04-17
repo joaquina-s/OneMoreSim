@@ -29,7 +29,8 @@ const WorldBanera = {
     // ── CÁMARA — moderate fisheye, closer to bathtub ──
     // FOV: 80 | position: (0, 1.4, 1.4) | lookAt: (0, 0.0, 0)
     this.camera = new THREE.PerspectiveCamera(80, W / H, 0.1, 100)
-    this.camera.position.set(0, 1.4, 1.4)
+    // Rotada 180° alrededor de la bañera: ahora desde -z mirando hacia +z.
+    this.camera.position.set(0, 1.4, -1.4)
     this.camera.lookAt(0, 0.0, 0)
 
     // ── ESCENA BASE ──

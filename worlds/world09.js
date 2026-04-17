@@ -398,8 +398,8 @@ function initRoom4(scene) {
     const items = [];
     [[-offset, 0], [offset, 0]].forEach(([dx, dz]) => {
         const size = 3.4;
-        // 30% más alto en height (Y), manteniendo width (X)
-        const geo = new THREE.PlaneGeometry(size, size * 1.3);
+        // Altura +40% respecto al último valor (1.3 → 1.82)
+        const geo = new THREE.PlaneGeometry(size, size * 1.82);
         const mat = new THREE.MeshBasicMaterial({
             map: tex, transparent: true, side: THREE.DoubleSide,
             opacity: 0.95, depthWrite: false

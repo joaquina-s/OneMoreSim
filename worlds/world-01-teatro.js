@@ -91,6 +91,11 @@ const WorldTeatro = {
     this._videoTex.minFilter = THREE.LinearFilter;
     this._videoTex.magFilter = THREE.LinearFilter;
     this._videoTex.format = THREE.RGBAFormat;
+    // Vertical flip del video (alineado al nuevo orientado del Plane del GLB)
+    this._videoTex.wrapS = THREE.RepeatWrapping;
+    this._videoTex.wrapT = THREE.RepeatWrapping;
+    this._videoTex.repeat.y = -1;
+    this._videoTex.offset.y = 1;
 
     const screenMaterial = new THREE.MeshBasicMaterial({ map: this._videoTex });
 
@@ -351,16 +356,19 @@ const WorldTeatro = {
       if (this._video.paused) this._video.play().catch(e => console.log(e));
     }
 
-    // Use the chair GROUP's world position for X/Z — this is more reliable than
-    // hitPoint.z, which was causing back-row chairs (5&6) to snap to middle-row
-    // (3&4) position. The group node transform gives the correct row position.
-    // Use hitPoint.y (if available) for the seat surface height, since rows may
-    // sit at different elevations.
-    const chairWorldPos = new THREE.Vector3();
-    chairGroup.getWorldPosition(chairWorldPos);
-
-    const seatY = hitPoint ? hitPoint.y : chairWorldPos.y;
-    const chairPos = new THREE.Vector3(chairWorldPos.x, seatY + 0.9, chairWorldPos.z);
+    // Use the chair's BOUNDING BOX (world space) to compute the seat position.
+    // chairGroup.getWorldPosition() returns the transform origin, which in the
+    // new teatro.glb is baked to different spots per chair (causing back-row
+    // clicks to land on middle-row and middle-row to jump upward). The bbox
+    // centroid is stable regardless of the group's local pivot.
+    const bbox = new THREE.Box3().setFromObject(chairGroup);
+    const bboxCenter = bbox.getCenter(new THREE.Vector3());
+    const seatTopY   = bbox.max.y;           // top of the chair
+    const seatBaseY  = bbox.min.y;           // floor the chair sits on
+    // Seated eye height ≈ seat surface + 0.9. Approximate seat surface as
+    // 55% up the chair height (typical chair proportion seat/backrest).
+    const seatSurfaceY = seatBaseY + (seatTopY - seatBaseY) * 0.55;
+    const chairPos = new THREE.Vector3(bboxCenter.x, seatSurfaceY + 0.9, bboxCenter.z);
     if (chairPos.y < 1.0) chairPos.y = 1.0;
 
     // Fixed look target — avoids inconsistent OrbitControls behaviour caused
