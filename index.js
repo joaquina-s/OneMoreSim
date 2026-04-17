@@ -7,7 +7,7 @@ import { getTime } from './core/clock.js';
 import { WorldManager } from './core/worldManager.js';
 import { deviceProfile } from './core/deviceProfile.js';
 import { ResizeManager } from './core/resizeManager.js';
-import { bubblepicking } from './worlds/world09.js?v=3';
+import { bubblepicking } from './worlds/world09.js?v=4';
 import { createPlaceholder } from './worlds/world-placeholder.js';
 import { uiSound } from './audio/uiSounds.js';
 import Spectrogram from './audio/Spectrogram.js';
@@ -73,7 +73,7 @@ if (window.matchMedia('(pointer: fine)').matches && cursor) {
 worldManager.register('0', () => import('./worlds/world-00-huevo.js?v=3').then(m => m.default));
 worldManager.register('1', () => Promise.resolve(bubblepicking));
 worldManager.register('2', () => import('./worlds/world-01-teatro.js?v=9').then(m => m.default));
-worldManager.register('3', () => import('./worlds/world-02-array3d.js?v=38').then(m => m.default));
+worldManager.register('3', () => import('./worlds/world-02-array3d.js?v=39').then(m => m.default));
 worldManager.register('4', () => import('./worlds/world-03-tunnel.js?v=10').then(m => m.default));
 worldManager.register('5', () => import('./worlds/world-04-drawrange.js?v=2').then(m => m.default));
 worldManager.register('6', () => import('./worlds/world06.js?v=7').then(m => m.default));

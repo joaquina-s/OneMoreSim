@@ -1819,8 +1819,8 @@ body.landing-video-ready #enter-button-img {
    ════════════════════════════════════════════════ */
 
 #custom-cursor {
-    width: 28px;
-    height: 28px;
+    width: 56px;
+    height: 56px;
     background: url('assets/tex/pointer.png') no-repeat center center;
     background-size: contain;
     border: none;
@@ -1831,18 +1831,23 @@ body.landing-video-ready #enter-button-img {
     z-index: 99999;
     transform: translate(-50%, -50%);
     transition: width 150ms, height 150ms, filter 180ms;
-    filter: drop-shadow(0 0 2px rgba(180, 200, 255, 0.3));
+    filter: drop-shadow(0 0 3px rgba(180, 200, 255, 0.3));
 }
 
 @media (pointer: fine) {
-    body {
-        cursor: none;
+    /* Hide the OS/browser cursor everywhere — !important overrides the
+       cursor:pointer rules on buttons/links so the native arrow stops
+       showing alongside the custom cursor. */
+    *, *::before, *::after,
+    html, body,
+    button, a, input, textarea, select, label {
+        cursor: none !important;
     }
 
     /* Mini glow cuando el cursor está sobre un elemento clickeable */
     #custom-cursor.hover {
-        width: 36px;
-        height: 36px;
+        width: 72px;
+        height: 72px;
         filter:
             drop-shadow(0 0 6px rgba(180, 210, 255, 0.95))
             drop-shadow(0 0 14px rgba(120, 170, 255, 0.7))

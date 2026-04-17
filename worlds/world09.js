@@ -261,137 +261,148 @@ function buildRooms(scene) {
 // ═══════════════════════════════════════════════
 // Room Simulations
 // ═══════════════════════════════════════════════
+// Helper: billboard a plane to face the camera horizontally (keeps it upright)
+function billboardToCamera(mesh) {
+    if (!bpCamera) return;
+    mesh.lookAt(bpCamera.position.x, mesh.position.y, bpCamera.position.z);
+}
+
+// ── Room 1 — c01.png: burbujas subiendo de abajo hacia arriba ──
 function initRoom1(scene) {
-    const geo = new THREE.BufferGeometry();
-    const count = 500;
-    const pos = new Float32Array(count * 3);
     const pRoom = roomData.find(r => r.id === "1");
+    const texLoader = new THREE.TextureLoader();
+    const tex = texLoader.load('assets/tex/c01.png');
+    const count = 28;
+    const r1Bubbles = [];
     for (let i = 0; i < count; i++) {
-        const radius = Math.random() * 10;
-        const theta = Math.random() * Math.PI * 2;
-        pos[i * 3] = pRoom.cx + Math.cos(theta) * radius;
-        pos[i * 3 + 1] = Math.random() * 10;
-        pos[i * 3 + 2] = pRoom.cz + Math.sin(theta) * radius;
+        const size = 0.5 + Math.random() * 1.0;
+        const geo = new THREE.PlaneGeometry(size, size);
+        const mat = new THREE.MeshBasicMaterial({
+            map: tex, transparent: true, side: THREE.DoubleSide,
+            opacity: 0.75 + Math.random() * 0.2, depthWrite: false
+        });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.set(
+            pRoom.cx + (Math.random() - 0.5) * 20,
+            -0.5 + Math.random() * 11,   // spread along full vertical at start
+            pRoom.cz + (Math.random() - 0.5) * 20
+        );
+        mesh.userData.speed  = 0.4 + Math.random() * 0.9;
+        mesh.userData.wobble = Math.random() * Math.PI * 2;
+        mesh.userData.baseX  = mesh.position.x;
+        mesh.userData.baseZ  = mesh.position.z;
+        scene.add(mesh);
+        r1Bubbles.push(mesh);
     }
-    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    const mat = new THREE.PointsMaterial({ size: 0.15, color: 0xcccccc, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending });
-    const particles = new THREE.Points(geo, mat);
-    scene.add(particles);
     simulations.push((time) => {
-        particles.rotation.y = time * 0.1;
-        const positions = particles.geometry.attributes.position.array;
-        for (let i = 0; i < count; i++) positions[i * 3 + 1] += Math.sin(time * 2 + i) * 0.01;
-        particles.geometry.attributes.position.needsUpdate = true;
+        r1Bubbles.forEach(b => {
+            b.position.y += b.userData.speed * 0.016;
+            b.position.x  = b.userData.baseX + Math.sin(time * 1.2 + b.userData.wobble) * 0.45;
+            b.position.z  = b.userData.baseZ + Math.cos(time * 0.9 + b.userData.wobble) * 0.35;
+            billboardToCamera(b);
+            if (b.position.y > 11) {
+                b.position.y = -0.6;
+                b.userData.baseX = pRoom.cx + (Math.random() - 0.5) * 20;
+                b.userData.baseZ = pRoom.cz + (Math.random() - 0.5) * 20;
+            }
+        });
     });
 }
 
+// ── Room 2 — c02.png: 10 flores en posiciones random ──
 function initRoom2(scene) {
     const pRoom = roomData.find(r => r.id === "2");
-    bubbles = [];
-    for (let i = 0; i < 20; i++) {
-        const r = 0.17 + Math.random() * 0.40;
-        const geo = new THREE.SphereGeometry(r, 10, 8);
-        const mat = new THREE.MeshStandardMaterial({
-            color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.1,
-            transparent: true, opacity: 0.3 + Math.random() * 0.2, roughness: 0.1, metalness: 0.1
+    const texLoader = new THREE.TextureLoader();
+    const tex = texLoader.load('assets/tex/c02.png');
+    const flowers = [];
+    for (let i = 0; i < 10; i++) {
+        const size = 1.5 + Math.random() * 1.0;
+        const geo = new THREE.PlaneGeometry(size, size);
+        const mat = new THREE.MeshBasicMaterial({
+            map: tex, transparent: true, side: THREE.DoubleSide,
+            opacity: 0.92, depthWrite: false
         });
         const mesh = new THREE.Mesh(geo, mat);
-        mesh.position.set(pRoom.cx + (Math.random() - 0.5) * 18, Math.random() * 10, pRoom.cz + (Math.random() - 0.5) * 18);
-        mesh.userData.speed = 0.3 + Math.random() * 0.7;
-        mesh.userData.baseX = mesh.position.x;
-        mesh.userData.baseZ = mesh.position.z;
-        mesh.userData.attached = false;
-        mesh.userData.radius = r;
+        mesh.position.set(
+            pRoom.cx + (Math.random() - 0.5) * 18,
+            1.0 + Math.random() * 7,
+            pRoom.cz + (Math.random() - 0.5) * 18
+        );
+        mesh.userData.phase = Math.random() * Math.PI * 2;
+        mesh.userData.baseY = mesh.position.y;
         scene.add(mesh);
-        bubbles.push(mesh);
+        flowers.push(mesh);
     }
+    bubbles = [];  // legacy array (bubble pickup mechanic)
     simulations.push((time) => {
-        bubbles.forEach(b => {
-            if (b.userData.attached) return;
-            b.position.y += b.userData.speed * 0.016;
-            b.position.x = b.userData.baseX + Math.sin(time * 2 + b.userData.speed * 10) * 0.3;
-            if (b.position.y > 10) b.position.y = 0.2;
+        flowers.forEach(f => {
+            f.position.y = f.userData.baseY + Math.sin(time * 0.6 + f.userData.phase) * 0.28;
+            billboardToCamera(f);
         });
     });
 }
 
+// ── Room 3 — c03.png: 10 elementos random (igual que room 2) ──
 function initRoom3(scene) {
     const pRoom = roomData.find(r => r.id === "3");
-    floatingImages = [];
-    absorbedImages = [];
-    absorbing = false;
-    absorbIndex = 0;
-    absorbTimer = 0;
     const texLoader = new THREE.TextureLoader();
-    const imgTex = texLoader.load('assets/CarouselFloor.png');
-    for (let i = 0; i < 15; i++) {
-        const geo = new THREE.PlaneGeometry(0.15, 0.15);
-        const mat = new THREE.MeshBasicMaterial({ map: imgTex, transparent: true, opacity: 0.9, side: THREE.DoubleSide });
+    const tex = texLoader.load('assets/tex/c03.png');
+    const items = [];
+    for (let i = 0; i < 10; i++) {
+        const size = 1.5 + Math.random() * 1.0;
+        const geo = new THREE.PlaneGeometry(size, size);
+        const mat = new THREE.MeshBasicMaterial({
+            map: tex, transparent: true, side: THREE.DoubleSide,
+            opacity: 0.92, depthWrite: false
+        });
         const mesh = new THREE.Mesh(geo, mat);
-        mesh.position.set(pRoom.cx + (Math.random() - 0.5) * 16, 1 + Math.random() * 6, pRoom.cz + (Math.random() - 0.5) * 16);
-        mesh.userData.homePos = mesh.position.clone();
+        mesh.position.set(
+            pRoom.cx + (Math.random() - 0.5) * 18,
+            1.0 + Math.random() * 7,
+            pRoom.cz + (Math.random() - 0.5) * 18
+        );
         mesh.userData.phase = Math.random() * Math.PI * 2;
-        mesh.userData.absorbed = false;
+        mesh.userData.baseY = mesh.position.y;
         scene.add(mesh);
-        floatingImages.push(mesh);
+        items.push(mesh);
     }
-    const bubbleGeo = new THREE.SphereGeometry(4.0, 16, 16);
-    const bubbleMat = new THREE.MeshStandardMaterial({
-        color: 0xaaddff, emissive: 0x224466, emissiveIntensity: 0.2,
-        transparent: true, opacity: 0.25, roughness: 0.05, metalness: 0.4
-    });
-    centralBubble = new THREE.Mesh(bubbleGeo, bubbleMat);
-    centralBubble.position.set(pRoom.cx, 4, pRoom.cz);
-    scene.add(centralBubble);
+    floatingImages = [];  // legacy array reset
     simulations.push((time) => {
-        floatingImages.forEach(img => {
-            if (img.userData.absorbed) return;
-            const h = img.userData.homePos;
-            img.position.x = h.x + Math.sin(time * 0.8 + img.userData.phase) * 0.5;
-            img.position.y = h.y + Math.cos(time * 1.2 + img.userData.phase) * 0.3;
-            img.position.z = h.z + Math.sin(time * 0.6 + img.userData.phase + 1) * 0.4;
-            img.rotation.y = time * 0.5 + img.userData.phase;
+        items.forEach(f => {
+            f.position.y = f.userData.baseY + Math.sin(time * 0.6 + f.userData.phase) * 0.28;
+            billboardToCamera(f);
         });
-        if (absorbing && absorbIndex < floatingImages.length) {
-            absorbTimer += 0.016;
-            if (absorbTimer > 0.3) {
-                absorbTimer = 0;
-                const img = floatingImages[absorbIndex];
-                if (img && !img.userData.absorbed) {
-                    img.userData.absorbed = true;
-                    img.userData.orbitPhase = absorbIndex * (Math.PI * 2 / 15);
-                    absorbedImages.push(img);
-                }
-                absorbIndex++;
-            }
-        }
-        absorbedImages.forEach(img => {
-            const orbitR = 3.0;
-            const phase = img.userData.orbitPhase || 0;
-            const targetX = centralBubble.position.x + Math.cos(time * 0.8 + phase) * orbitR;
-            const targetY = centralBubble.position.y + Math.sin(time * 1.1 + phase) * orbitR * 0.6;
-            const targetZ = centralBubble.position.z + Math.sin(time * 0.9 + phase + 1) * orbitR;
-            img.position.x += (targetX - img.position.x) * 0.05;
-            img.position.y += (targetY - img.position.y) * 0.05;
-            img.position.z += (targetZ - img.position.z) * 0.05;
-            img.rotation.y = time + phase;
-        });
-        const scale = 1 + Math.sin(time * 2) * 0.05;
-        centralBubble.scale.set(scale, scale, scale);
     });
 }
 
+// ── Room 4 — c04.png: 2 elementos simétricos en las puntas de la sala ──
 function initRoom4(scene) {
     const pRoom = roomData.find(r => r.id === "4");
     const texLoader = new THREE.TextureLoader();
-    texLoader.load('assets/chars/8.webp', (charTex) => {
-        const planeH = 8;
-        const planeW = planeH * (charTex.image.width / charTex.image.height || 0.6);
-        const geo = new THREE.PlaneGeometry(planeW, planeH);
-        const mat = new THREE.MeshBasicMaterial({ map: charTex, transparent: true, side: THREE.DoubleSide });
-        const charPlane = new THREE.Mesh(geo, mat);
-        charPlane.position.set(pRoom.cx - 5, planeH / 2, pRoom.cz);
-        scene.add(charPlane);
+    const tex = texLoader.load('assets/tex/c04.png');
+    // Room 4 está en cuadrante (+x, -z). Las "dos puntas" son las esquinas
+    // opuestas (-x/+x dentro de la room, manteniendo simetría sobre room center).
+    const offset = 9;
+    const items = [];
+    [[-offset, 0], [offset, 0]].forEach(([dx, dz]) => {
+        const size = 3.4;
+        const geo = new THREE.PlaneGeometry(size, size);
+        const mat = new THREE.MeshBasicMaterial({
+            map: tex, transparent: true, side: THREE.DoubleSide,
+            opacity: 0.95, depthWrite: false
+        });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.set(pRoom.cx + dx, 2.8, pRoom.cz + dz);
+        mesh.userData.phase = (dx < 0 ? 0 : Math.PI);  // desfase simétrico
+        mesh.userData.baseY = mesh.position.y;
+        scene.add(mesh);
+        items.push(mesh);
+    });
+    simulations.push((time) => {
+        items.forEach(f => {
+            f.position.y = f.userData.baseY + Math.sin(time * 0.5 + f.userData.phase) * 0.22;
+            billboardToCamera(f);
+        });
     });
 }
 
@@ -555,6 +566,9 @@ export const bubblepicking = {
 
         buildRooms(bpScene);
         simulations.length = 0;
+        initRoom1(bpScene);
+        initRoom2(bpScene);
+        initRoom3(bpScene);
         initRoom4(bpScene);
         createPlayer(bpScene);
 
