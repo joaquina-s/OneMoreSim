@@ -362,7 +362,7 @@ function initRoom3(scene) {
     const tex = texLoader.load('assets/tex/c03.png');
     const items = [];
     const FLOOR_R = 23.5;
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 20; i++) {
         const size = 1.05 + Math.random() * 0.7;
         const geo = new THREE.PlaneGeometry(size, size);
         const mat = new THREE.MeshBasicMaterial({
@@ -396,7 +396,8 @@ function initRoom4(scene) {
     const items = [];
     [[-offset, 0], [offset, 0]].forEach(([dx, dz]) => {
         const size = 3.4;
-        const geo = new THREE.PlaneGeometry(size, size);
+        // 40% más alto en height (Y), manteniendo width (X)
+        const geo = new THREE.PlaneGeometry(size, size * 1.4);
         const mat = new THREE.MeshBasicMaterial({
             map: tex, transparent: true, side: THREE.DoubleSide,
             opacity: 0.95, depthWrite: false

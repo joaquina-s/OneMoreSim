@@ -190,7 +190,9 @@ const WorldBanera = {
       (err) => console.error('[Fetal] error cargando watertext.png:', err)
     )
     tex.wrapS = tex.wrapT = THREE.RepeatWrapping
-    tex.repeat.set(1.0, 1.0)
+    // Flip horizontal: palabras se leen en el sentido correcto
+    tex.repeat.set(-1.0, 1.0)
+    tex.offset.set(1.0, 0.0)
     tex.premultiplyAlpha = false
     tex.minFilter = THREE.LinearFilter
     tex.magFilter = THREE.LinearFilter
@@ -244,34 +246,29 @@ const WorldBanera = {
 
           vec4 tex = texture2D(uTexture, uv);
 
-          // ── BASE: agua azul oscura (look original que te gustaba) ──
-          vec3  base  = vec3(0.00, 0.05, 0.15);
-          vec3  deep  = vec3(0.02, 0.10, 0.25);
+          // ── BASE: agua azul muy clarita ──
+          vec3  base  = vec3(0.72, 0.86, 0.96);
+          vec3  deep  = vec3(0.60, 0.80, 0.94);
 
           // Variación tonal del agua basada en las olas
           vec3 water = mix(base, deep, 0.5 + vWave * 0.5);
 
-          // ── TEXTO NEGRO sobre fondo blanco/claro/transparente ──
-          // Usar luminancia invertida: texto negro tiene lum~0 → mask~1.
-          // Si el píxel es transparente y el clearColor del canvas es negro
-          // por defecto, también daría lum=0 → también detecta texto.
-          // Multiplicar por tex.a (si existe) para evitar mostrar el fondo
-          // blanco como un velo. Si tex.a=1 en todo, no afecta.
+          // ── TEXTO NEGRO sobre fondo translúcido ──
+          // El PNG tiene palabras negras (lum~0) con fondo transparente.
+          // mask = (1 - lum) * tex.a → 1 solo donde hay texto opaco negro.
           float lum  = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
           float mask = (1.0 - lum) * tex.a;
           mask = clamp(mask * 1.4, 0.0, 1.0);
 
-          // Color del texto: blanco brillante con leve toque celeste para
-          // que se integre con la paleta del agua.
-          vec3 textColor = vec3(0.92, 0.96, 1.0);
+          // Color del texto: negro puro (conservar las palabras negras).
+          vec3 textColor = vec3(0.0, 0.0, 0.0);
 
-          // Combinar: el texto negro del PNG se muestra como blanco
-          // brillante sobre el agua azul. El fondo blanco/claro NO afecta.
+          // Combinar: el texto negro del PNG queda negro sobre agua celeste.
           vec3 color = mix(water, textColor, mask);
 
-          // Brillo de la cresta de las olas
-          float crest = max(0.0, vWave) * 0.45;
-          color += vec3(0.05, 0.15, 0.4) * crest;
+          // Brillo de la cresta de las olas (sutil, tono blanco)
+          float crest = max(0.0, vWave) * 0.35;
+          color += vec3(0.18, 0.22, 0.25) * crest;
 
           gl_FragColor = vec4(color, uOpacity);
         }

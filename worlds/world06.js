@@ -858,6 +858,12 @@ const WorldChase = {
      DISPOSE
      ════════════════════════════════════════════ */
   dispose() {
+    // Remove loading overlay if user changed world before models finished
+    if (this._loadingEl) {
+      this._loadingEl.remove();
+      this._loadingEl = null;
+    }
+    this._pendingLoads = 0;
     if (this._rtScene) {
       this._rtScene.dispose();
       this._rtAccumOld.dispose();

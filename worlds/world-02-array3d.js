@@ -20,6 +20,9 @@ export default {
   _instances: [], // Array of { id, group, mixer, meshes }
   _lastHovered: -1,
 
+  _composer: null,
+  _bloomPass: null,
+
   _textImages: [
     'assets/texto/SPE1.png',
     'assets/texto/SPE2.png',
@@ -85,6 +88,24 @@ export default {
     // ── Raycaster ──
     this._raycaster = new THREE.Raycaster();
     this._mouse = new THREE.Vector2();
+
+    // ── Local post-processing: gentle bloom ──
+    try {
+      this._composer = new THREE.EffectComposer(renderer);
+      this._composer.setSize(W, H);
+      const renderPass = new THREE.RenderPass(this.scene, this.camera);
+      this._composer.addPass(renderPass);
+      this._bloomPass = new THREE.UnrealBloomPass(
+        new THREE.Vector2(W, H),
+        0.35,  // strength (subtle)
+        0.85,  // radius
+        0.82   // threshold — only bright bits bloom
+      );
+      this._composer.addPass(this._bloomPass);
+    } catch (e) {
+      console.warn('[Array3D] bloom unavailable:', e);
+      this._composer = null;
+    }
 
     // ── OrbitControls — disabled, camera is fixed ──
     this._orbitControls = new THREE.OrbitControls(this.camera, renderer.domElement);
@@ -363,8 +384,8 @@ export default {
     img.style.left = randX + '%';
     img.style.top  = randY + '%';
 
-    // Scale variation: 0.3–0.9 (wider range)
-    const scale = 0.3 + Math.random() * 0.6;
+    // Scale variation: 0.21–0.63 (30% smaller than before: was 0.3–0.9)
+    const scale = 0.21 + Math.random() * 0.42;
     // Subtle random rotation
     const rotation = (Math.random() - 0.5) * 6;
     img.style.transform = 'rotate(' + rotation + 'deg) scale(' + scale + ')';
@@ -395,8 +416,10 @@ export default {
         }
     }
 
-    // Render our scene natively
-    if (this._renderer) {
+    // Render via local composer (bloom) if available, else native
+    if (this._composer) {
+      this._composer.render();
+    } else if (this._renderer) {
       this._renderer.render(this.scene, this.camera);
     }
   },
@@ -419,6 +442,11 @@ export default {
       this._orbitControls.dispose();
       this._orbitControls = null;
     }
+
+    // Dispose local composer/bloom
+    if (this._bloomPass && this._bloomPass.dispose) this._bloomPass.dispose();
+    this._bloomPass = null;
+    this._composer = null;
 
     // Clean up spawned text DOM elements
     const container = document.getElementById('text-overlay-container');
