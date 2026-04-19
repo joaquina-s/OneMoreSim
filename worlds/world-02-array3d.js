@@ -59,14 +59,14 @@ export default {
     this.scene.background = new THREE.Color(0x020612);
     this.scene.fog = new THREE.Fog(0x001040, 8, 26);
 
-    // ── Camera — moderate fisheye FOV 95, tilt 50° down ──
-    // pos=(0,2.7,4.8) · 50° downward tilt → target = pos + (0,-sin50°,-cos50°)*4.8
-    //                                              ≈ (0, -0.98, 1.71)
+    // ── Camera — moderate fisheye FOV 95, tilt 5° down ──
+    // pos=(0,2.7,4.8) · 5° downward tilt → target = pos + (0,-sin5°,-cos5°)*4.8
+    //                                            ≈ (0, 2.28, 0.02)
     this.camera = new THREE.PerspectiveCamera(95, W / H, 0.1, 100);
     this.camera.position.set(0, 2.7, 4.8);
-    this.camera.lookAt(0, -0.98, 1.71);
+    this.camera.lookAt(0, 2.28, 0.02);
     this._fixedCamPos  = new THREE.Vector3(0, 2.7, 4.8);
-    this._fixedCamLook = new THREE.Vector3(0, -0.98, 1.71);
+    this._fixedCamLook = new THREE.Vector3(0, 2.28, 0.02);
 
     // ── Lighting (slightly glowier) ──
     this.scene.add(new THREE.AmbientLight(0x334466, 3.4));

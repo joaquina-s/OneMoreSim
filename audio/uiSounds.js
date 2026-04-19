@@ -34,10 +34,29 @@ class UISound {
     }
 
     _play(name, gain = 0.5) {
-        if (!this.ctx || !this._buffers[name]) return;
+        // Ensure the AudioContext exists (created lazily on first user gesture)
+        this._init();
+        if (!this.ctx) return;
         if (this.ctx.state === 'suspended') this.ctx.resume();
+
+        // Buffer not loaded yet → queue the play for when loading finishes.
+        // Prevents the "sometimes the click sound doesn't fire" race on the
+        // first interaction (the ENTER button click was running before the
+        // fetch/decode promise resolved).
+        if (!this._buffers[name]) {
+            if (this._loading) {
+                this._loading.then(() => {
+                    if (this._buffers[name]) this._playNow(name, gain);
+                });
+            }
+            return;
+        }
+        this._playNow(name, gain);
+    }
+
+    _playNow(name, gain) {
         const src = this.ctx.createBufferSource();
-        const g = this.ctx.createGain();
+        const g   = this.ctx.createGain();
         src.buffer = this._buffers[name];
         g.gain.value = gain;
         src.connect(g);
@@ -48,14 +67,13 @@ class UISound {
     // ── Public API ──
 
     /** Enter / gritito — landing + welcome enter buttons, logo buttons */
-    enter()      { this._init(); this._play('gritito', 0.5); }
+    enter()      { this._play('gritito', 0.5); }
 
     /** World nav button click */
-    switchWorld() { this._init(); this._play('bubble1', 0.5); }
+    switchWorld() { this._play('bubble1', 0.5); }
 
     /** Texture button click — random between bubble2 and bubble2-no-fx */
     click()      {
-        this._init();
         this._play(Math.random() < 0.5 ? 'bubble2' : 'bubble2noFx', 0.5);
     }
 

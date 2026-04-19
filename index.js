@@ -53,8 +53,14 @@ const drawerBackdrop = document.getElementById('texture-drawer-backdrop');
 
 const worldManager = new WorldManager(renderer, composer, canvasArea);
 
-// Initialize interaction sounds on first click anywhere
-window.addEventListener('click', () => uiSound._init(), { once: true });
+// Initialize interaction sounds as early as the browser allows. Listening to
+// pointerdown / touchstart / keydown (not just click) starts fetching+decoding
+// the WAVs the instant the user gestures, so the first ENTER click already has
+// the buffers ready (avoids the "sometimes the sound doesn't fire" race).
+const _initAudio = () => uiSound._init();
+window.addEventListener('pointerdown', _initAudio, { once: true });
+window.addEventListener('touchstart',  _initAudio, { once: true, passive: true });
+window.addEventListener('keydown',     _initAudio, { once: true });
 
 // Custom Cursor Setup
 const cursor = document.getElementById('custom-cursor');
@@ -73,7 +79,7 @@ if (window.matchMedia('(pointer: fine)').matches && cursor) {
 worldManager.register('0', () => import('./worlds/world-00-huevo.js?v=3').then(m => m.default));
 worldManager.register('1', () => Promise.resolve(bubblepicking));
 worldManager.register('2', () => import('./worlds/world-01-teatro.js?v=11').then(m => m.default));
-worldManager.register('3', () => import('./worlds/world-02-array3d.js?v=42').then(m => m.default));
+worldManager.register('3', () => import('./worlds/world-02-array3d.js?v=43').then(m => m.default));
 worldManager.register('4', () => import('./worlds/world-03-tunnel.js?v=13').then(m => m.default));
 worldManager.register('5', () => import('./worlds/world-04-drawrange.js?v=2').then(m => m.default));
 worldManager.register('6', () => import('./worlds/world06.js?v=8').then(m => m.default));
