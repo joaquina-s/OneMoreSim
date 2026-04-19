@@ -4,7 +4,11 @@
    Uses THREE.SkeletonUtils for proper skeletal cloning.
    ═══════════════════════════════════════════════════ */
 
-const COUNT = 50;
+// Procession size scales with device — mobile cuts in half because each
+// SkinnedMesh draws separately and skinning is the heaviest per-vertex cost
+// in this scene. (True instancing isn't possible here: every figure has its
+// own AnimationMixer and bone state.)
+const COUNT = (window.innerWidth < 768) ? 24 : 50;
 
 export default {
   id: '2',
@@ -108,6 +112,20 @@ export default {
       console.warn('[Array3D] bloom unavailable:', e);
       this._composer = null;
     }
+
+    // Keep the local composer in sync with viewport / device-profile changes.
+    this._handlers.resize = () => {
+      const wEl = renderer.domElement;
+      const ww = wEl.clientWidth  || window.innerWidth;
+      const hh = wEl.clientHeight || window.innerHeight;
+      if (this.camera) {
+        this.camera.aspect = ww / hh;
+        this.camera.updateProjectionMatrix();
+      }
+      if (this._composer) this._composer.setSize(ww, hh);
+      if (this._bloomPass && this._bloomPass.setSize) this._bloomPass.setSize(ww, hh);
+    };
+    window.addEventListener('resize', this._handlers.resize);
 
     // OrbitControls removed — they were re-baselining the camera each frame
     // (update() calls camera.lookAt(target) regardless of `enabled`), which
@@ -435,6 +453,7 @@ export default {
       if (this._handlers.click)       document.removeEventListener('click',       this._handlers.click);
       if (this._handlers.click)       document.removeEventListener('touchstart',  this._handlers.click);
       if (this._handlers.pointermove) document.removeEventListener('pointermove', this._handlers.pointermove);
+      if (this._handlers.resize)      window.removeEventListener('resize',        this._handlers.resize);
       this._handlers = {};
       document.body.style.cursor = 'default';
     }

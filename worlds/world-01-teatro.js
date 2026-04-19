@@ -54,8 +54,10 @@ const WorldTeatro = {
     const moonLight = new THREE.DirectionalLight(0xc8d8ff, 1.8);
     moonLight.position.set(8, 12, -5);
     moonLight.castShadow = true;
-    moonLight.shadow.mapSize.width = 1024;
-    moonLight.shadow.mapSize.height = 1024;
+    // Per-device shadow size (mobile: 512² → 4× cheaper)
+    const _shadowSize = (window.innerWidth < 768) ? 512 : 1024;
+    moonLight.shadow.mapSize.width  = _shadowSize;
+    moonLight.shadow.mapSize.height = _shadowSize;
     moonLight.shadow.camera.near = 0.5;
     moonLight.shadow.camera.far = 60;
     moonLight.shadow.camera.left = -15;

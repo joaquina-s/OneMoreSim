@@ -132,8 +132,11 @@ const WorldChase = {
     const moonLight = new THREE.DirectionalLight(0xe4ecff, 3.6);
     moonLight.position.set(8, 12, -5);
     moonLight.castShadow = true;
-    moonLight.shadow.mapSize.width = 2048;
-    moonLight.shadow.mapSize.height = 2048;
+    // Shadow map sized per device: was 2048² (16MB on GPU). Now 1024² desktop /
+    // 512² mobile — visually almost identical, ~4–16x cheaper to render.
+    const _shadowSize = (window.innerWidth < 768) ? 512 : 1024;
+    moonLight.shadow.mapSize.width  = _shadowSize;
+    moonLight.shadow.mapSize.height = _shadowSize;
     moonLight.shadow.camera.near = 0.5;
     moonLight.shadow.camera.far = 80;
     moonLight.shadow.camera.left = -20;
