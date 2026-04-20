@@ -4,7 +4,7 @@
    Uses THREE.SkeletonUtils for proper skeletal cloning.
    ═══════════════════════════════════════════════════ */
 
-import { uiSound } from '../audio/uiSounds.js?v=2';
+import { uiSound } from '../audio/uiSounds.js?v=3';
 
 // Seeded PRNG (mulberry32) — replaces Math.random() in formation layout so
 // the procession is deterministic. Without this, every refresh placed each

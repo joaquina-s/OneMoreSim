@@ -1,7 +1,7 @@
 // worlds/world-04-drawrange.js
 // World 07 — Full-screen looping video (hfloat.mp4) rendered as a Three.js plane.
 
-import { uiSound } from '../audio/uiSounds.js?v=2';
+import { uiSound } from '../audio/uiSounds.js?v=3';
 
 export default {
     scene: null,
@@ -51,18 +51,29 @@ export default {
         this.camera.position.z = 1;
 
         // ── Video element ──
+        // Sound ON — by the time the user reaches this world they've already
+        // clicked through the landing ENTER, so the page has the user gesture
+        // required for unmuted autoplay. Fallback: if play() still throws
+        // (some browsers are stricter), start muted then unmute on next click.
         const video = document.createElement('video');
-        video.src = 'assets/videos/hfloat.mp4';
+        video.src = 'assets/videos/hfloat.mp4?v=2';
         video.loop = true;
-        video.muted = true;
+        video.muted = false;
+        video.volume = 0.9;
         video.playsInline = true;
         video.crossOrigin = 'anonymous';
         video.play().catch(() => {
-            const playOnClick = () => {
-                video.play();
-                document.removeEventListener('click', playOnClick);
+            // Autoplay-with-sound was rejected — start muted so the visual
+            // still plays, and unmute on the next user interaction.
+            video.muted = true;
+            video.play();
+            const unmute = () => {
+                video.muted = false;
+                document.removeEventListener('pointerdown', unmute);
+                document.removeEventListener('keydown', unmute);
             };
-            document.addEventListener('click', playOnClick);
+            document.addEventListener('pointerdown', unmute, { once: true });
+            document.addEventListener('keydown',     unmute, { once: true });
         });
         this._video = video;
 

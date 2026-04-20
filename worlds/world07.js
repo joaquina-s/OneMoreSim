@@ -1,4 +1,5 @@
 // worlds/world07.js
+import { uiSound } from '../audio/uiSounds.js?v=3';
 
 const GRID_CELLS = [
 
@@ -227,6 +228,7 @@ export default {
             const intersects = this.raycaster.intersectObjects(this.cells, true);
 
             if (intersects.length > 0) {
+                uiSound.discover();
                 // Obtenemos el grupo padre (albergando ambas mallas)
                 const group = intersects[0].object.parent;
                 group.userData.transitioning = true;

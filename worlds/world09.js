@@ -5,7 +5,7 @@
 // Uses global THREE (r128 via CDN script tags).
 
 import { deviceProfile } from '../core/deviceProfile.js';
-import { uiSound } from '../audio/uiSounds.js?v=2';
+import { uiSound } from '../audio/uiSounds.js?v=3';
 
 // ─── Private state ───
 let bpScene = null;

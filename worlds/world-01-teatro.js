@@ -1,4 +1,4 @@
-import { uiSound } from '../audio/uiSounds.js?v=2';
+import { uiSound } from '../audio/uiSounds.js?v=3';
 
 const WorldTeatro = {
   scene: null,

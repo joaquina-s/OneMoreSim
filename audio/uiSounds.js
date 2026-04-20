@@ -1,4 +1,4 @@
-// audio/uiSounds.js
+// audio/uiSounds.js v3
 // UI interaction sounds — loads WAV/MP3 files from assets/Sound/.
 
 class UISound {
@@ -51,6 +51,9 @@ class UISound {
             superMe2: 'assets/Sound/super-me-click-1-no-delay.mp3',
             // Single-shot
             chair:    'assets/Sound/presentation-club-chair.mp3',
+            discover: 'assets/Sound/click-discover-picture.wav',
+            banera1:  'assets/Sound/click-baniera-1.mp3',
+            banera2:  'assets/Sound/click-baniera-2.mp3',
             // Loops (lower volume, started/stopped per-world)
             bubbles78: 'assets/Sound/extra-layer-bubbles-7-8.mp3',
             navegando: 'assets/Sound/loop-navegando.mp3',
@@ -120,7 +123,7 @@ class UISound {
     /** World nav button click — random memory-click-1..9 */
     switchWorld() {
         const names = ['mem1','mem2','mem3','mem4','mem5','mem6','mem7','mem8','mem9'];
-        this._play(this._pickRandom(names), 0.6);
+        this._play(this._pickRandom(names), 0.5);
     }
 
     /** Skin (texture) button click — random click-skin-1..8 */
@@ -137,6 +140,13 @@ class UISound {
 
     /** Presentation club chair click */
     chair() { this._play('chair', 0.6); }
+
+    /** Ambient_Human_Presence cell click — layer transition */
+    discover() { this._play('discover', 0.55); }
+
+    /** Fetal_Situation arrow keys — different sound per direction */
+    baneraLeft()  { this._play('banera1', 0.6); }
+    baneraRight() { this._play('banera2', 0.6); }
 
     /** Subtle hover tick (procedural — no file needed) */
     hover() {

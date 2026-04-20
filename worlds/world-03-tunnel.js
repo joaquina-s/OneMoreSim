@@ -1,4 +1,4 @@
-import { uiSound } from '../audio/uiSounds.js?v=2'
+import { uiSound } from '../audio/uiSounds.js?v=3'
 
 const WorldBanera = {
 
@@ -450,6 +450,12 @@ const WorldBanera = {
     // Arrow key rotation
     if (this._orbitControls) {
       const rotSpeed = 1.5
+      // Edge-trigger click sounds (one per press, not every frame)
+      if (keys && keys.left && !this._wasLeft) uiSound.baneraLeft()
+      if (keys && keys.right && !this._wasRight) uiSound.baneraRight()
+      this._wasLeft  = !!(keys && keys.left)
+      this._wasRight = !!(keys && keys.right)
+
       if (keys && keys.left) {
         this._orbitControls.autoRotateSpeed = rotSpeed
         this._orbitControls.autoRotate = true

@@ -1,5 +1,5 @@
 // worlds/world06.js  —  CHASE  (Nighttime Beach)
-import { uiSound } from '../audio/uiSounds.js?v=2';
+import { uiSound } from '../audio/uiSounds.js?v=3';
 
 const WorldChase = {
   scene: null,
