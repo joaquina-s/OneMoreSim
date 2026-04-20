@@ -76,13 +76,13 @@ if (window.matchMedia('(pointer: fine)').matches && cursor) {
 }
 
 // Register all 8 worlds
-worldManager.register('0', () => import('./worlds/world-00-huevo.js?v=3').then(m => m.default));
+worldManager.register('0', () => import('./worlds/world-00-huevo.js?v=4').then(m => m.default));
 worldManager.register('1', () => Promise.resolve(bubblepicking));
-worldManager.register('2', () => import('./worlds/world-01-teatro.js?v=13').then(m => m.default));
+worldManager.register('2', () => import('./worlds/world-01-teatro.js?v=14').then(m => m.default));
 worldManager.register('3', () => import('./worlds/world-02-array3d.js?v=45').then(m => m.default));
-worldManager.register('4', () => import('./worlds/world-03-tunnel.js?v=14').then(m => m.default));
+worldManager.register('4', () => import('./worlds/world-03-tunnel.js?v=15').then(m => m.default));
 worldManager.register('5', () => import('./worlds/world-04-drawrange.js?v=3').then(m => m.default));
-worldManager.register('6', () => import('./worlds/world06.js?v=10').then(m => m.default));
+worldManager.register('6', () => import('./worlds/world06.js?v=11').then(m => m.default));
 worldManager.register('7', () => import('./worlds/world07.js?v=2').then(m => m.default));
 worldManager.register('9', () => import('./worlds/world-layer.js?v=2').then(m => m.default));
 
@@ -192,12 +192,12 @@ function enterExperience() {
                 // the user enters that world, the GLTFLoader gets the file
                 // from cache instantly (no download wait)
                 const heavyAssets = [
-                    'assets/3D/lanchachar.glb',   // world06 — 20MB
-                    'assets/3D/palm1.1.glb',      // world06 — 12MB
-                    'assets/3D/palm2.1.glb',      // world06 — 14MB
-                    'assets/3D/walk.glb',         // world06 + bubblepicking
-                    'assets/3D/baneraLow.glb',    // world-03 + world-00
-                    'assets/3D/teatro.glb',       // world-01
+                    'assets/3D/lanchachar.glb?v=2',
+                    'assets/3D/palm1.1.glb?v=2',
+                    'assets/3D/palm2.1.glb?v=2',
+                    'assets/3D/walk.glb',
+                    'assets/3D/baneraLow.glb?v=2',
+                    'assets/3D/teatro.glb?v=2',
                 ];
                 // Total progress units = worlds + heavy assets + music
                 const totalUnits = allIds.length + heavyAssets.length + 1;

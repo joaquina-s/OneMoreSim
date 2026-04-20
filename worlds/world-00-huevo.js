@@ -158,7 +158,7 @@ export default {
 
         // ── Load GLB ──
         const loader = new THREE.GLTFLoader();
-        loader.load('assets/3D/baneraLow.glb', (gltf) => {
+        loader.load('assets/3D/baneraLow.glb?v=2', (gltf) => {
             // Extract the huevo mesh from the baneraLow composition
             let huevoObj = null;
             gltf.scene.traverse((child) => {
