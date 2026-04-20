@@ -1,4 +1,6 @@
 // worlds/world06.js  —  CHASE  (Nighttime Beach)
+import { uiSound } from '../audio/uiSounds.js?v=2';
+
 const WorldChase = {
   scene: null,
   camera: null,
@@ -41,6 +43,9 @@ const WorldChase = {
     this._renderer = renderer;
     this._clock = new THREE.Clock();
     this._pendingLoads = 0; // lanchachar + walk + palm1 + palm2 = 4 GLBs
+
+    // Background ambient loop — quieter than main music layers.
+    uiSound.startLoop('navegando', 0.18, 1.6);
 
     // ── LOADING TEXT (removed once all GLBs are loaded) ──
     this._loadingEl = document.createElement('div');
@@ -124,12 +129,12 @@ const WorldChase = {
      LIGHTING — Nighttime beach
      ════════════════════════════════════════════ */
   _setupLighting() {
-    // 1. Deep blue ambient — base
-    const ambient = new THREE.AmbientLight(0x4a5a9a, 2.0);
+    // 1. Deep blue ambient — base (slightly brighter overall scene)
+    const ambient = new THREE.AmbientLight(0x4a5a9a, 2.6);
     this.scene.add(ambient);
 
-    // 2. Moonlight — directional, white-blue, shadows
-    const moonLight = new THREE.DirectionalLight(0xe4ecff, 3.6);
+    // 2. Moonlight — directional, white-blue, shadows (slightly brighter)
+    const moonLight = new THREE.DirectionalLight(0xe4ecff, 4.4);
     moonLight.position.set(8, 12, -5);
     moonLight.castShadow = true;
     // Shadow map sized per device: was 2048² (16MB on GPU). Now 1024² desktop /
@@ -151,7 +156,7 @@ const WorldChase = {
     this.scene.add(rimLight);
 
     // 4. Hemisphere for subtle warm/cool split
-    const hemiLight = new THREE.HemisphereLight(0x4a5a9a, 0x223377, 1.6);
+    const hemiLight = new THREE.HemisphereLight(0x4a5a9a, 0x223377, 2.1);
     this.scene.add(hemiLight);
 
     // 5. Dedicated lancha fill light (brighter, blue-tinted)
@@ -861,6 +866,8 @@ const WorldChase = {
      DISPOSE
      ════════════════════════════════════════════ */
   dispose() {
+    uiSound.stopLoop('navegando', 0.8);
+
     // Remove loading overlay if user changed world before models finished
     if (this._loadingEl) {
       this._loadingEl.remove();

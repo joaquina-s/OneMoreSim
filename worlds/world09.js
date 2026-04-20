@@ -5,6 +5,7 @@
 // Uses global THREE (r128 via CDN script tags).
 
 import { deviceProfile } from '../core/deviceProfile.js';
+import { uiSound } from '../audio/uiSounds.js?v=2';
 
 // ─── Private state ───
 let bpScene = null;
@@ -20,6 +21,7 @@ let orbitAngle = 0;
 let velocity = 0;
 const orbitRadius = 16;
 let lastFacingRight = true;
+let _windOn = false;
 
 let currentRoomId = null;
 let roomOverlayTimeout = null;
@@ -681,6 +683,10 @@ export const bubblepicking = {
 
         // ── Movement ──
         const isMoving = keys.left || keys.right;
+        // Wind ambience — fade in/out only on edges to avoid restarting the
+        // gain ramp every frame.
+        if (isMoving && !_windOn) { uiSound.startLoop('viento', 0.22, 0.6); _windOn = true; }
+        else if (!isMoving && _windOn) { uiSound.stopLoop('viento', 0.8); _windOn = false; }
         if (keys.left) velocity += 0.00024;
         if (keys.right) velocity -= 0.00024;
         if (!isMoving) velocity *= 0.95;
@@ -807,6 +813,7 @@ export const bubblepicking = {
     getPixelPass() { return null; },
 
     dispose() {
+        if (_windOn) { uiSound.stopLoop('viento', 0.4); _windOn = false; }
         if (playerMixer) {
             playerMixer.stopAllAction();
             if (playerGroup) playerMixer.uncacheRoot(playerGroup);

@@ -1,15 +1,46 @@
 // worlds/world-04-drawrange.js
 // World 07 — Full-screen looping video (hfloat.mp4) rendered as a Three.js plane.
 
+import { uiSound } from '../audio/uiSounds.js?v=2';
+
 export default {
     scene: null,
     camera: null,
     renderer: null,
     _video: null,
     _videoTexture: null,
+    _windOn: false,
+    _onKeyDown: null,
+    _onKeyUp: null,
+    _arrowKeysHeld: 0,
 
     init(renderer) {
         this.renderer = renderer;
+
+        // Wind ambience on arrow keys (left/right). Fade in on press, fade
+        // out on release.
+        this._arrowKeysHeld = 0;
+        this._windOn = false;
+        this._onKeyDown = (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                this._arrowKeysHeld++;
+                if (!this._windOn) {
+                    uiSound.startLoop('viento', 0.22, 0.6);
+                    this._windOn = true;
+                }
+            }
+        };
+        this._onKeyUp = (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                this._arrowKeysHeld = Math.max(0, this._arrowKeysHeld - 1);
+                if (this._arrowKeysHeld === 0 && this._windOn) {
+                    uiSound.stopLoop('viento', 0.8);
+                    this._windOn = false;
+                }
+            }
+        };
+        window.addEventListener('keydown', this._onKeyDown);
+        window.addEventListener('keyup',   this._onKeyUp);
 
         // ── Scene ──
         this.scene = new THREE.Scene();
@@ -54,6 +85,13 @@ export default {
     },
 
     dispose() {
+        if (this._onKeyDown) window.removeEventListener('keydown', this._onKeyDown);
+        if (this._onKeyUp)   window.removeEventListener('keyup',   this._onKeyUp);
+        this._onKeyDown = null;
+        this._onKeyUp = null;
+        if (this._windOn) { uiSound.stopLoop('viento', 0.4); this._windOn = false; }
+        this._arrowKeysHeld = 0;
+
         if (this._video) {
             this._video.pause();
             this._video.removeAttribute('src');

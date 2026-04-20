@@ -33,11 +33,11 @@ export default class LayeredMusic {
 
         // Define all 5 layers (principal always plays, no toggle)
         const layerDefs = [
-            { key: 'principal', src: 'assets/Sound/1-layer-principal-nostalgia.mp3', muted: false },
-            { key: 'synth',     src: 'assets/Sound/2-layer-synth-nostalgia.mp3',     muted: false },
-            { key: 'bass',      src: 'assets/Sound/4-layer-bass-kick-nostalgia.mp3', muted: false },
-            { key: 'perc',      src: 'assets/Sound/3-layer-percussion-nostalgia.mp3', muted: false },
-            { key: 'voice',     src: 'assets/Sound/5-layer-voice-nostalgia.mp3',     muted: false },
+            { key: 'principal', src: 'assets/Sound/1-layer-principal-one-more-sim.mp3', muted: false },
+            { key: 'synth',     src: 'assets/Sound/2-layer-synth-one-more-sim.mp3',     muted: false },
+            { key: 'bass',      src: 'assets/Sound/4-layer-bass-one-more-sim.mp3',      muted: false },
+            { key: 'perc',      src: 'assets/Sound/3-layer-percu-one-more-sim.mp3',     muted: false },
+            { key: 'voice',     src: 'assets/Sound/5-layer-voice-one-more-sim.mp3',     muted: false },
         ];
 
         // Fetch and decode all buffers in parallel

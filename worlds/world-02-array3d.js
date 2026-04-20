@@ -4,6 +4,21 @@
    Uses THREE.SkeletonUtils for proper skeletal cloning.
    ═══════════════════════════════════════════════════ */
 
+import { uiSound } from '../audio/uiSounds.js?v=2';
+
+// Seeded PRNG (mulberry32) — replaces Math.random() in formation layout so
+// the procession is deterministic. Without this, every refresh placed each
+// figure at a slightly different (x, z), which read as "the camera moved a
+// bit" since the background and character poses both shifted.
+function _mulberry32(seed) {
+    return function() {
+        let t = seed += 0x6D2B79F5;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+}
+
 // Procession size scales with device — mobile cuts in half because each
 // SkinnedMesh draws separately and skinning is the heaviest per-vertex cost
 // in this scene. (True instancing isn't possible here: every figure has its
@@ -163,6 +178,7 @@ export default {
       const hits = this._raycaster.intersectObjects(this._hitboxes, false);
       
       if (hits.length > 0) {
+         uiSound.superMeClick();
          this._spawnText();
       }
     };
@@ -252,6 +268,9 @@ export default {
     const clip = gltf.animations[0];
     const baseScene = gltf.scene;
 
+    // Deterministic positions — same seed every load → no camera/array drift.
+    const rand = _mulberry32(20240911);
+
     // Ensure shadows on the base template — do NOT replace materials (preserve GLB textures)
     baseScene.traverse(child => {
         if (child.isMesh) {
@@ -311,8 +330,8 @@ export default {
         // edge cols further back, with slight random variation
         const centerDist = Math.abs(col - 4.5);
         const flockOffset = (4.5 - centerDist) * 0.5;
-        const x = (col - 4.5) * 2.0 + (Math.random() - 0.5) * 1.4;
-        const z = (row - 2.5) * 1.8 + flockOffset + (Math.random() - 0.5) * 0.9;
+        const x = (col - 4.5) * 2.0 + (rand() - 0.5) * 1.4;
+        const z = (row - 2.5) * 1.8 + flockOffset + (rand() - 0.5) * 0.9;
       
         clone.position.set(x, 0, z);
       
@@ -321,7 +340,7 @@ export default {
         const action = mixer.clipAction(clip);
       
         // Start at random phase to avoid sync stepping out of 50 models
-        action.startAt(Math.random() * 2);
+        action.startAt(rand() * 2);
         action.play();
       
         this.scene.add(clone);

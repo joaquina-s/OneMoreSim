@@ -1,3 +1,5 @@
+import { uiSound } from '../audio/uiSounds.js?v=2';
+
 const WorldTeatro = {
   scene: null,
   camera: null,
@@ -343,6 +345,7 @@ const WorldTeatro = {
       // Find the chair group this mesh belongs to
       const chairGroup = this._chairGroupOf.get(hitMesh);
       if (chairGroup) {
+        uiSound.chair();
         this._sitOnChair(chairGroup, hitPoint);
       }
     }

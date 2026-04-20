@@ -1,3 +1,5 @@
+import { uiSound } from '../audio/uiSounds.js?v=2'
+
 const WorldBanera = {
 
   scene:          null,
@@ -22,6 +24,9 @@ const WorldBanera = {
     this._renderer = renderer
     this._eggs = []
     this._handlers = {}
+
+    // Extra ambient bubble layer — quieter than the main music layers.
+    uiSound.startLoop('bubbles78', 0.18, 1.6)
 
     const W = renderer.domElement.clientWidth
     const H = renderer.domElement.clientHeight
@@ -464,6 +469,8 @@ const WorldBanera = {
 
   // ─────────────────────────────────────────
   dispose() {
+    uiSound.stopLoop('bubbles78', 0.8)
+
     if (this._orbitControls) this._orbitControls.dispose()
 
     // Volumetric light
