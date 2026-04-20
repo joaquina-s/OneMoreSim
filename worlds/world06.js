@@ -45,7 +45,7 @@ const WorldChase = {
     this._pendingLoads = 0; // lanchachar + walk + palm1 + palm2 = 4 GLBs
 
     // Background ambient loop — quieter than main music layers.
-    uiSound.startLoop('navegando', 0.18, 1.6);
+    uiSound.startLoop('navegando', 0.55, 1.6);
 
     // ── LOADING TEXT (removed once all GLBs are loaded) ──
     this._loadingEl = document.createElement('div');

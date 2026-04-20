@@ -25,7 +25,7 @@ export default {
             if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
                 this._arrowKeysHeld++;
                 if (!this._windOn) {
-                    uiSound.startLoop('viento', 0.22, 0.6);
+                    uiSound.startLoop('viento', 0.65, 0.6);
                     this._windOn = true;
                 }
             }

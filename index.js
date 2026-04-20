@@ -7,11 +7,37 @@ import { getTime } from './core/clock.js';
 import { WorldManager } from './core/worldManager.js';
 import { deviceProfile } from './core/deviceProfile.js';
 import { ResizeManager } from './core/resizeManager.js';
-import { bubblepicking } from './worlds/world09.js?v=9';
+import { bubblepicking } from './worlds/world09.js?v=10';
 import { createPlaceholder } from './worlds/world-placeholder.js';
 import { uiSound } from './audio/uiSounds.js?v=2';
 import Spectrogram from './audio/Spectrogram.js';
 import LayeredMusic from './audio/LayeredMusic.js?v=2';
+
+// ───────────────────────────────────────────────
+// Draco support — patch GLTFLoader once so every world's `new GLTFLoader()`
+// auto-attaches a shared DRACOLoader. Required by the Draco-compressed GLBs
+// (banera, lancha, palms, teatro). Without it, geometry decodes silently
+// fail and meshes load invisible.
+// ───────────────────────────────────────────────
+(function _patchGLTFLoaderForDraco() {
+    if (!window.THREE || !THREE.GLTFLoader || !THREE.DRACOLoader) {
+        console.warn('[draco] Patch skipped — DRACOLoader not yet available');
+        return;
+    }
+    const draco = new THREE.DRACOLoader();
+    // gstatic-hosted decoder (.js + .wasm). r128's example DRACOLoader expects
+    // either /draco/ or /draco/gltf/ — gstatic versioned path serves both.
+    draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+    if (draco.preload) draco.preload();
+
+    const Orig = THREE.GLTFLoader;
+    THREE.GLTFLoader = function GLTFLoaderWithDraco(...args) {
+        const inst = new Orig(...args);
+        if (inst.setDRACOLoader) inst.setDRACOLoader(draco);
+        return inst;
+    };
+    THREE.GLTFLoader.prototype = Orig.prototype;
+})();
 
 // ───────────────────────────────────────────────
 // Input State — shared across all modules
@@ -80,9 +106,9 @@ worldManager.register('0', () => import('./worlds/world-00-huevo.js?v=4').then(m
 worldManager.register('1', () => Promise.resolve(bubblepicking));
 worldManager.register('2', () => import('./worlds/world-01-teatro.js?v=14').then(m => m.default));
 worldManager.register('3', () => import('./worlds/world-02-array3d.js?v=45').then(m => m.default));
-worldManager.register('4', () => import('./worlds/world-03-tunnel.js?v=15').then(m => m.default));
-worldManager.register('5', () => import('./worlds/world-04-drawrange.js?v=3').then(m => m.default));
-worldManager.register('6', () => import('./worlds/world06.js?v=11').then(m => m.default));
+worldManager.register('4', () => import('./worlds/world-03-tunnel.js?v=16').then(m => m.default));
+worldManager.register('5', () => import('./worlds/world-04-drawrange.js?v=4').then(m => m.default));
+worldManager.register('6', () => import('./worlds/world06.js?v=12').then(m => m.default));
 worldManager.register('7', () => import('./worlds/world07.js?v=2').then(m => m.default));
 worldManager.register('9', () => import('./worlds/world-layer.js?v=2').then(m => m.default));
 
@@ -292,7 +318,8 @@ document.getElementById('enter-button-img').addEventListener('click', () => {
 // Second ENTRAR (on welcome overlay): dismiss it
 // ───────────────────────────────────────────────
 document.getElementById('intro-enter-btn').addEventListener('click', () => {
-    uiSound.enter();
+    // (no click sound on the welcome-overlay ENTER — too redundant after the
+    //  landing ENTER already plays gritito)
     // Start music on enter
     if (_musicInited) layeredMusic.play();
     const introOverlay = document.getElementById('intro-overlay');
@@ -979,7 +1006,6 @@ document.querySelectorAll('.world-btn').forEach(btn => {
 
     // Desktop hover — image swap is immediate (no debounce) to avoid stale timer
     btn.addEventListener('mouseenter', () => {
-        uiSound.hover();
         if (cursor) cursor.classList.add('hover');
         if (!btn.classList.contains('active')) {
             const img = btn.querySelector('.world-btn-img');
@@ -1020,7 +1046,6 @@ document.querySelectorAll('.texture-btn').forEach(btn => {
         btn.classList.add('active');
     });
     btn.addEventListener('mouseenter', () => {
-        uiSound.hover();
         if (cursor) cursor.classList.add('hover');
     });
     btn.addEventListener('mouseleave', () => {

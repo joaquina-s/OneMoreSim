@@ -26,7 +26,7 @@ const WorldBanera = {
     this._handlers = {}
 
     // Extra ambient bubble layer — quieter than the main music layers.
-    uiSound.startLoop('bubbles78', 0.18, 1.6)
+    uiSound.startLoop('bubbles78', 0.55, 1.6)
 
     const W = renderer.domElement.clientWidth
     const H = renderer.domElement.clientHeight

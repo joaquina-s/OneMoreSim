@@ -685,7 +685,7 @@ export const bubblepicking = {
         const isMoving = keys.left || keys.right;
         // Wind ambience — fade in/out only on edges to avoid restarting the
         // gain ramp every frame.
-        if (isMoving && !_windOn) { uiSound.startLoop('viento', 0.22, 0.6); _windOn = true; }
+        if (isMoving && !_windOn) { uiSound.startLoop('viento', 0.65, 0.6); _windOn = true; }
         else if (!isMoving && _windOn) { uiSound.stopLoop('viento', 0.8); _windOn = false; }
         if (keys.left) velocity += 0.00024;
         if (keys.right) velocity -= 0.00024;
