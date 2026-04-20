@@ -4,8 +4,8 @@
 // Datamosh melt trail behind the character while walking.
 // Uses global THREE (r128 via CDN script tags).
 
-import { deviceProfile } from '../core/deviceProfile.js';
-import { uiSound } from '../audio/uiSounds.js?v=3';
+import { deviceProfile } from a../core/deviceProfile.jsa;
+import { uiSound } from a../audio/uiSounds.js?v=3a;
 
 // ─── Private state ───
 let bpScene = null;
@@ -82,10 +82,10 @@ let absorbTimer = 0;
 let playerBubbleImages = [];
 
 const roomData = [
-    { id: "1", name: "Sala 1 — Nebulosa", color: 0xffffff, emissive: 0xffffff, cx: -12.5, cz: -12.5, wallTex: 'Wall1.png' },
-    { id: "2", name: "Sala 2 — Burbujas", color: 0xffffff, emissive: 0xffffff, cx: -12.5, cz: 12.5,  wallTex: 'Wall2.png' },
-    { id: "3", name: "Sala 3 — Imágenes", color: 0xffffff, emissive: 0xffffff, cx: 12.5,  cz: 12.5,  wallTex: 'Wall3.png' },
-    { id: "4", name: "Sala 4 — Fusión",   color: 0xffffff, emissive: 0xffffff, cx: 12.5,  cz: -12.5, wallTex: 'Wall4.png' }
+    { id: "1", name: "Sala 1 — Nebulosa", color: 0xffffff, emissive: 0xffffff, cx: -12.5, cz: -12.5, wallTex: aWall1.pnga },
+    { id: "2", name: "Sala 2 — Burbujas", color: 0xffffff, emissive: 0xffffff, cx: -12.5, cz: 12.5,  wallTex: aWall2.pnga },
+    { id: "3", name: "Sala 3 — Imágenes", color: 0xffffff, emissive: 0xffffff, cx: 12.5,  cz: 12.5,  wallTex: aWall3.pnga },
+    { id: "4", name: "Sala 4 — Fusión",   color: 0xffffff, emissive: 0xffffff, cx: 12.5,  cz: -12.5, wallTex: aWall4.pnga }
 ];
 
 // ═══════════════════════════════════════════════
@@ -100,7 +100,7 @@ const DatamoshShader = {
         // Depth-based datamosh — per-pixel temporal reprojection.
         // Each pixel reconstructs its world-space position from depth + inverse
         // ProjView of the current camera, then projects that world point through
-        // the PREVIOUS camera's ProjView to find where it was on screen last
+        // the PREVIOUS cameraas ProjView to find where it was on screen last
         // frame. Samples the trail buffer at that UV → motion vectors respect
         // parallax (distant pixels smear less than near ones, just like the
         // shadertoy tlsSRs).
@@ -209,7 +209,7 @@ const DatamoshShader = {
 // ═══════════════════════════════════════════════
 function buildRooms(scene) {
     const texLoader = new THREE.TextureLoader();
-    floorTex = texLoader.load('assets/CarouselFloor.png');
+    floorTex = texLoader.load(aassets/CarouselFloor.pnga);
     floorTex.wrapS = THREE.RepeatWrapping;
     floorTex.wrapT = THREE.RepeatWrapping;
     floorTex.repeat.set(4, 4);
@@ -221,7 +221,7 @@ function buildRooms(scene) {
     scene.add(floor);
 
     roomData.forEach(room => {
-        const wTex = texLoader.load('assets/' + room.wallTex);
+        const wTex = texLoader.load(aassets/a + room.wallTex);
         wTex.wrapS = THREE.ClampToEdgeWrapping;
         wTex.wrapT = THREE.ClampToEdgeWrapping;
         wallTextures[room.id] = wTex;
@@ -273,7 +273,7 @@ function billboardToCamera(mesh) {
 function initRoom1(scene) {
     const pRoom = roomData.find(r => r.id === "1");
     const texLoader = new THREE.TextureLoader();
-    const tex = texLoader.load('assets/tex/c01.png');
+    const tex = texLoader.load(aassets/tex/c01.pnga);
     const count = 28;
     const r1Bubbles = [];
     for (let i = 0; i < count; i++) {
@@ -327,7 +327,7 @@ function sampleInsideFloor(pRoom, halfRange, floorR) {
 function initRoom2(scene) {
     const pRoom = roomData.find(r => r.id === "2");
     const texLoader = new THREE.TextureLoader();
-    const tex = texLoader.load('assets/tex/c02.png');
+    const tex = texLoader.load(aassets/tex/c02.pnga);
     const flowers = [];
     const FLOOR_R = 23.5;   // dentro del piso redondo (r=25)
     for (let i = 0; i < 20; i++) {
@@ -362,7 +362,7 @@ function initRoom2(scene) {
 function initRoom3(scene) {
     const pRoom = roomData.find(r => r.id === "3");
     const texLoader = new THREE.TextureLoader();
-    const tex = texLoader.load('assets/tex/c03.png');
+    const tex = texLoader.load(aassets/tex/c03.pnga);
     const items = [];
     const FLOOR_R = 23.5;
     for (let i = 0; i < 20; i++) {
@@ -394,7 +394,7 @@ function initRoom3(scene) {
 function initRoom4(scene) {
     const pRoom = roomData.find(r => r.id === "4");
     const texLoader = new THREE.TextureLoader();
-    const tex = texLoader.load('assets/tex/c04.png');
+    const tex = texLoader.load(aassets/tex/c04.pnga);
     // "Más centrados": reduzco el offset para que queden dentro del piso r=25
     const offset = 5;
     const items = [];
@@ -429,7 +429,7 @@ function createPlayer(scene) {
     playerGroup.position.set(orbitRadius, 0, 0);
     scene.add(playerGroup);
     const loader = new THREE.GLTFLoader();
-    loader.load('assets/3D/walk.glb', (gltf) => {
+    loader.load(aassets/3D/walk.glba, (gltf) => {
         let clone;
         if (THREE.SkeletonUtils && THREE.SkeletonUtils.clone) {
             clone = THREE.SkeletonUtils.clone(gltf.scene);
@@ -502,7 +502,7 @@ function attachNearestBubble() {
 function fillPlayerBubbleWithImages() {
     if (!attachedBubble) return;
     const texLoader = new THREE.TextureLoader();
-    const imgTex = texLoader.load('assets/CarouselFloor.png');
+    const imgTex = texLoader.load(aassets/CarouselFloor.pnga);
     for (let i = 0; i < 8; i++) {
         const geo = new THREE.PlaneGeometry(0.04, 0.04);
         const mat = new THREE.MeshBasicMaterial({ map: imgTex, transparent: true, opacity: 0.85, side: THREE.DoubleSide });
@@ -685,8 +685,8 @@ export const bubblepicking = {
         const isMoving = keys.left || keys.right;
         // Wind ambience — fade in/out only on edges to avoid restarting the
         // gain ramp every frame.
-        if (isMoving && !_windOn) { uiSound.startLoop('viento', 0.65, 0.6); _windOn = true; }
-        else if (!isMoving && _windOn) { uiSound.stopLoop('viento', 0.8); _windOn = false; }
+        if (isMoving && !_windOn) { uiSound.startLoop(avientoa, 0.65, 0.6); _windOn = true; }
+        else if (!isMoving && _windOn) { uiSound.stopLoop(avientoa, 0.8); _windOn = false; }
         if (keys.left) velocity += 0.00024;
         if (keys.right) velocity -= 0.00024;
         if (!isMoving) velocity *= 0.95;
@@ -718,8 +718,8 @@ export const bubblepicking = {
         dirLight.position.set(playerGroup.position.x + 5, playerGroup.position.y + 10, playerGroup.position.z + 5);
 
         detectRoom();
-        // Run only simulations for the current room — rooms the player isn't
-        // in don't need per-frame updates (big CPU win when not moving).
+        // Run only simulations for the current room — rooms the player isnat
+        // in donat need per-frame updates (big CPU win when not moving).
         if (currentRoomId !== null) {
             const simIdx = parseInt(currentRoomId, 10) - 1;
             if (simulations[simIdx]) simulations[simIdx](time);
@@ -762,7 +762,7 @@ export const bubblepicking = {
             if (invCurrPV.invert) invCurrPV.invert();
             else invCurrPV.getInverse(_currPVMatrix);
 
-            // uPrevPV: last frame's ProjView. On the very first frame we
+            // uPrevPV: last frameas ProjView. On the very first frame we
             // gate with uHasPrev=false so the shader uses identity (no smear).
             _datamoshMat.uniforms.uPrevPV.value.copy(_prevPVMatrix);
             _datamoshMat.uniforms.uHasPrev.value = _prevMatricesReady;
@@ -813,7 +813,7 @@ export const bubblepicking = {
     getPixelPass() { return null; },
 
     dispose() {
-        if (_windOn) { uiSound.stopLoop('viento', 0.4); _windOn = false; }
+        if (_windOn) { uiSound.stopLoop(avientoa, 0.4); _windOn = false; }
         if (playerMixer) {
             playerMixer.stopAllAction();
             if (playerGroup) playerMixer.uncacheRoot(playerGroup);
