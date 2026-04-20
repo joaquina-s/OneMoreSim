@@ -442,14 +442,14 @@ const WorldChase = {
 
     };
 
-    loader.load('assets/3D/palm1.1.glb?v=2', (gltf) => {
+    loader.load('assets/3D/palm1.1.glb?v=3', (gltf) => {
       console.log('[world06] palm1.1 loaded', gltf);
       palm1Proto = gltf.scene;
       placePalms();
       this._onGlbLoaded();
     }, undefined, (e) => { console.error('[world06] palm1.1 load error:', e); this._onGlbLoaded(); });
 
-    loader.load('assets/3D/palm2.1.glb?v=2', (gltf) => {
+    loader.load('assets/3D/palm2.1.glb?v=3', (gltf) => {
       console.log('[world06] palm2.1 loaded', gltf);
       palm2Proto = gltf.scene;
       placePalms();
@@ -538,7 +538,7 @@ const WorldChase = {
      ════════════════════════════════════════════ */
   _loadLancha() {
     const loader = new THREE.GLTFLoader();
-    loader.load('assets/3D/lanchachar.glb?v=2', (gltf) => {
+    loader.load('assets/3D/lanchachar.glb?v=3', (gltf) => {
       console.log('[world06] lanchachar loaded', gltf, 'animations:', gltf.animations.length);
       this._lancha = gltf.scene;
 

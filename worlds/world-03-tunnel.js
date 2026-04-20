@@ -97,7 +97,7 @@ const WorldBanera = {
     // ── CARGAR GLB ──
     const loader = new THREE.GLTFLoader()
     loader.load(
-      'assets/3D/baneraLow.glb?v=2',
+      'assets/3D/baneraLow.glb?v=3',
       (gltf) => {
         // Add the whole scene to the base scene
         this.scene.add(gltf.scene)
