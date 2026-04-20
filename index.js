@@ -102,11 +102,11 @@ if (window.matchMedia('(pointer: fine)').matches && cursor) {
 }
 
 // Register all 8 worlds
-worldManager.register('0', () => import('./worlds/world-00-huevo.js?v=5').then(m => m.default));
+worldManager.register('0', () => import('./worlds/world-00-huevo.js?v=6').then(m => m.default));
 worldManager.register('1', () => Promise.resolve(bubblepicking));
 worldManager.register('2', () => import('./worlds/world-01-teatro.js?v=15').then(m => m.default));
 worldManager.register('3', () => import('./worlds/world-02-array3d.js?v=45').then(m => m.default));
-worldManager.register('4', () => import('./worlds/world-03-tunnel.js?v=17').then(m => m.default));
+worldManager.register('4', () => import('./worlds/world-03-tunnel.js?v=18').then(m => m.default));
 worldManager.register('5', () => import('./worlds/world-04-drawrange.js?v=4').then(m => m.default));
 worldManager.register('6', () => import('./worlds/world06.js?v=13').then(m => m.default));
 worldManager.register('7', () => import('./worlds/world07.js?v=2').then(m => m.default));
@@ -222,7 +222,7 @@ function enterExperience() {
                     'assets/3D/palm1.1.glb?v=3',
                     'assets/3D/palm2.1.glb?v=3',
                     'assets/3D/walk.glb',
-                    'assets/3D/baneraLow.glb?v=3',
+                    'assets/3D/baneraLow.glb?v=4',
                     'assets/3D/teatro.glb?v=3',
                 ];
                 // Total progress units = worlds + heavy assets + music
