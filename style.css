@@ -159,10 +159,10 @@ button:hover img {
     align-items: center;
     justify-content: center;
     animation: enterGlowPulse 1.8s ease-in-out infinite;
-    /* Hidden until the landing video is ready to play */
-    opacity: 0;
-    transform: scale(0.96);
-    pointer-events: none;
+    /* Always visible — never block the user behind a video that may fail to load */
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
     transition: opacity 0.6s ease, transform 0.6s ease;
 }
 body.landing-video-ready #enter-button-img {
