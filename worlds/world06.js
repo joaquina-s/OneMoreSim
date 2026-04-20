@@ -615,6 +615,7 @@ const WorldChase = {
       // Keep original GLB materials/textures (no video map override).
       this._character.traverse(child => {
         if (child.isMesh) {
+          child.frustumCulled = false;
           child.castShadow = true;
           if (child.material) {
             // Clone so changes don't leak across instances

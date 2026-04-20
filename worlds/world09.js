@@ -440,6 +440,7 @@ function createPlayer(scene) {
         clone.position.set(0, 0, 0);
         clone.traverse(child => {
             if (child.isMesh) {
+                child.frustumCulled = false;
                 if (Array.isArray(child.material)) {
                     child.material = child.material.map(m => { const c = m.clone(); c.skinning = true; return c; });
                 } else if (child.material) {

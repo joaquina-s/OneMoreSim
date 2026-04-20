@@ -274,6 +274,7 @@ export default {
     // Ensure shadows on the base template — do NOT replace materials (preserve GLB textures)
     baseScene.traverse(child => {
         if (child.isMesh) {
+            child.frustumCulled = false;
             child.castShadow = true;
             child.receiveShadow = true;
         }
