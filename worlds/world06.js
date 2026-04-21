@@ -538,7 +538,7 @@ const WorldChase = {
      ════════════════════════════════════════════ */
   _loadLancha() {
     const loader = new THREE.GLTFLoader();
-    loader.load('assets/3D/lanchachar.glb?v=7', (gltf) => {
+    loader.load('assets/3D/lanchachar.glb?v=8', (gltf) => {
       console.log('[world06] lanchachar loaded', gltf, 'animations:', gltf.animations.length);
       this._lancha = gltf.scene;
 
@@ -606,7 +606,7 @@ const WorldChase = {
   _loadCharacter() {
     // Character now uses the original GLB texture — no video texture setup.
     const loader = new THREE.GLTFLoader();
-    loader.load('assets/3D/walk.glb?v=3', (gltf) => {
+    loader.load('assets/3D/walk.glb?v=4', (gltf) => {
       this._character = THREE.SkeletonUtils ? THREE.SkeletonUtils.clone(gltf.scene) : gltf.scene;
       this._character.position.set(0, 0, 2);
       this._character.scale.setScalar(0.5);
