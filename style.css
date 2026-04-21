@@ -708,7 +708,8 @@ body.landing-video-ready #enter-button-img {
     text-shadow: 0 0 6px rgba(0, 80, 255, 0.5);
     box-shadow: 0 0 18px rgba(0, 80, 255, 0.35);
 }
-#footer-top-right:hover .world-info-desc-es {
+#footer-top-right:hover .world-info-desc-es,
+.world-info-desc-es.show {
     opacity: 1;
     transform: translateY(0);
 }

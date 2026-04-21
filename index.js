@@ -105,7 +105,7 @@ if (window.matchMedia('(pointer: fine)').matches && cursor) {
 worldManager.register('0', () => import('./worlds/world-00-huevo.js?v=6').then(m => m.default));
 worldManager.register('1', () => Promise.resolve(bubblepicking));
 worldManager.register('2', () => import('./worlds/world-01-teatro.js?v=16').then(m => m.default));
-worldManager.register('3', () => import('./worlds/world-02-array3d.js?v=46').then(m => m.default));
+worldManager.register('3', () => import('./worlds/world-02-array3d.js?v=47').then(m => m.default));
 worldManager.register('4', () => import('./worlds/world-03-tunnel.js?v=19').then(m => m.default));
 worldManager.register('5', () => import('./worlds/world-04-drawrange.js?v=5').then(m => m.default));
 worldManager.register('6', () => import('./worlds/world06.js?v=14').then(m => m.default));
@@ -691,7 +691,18 @@ function updateWorldInfo(worldId) {
     document.documentElement.style.setProperty('--world-accent', data.accent);
     typeWorldDesc(data.desc);
     const esEl = document.getElementById('world-info-desc-es');
-    if (esEl) esEl.textContent = data.descEs || '';
+    if (esEl) {
+        esEl.textContent = data.descEs || '';
+        // Move to body once so no ancestor overflow can clip it
+        if (esEl.parentElement !== document.body) {
+            document.body.appendChild(esEl);
+            const hoverZone = document.getElementById('footer-top-right');
+            if (hoverZone) {
+                hoverZone.addEventListener('mouseenter', () => esEl.classList.add('show'));
+                hoverZone.addEventListener('mouseleave', () => esEl.classList.remove('show'));
+            }
+        }
+    }
     updateWorldTracker(worldId);
 
     // Update instruction image in header-credits panel
