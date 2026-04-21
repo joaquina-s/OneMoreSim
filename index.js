@@ -218,7 +218,7 @@ function enterExperience() {
                 // the user enters that world, the GLTFLoader gets the file
                 // from cache instantly (no download wait)
                 const heavyAssets = [
-                    'assets/3D/lanchachar.glb?v=10',
+                    'assets/3D/lanchachar.glb?v=11',
                     'assets/3D/palm1.1.glb?v=4',
                     'assets/3D/palm2.1.glb?v=4',
                     'assets/3D/walk.glb?v=5',
