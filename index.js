@@ -292,8 +292,6 @@ function enterExperience() {
                 initParallaxMap();
 
                 // Show world-00 overlay (we start at world 0)
-                const ov = document.getElementById('world-00-overlay');
-                if (ov) ov.classList.add('visible');
                 const ovR = document.getElementById('world-00-overlay-right');
                 if (ovR) ovR.classList.add('visible');
 
@@ -1014,8 +1012,6 @@ document.querySelectorAll('.world-btn').forEach(btn => {
         updateParallaxMap(parseInt(btn.dataset.world, 10));
 
         // World-specific overlays
-        const ov = document.getElementById('world-00-overlay');
-        if (ov) ov.classList.toggle('visible', btn.dataset.world === '0');
         const ovR = document.getElementById('world-00-overlay-right');
         if (ovR) ovR.classList.toggle('visible', btn.dataset.world === '0');
 
@@ -1220,24 +1216,48 @@ async function ensureMusicInit() {
             });
         }
 
-        // Layer toggle buttons + flash status display
-        let _statusTimer = null;
-        const statusText = document.getElementById('sound-status-text');
+        // Layer toggle buttons + per-button hover tooltip
+        const tooltip = document.getElementById('layer-btn-tooltip');
+        function tooltipLabel(btn) {
+            const layerKey = btn.dataset.layer;
+            const name = layerKey.charAt(0).toUpperCase() + layerKey.slice(1);
+            const on = btn.dataset.on === 'true';
+            return on ? `${name}On` : `${name}Off`;
+        }
+        function showTooltip(btn) {
+            if (!tooltip) return;
+            tooltip.textContent = tooltipLabel(btn);
+            const rect = btn.getBoundingClientRect();
+            tooltip.style.left = (rect.left + rect.width / 2) + 'px';
+            tooltip.style.top  = (rect.top - 10) + 'px';
+            tooltip.style.transform = 'translate(-50%, -100%)';
+            tooltip.classList.add('show');
+        }
+        function hideTooltip() {
+            if (tooltip) tooltip.classList.remove('show');
+        }
         document.querySelectorAll('.layer-toggle-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const layerKey = btn.dataset.layer;
                 const nowMuted = layeredMusic.toggleMute(layerKey);
                 btn.dataset.on = nowMuted ? 'false' : 'true';
-                // Flash status text like a car stereo display
-                if (statusText) {
-                    const name = layerKey.charAt(0).toUpperCase() + layerKey.slice(1);
-                    statusText.textContent = nowMuted ? `${name}Off` : `${name}On`;
-                    statusText.classList.add('visible');
-                    clearTimeout(_statusTimer);
-                    _statusTimer = setTimeout(() => statusText.classList.remove('visible'), 1500);
-                }
+                // Refresh tooltip if still hovered
+                if (tooltip && tooltip.classList.contains('show')) showTooltip(btn);
             });
+            btn.addEventListener('mouseenter', () => showTooltip(btn));
+            btn.addEventListener('mouseleave', hideTooltip);
         });
+
+        // Volume fill: paint blue below thumb, white above
+        const applyVolFill = () => {
+            if (!volSlider) return;
+            const pct = parseInt(volSlider.value, 10);
+            volSlider.style.setProperty('--vol-fill', pct + '%');
+        };
+        if (volSlider) {
+            volSlider.addEventListener('input', applyVolFill);
+            applyVolFill();
+        }
 
     } catch (e) {
         console.error('LayeredMusic init failed:', e);

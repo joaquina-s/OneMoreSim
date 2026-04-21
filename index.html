@@ -57,7 +57,7 @@
     </script>
     <link rel="icon" type="image/png" href="assets/tex/Buttons/colorB1.png">
     <link rel="shortcut icon" type="image/png" href="assets/tex/Buttons/colorB1.png">
-    <link rel="stylesheet" href="style.css?v=52">
+    <link rel="stylesheet" href="style.css?v=53">
     <link
         href="https://fonts.googleapis.com/css2?family=Averia+Libre:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap"
         rel="stylesheet">
@@ -238,12 +238,9 @@
             <!-- Old carousel-container becomes the canvas mount point -->
             <div id="carousel-container"></div>
 
-            <!-- World 00 overlay: world01bw left side + world01bw2 right side (symmetric) -->
-            <div id="world-00-overlay">
-                <img src="assets/BWUI/world01bw.png" id="egg-bw-img" alt=""/>
-            </div>
+            <!-- World 00 overlay: world01bw on the right side -->
             <div id="world-00-overlay-right">
-                <img src="assets/BWUI/world01bw2.png" id="egg-bw-img-2" alt=""/>
+                <img src="assets/BWUI/world01bw.png?v=2" id="egg-bw-img-2" alt=""/>
             </div>
             <div id="text-overlay-container"></div>
             <div id="room-name-display" class="hidden"></div>
@@ -345,10 +342,6 @@
                                 <img class="layer-btn-off" src="assets/tex/Buttons/VoiceOff.png" alt="Voice Off"/>
                             </button>
                         </div>
-                        <!-- Sound status flash display (single line, auto-hides) -->
-                        <div id="sound-status-panel">
-                            <span id="sound-status-text"></span>
-                        </div>
                         <!-- Volume slider (vertical) -->
                         <div id="volume-slider-wrap">
                             <input type="range" id="volume-slider" min="0" max="100" value="70"
@@ -396,6 +389,9 @@
             </button>
         </div>
     </div>
+
+    <!-- Shared tooltip for sound layer buttons -->
+    <div id="layer-btn-tooltip"></div>
 
     <!-- CUSTOM CURSOR — at body level so it's above all overlays -->
     <div id="custom-cursor"></div>
@@ -471,7 +467,7 @@
         </div>
     </div>
 
-    <script type="module" src="index.js?v=68"></script>
+    <script type="module" src="index.js?v=69"></script>
 </body>
 
 </html>

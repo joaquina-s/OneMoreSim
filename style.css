@@ -1013,33 +1013,7 @@ body.landing-video-ready #enter-button-img {
     background: #000;
 }
 
-/* World 00 — world01bw left side (15% smaller) */
-#world-00-overlay {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    height: 85%;
-    transform: translateY(-50%);
-    z-index: 6;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.6s ease;
-}
-
-#world-00-overlay.visible {
-    opacity: 1;
-}
-
-#egg-bw-img {
-    display: block;
-    height: 100%;
-    width: auto;
-    filter: brightness(0.9) contrast(1.1);
-    mix-blend-mode: screen;
-}
-
-/* World 00 — world01bw2 mirrored on the right side, same scale/proportions
-   as world01bw.png on the left (85% height, vertically centered). */
+/* World 00 — world01bw on the right side (85% height, vertically centered). */
 #world-00-overlay-right {
     position: absolute;
     top: 50%;
@@ -1996,8 +1970,9 @@ body.landing-video-ready #enter-button-img {
     z-index: 3;
     display: flex;
     flex-direction: row;
-    align-items: stretch;
-    padding: 3px 6px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 3px 10px;
     gap: 0;
 }
 
@@ -2006,38 +1981,43 @@ body.landing-video-ready #enter-button-img {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 2px;
-    padding-right: 10px;
+    gap: 3px;
     width: var(--w-charbtn);
-    height: 50%;
+    height: 60%;
     align-self: center;
     flex-shrink: 0;
 }
 
 .beat-bar {
     flex: 1;
-    background: rgba(10, 14, 30, 0.6);
-    border: 2px solid #000000;
+    background: #ffffff;
+    border: 1.5px solid #ffffff;
     border-radius: 2px;
-    transition: background 0.08s, box-shadow 0.08s;
+    box-shadow:
+        0 0 4px rgba(255, 255, 255, 0.9),
+        0 0 10px rgba(255, 255, 255, 0.5);
+    transition: background 0.08s, box-shadow 0.08s, border-color 0.08s;
 }
 
 .beat-bar.active {
-    background: rgba(0, 80, 255, 0.7);
-    border-color: #000000;
+    background: #0000ff;
+    border-color: #ffffff;
     box-shadow:
-        0 0 8px rgba(0, 80, 255, 0.7),
-        0 0 20px rgba(0, 60, 255, 0.4),
-        inset 0 0 6px rgba(80, 160, 255, 0.5);
+        0 0 6px rgba(255, 255, 255, 0.9),
+        0 0 14px rgba(255, 255, 255, 0.6),
+        0 0 10px rgba(0, 0, 255, 0.9),
+        0 0 22px rgba(0, 0, 220, 0.55),
+        inset 0 0 6px rgba(80, 160, 255, 0.6);
 }
 
-/* ── Layer toggle buttons (15% larger than left-panel btns) ── */
+/* ── Layer toggle buttons (15% larger than left-panel btns) — centered in panel ── */
 #layer-toggles {
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 0;
-    margin-left: 4px;
+    gap: 6px;
+    margin: 0 auto;
+    flex: 0 1 auto;
 }
 
 .layer-toggle-btn {
@@ -2073,40 +2053,15 @@ body.landing-video-ready #enter-button-img {
     filter: brightness(1.25);
 }
 
-/* ── Sound status flash display (car stereo style) ── */
-#sound-status-panel {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: 6px;
-    overflow: hidden;
-}
-
-#sound-status-text {
-    font-family: 'Averia Libre', monospace;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: -0.5px;
-    color: #ffffff;
-    text-transform: uppercase;
-    white-space: nowrap;
-    opacity: 0;
-    transition: opacity 0.15s;
-    -webkit-text-stroke: 0.4px #000;
-    text-shadow: 0 0 6px rgba(0, 80, 255, 0.6);
-}
-
-#sound-status-text.visible {
-    opacity: 1;
-}
-
-/* ── Volume slider (vertical) ── */
+/* ── Volume slider (vertical) — white glowy treatment matching beat bars ── */
 #volume-slider-wrap {
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 4px 6px;
-    margin-left: auto;
+    height: 60%;
+    align-self: center;
+    flex-shrink: 0;
 }
 
 #volume-slider {
@@ -2114,34 +2069,79 @@ body.landing-video-ready #enter-button-img {
     appearance: none;
     writing-mode: vertical-lr;
     direction: rtl;
-    width: 6px;
+    width: 8px;
     height: 100%;
-    background: linear-gradient(to top, #0a0e1e 0%, #0040cc 50%, #0060ff 100%);
+    background: linear-gradient(to top, #0000ff 0%, #0000ff var(--vol-fill, 70%), #ffffff var(--vol-fill, 70%), #ffffff 100%);
     border-radius: 3px;
     outline: none;
     cursor: pointer;
-    border: 1px solid rgba(40, 60, 120, 0.5);
+    border: 1.5px solid #ffffff;
+    box-shadow:
+        0 0 4px rgba(255, 255, 255, 0.9),
+        0 0 10px rgba(255, 255, 255, 0.5),
+        0 0 8px rgba(0, 0, 255, 0.4);
 }
 
 #volume-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 14px;
-    height: 8px;
-    background: #c8cce8;
+    width: 18px;
+    height: 10px;
+    background: #ffffff;
     border-radius: 2px;
     cursor: pointer;
-    box-shadow: 0 0 4px rgba(0, 80, 255, 0.5);
+    border: 1px solid #ffffff;
+    box-shadow:
+        0 0 6px rgba(255, 255, 255, 1),
+        0 0 14px rgba(255, 255, 255, 0.85),
+        0 0 22px rgba(255, 255, 255, 0.5);
 }
 
 #volume-slider::-moz-range-thumb {
-    width: 14px;
-    height: 8px;
-    background: #c8cce8;
+    width: 18px;
+    height: 10px;
+    background: #ffffff;
     border-radius: 2px;
-    border: none;
+    border: 1px solid #ffffff;
     cursor: pointer;
-    box-shadow: 0 0 4px rgba(0, 80, 255, 0.5);
+    box-shadow:
+        0 0 6px rgba(255, 255, 255, 1),
+        0 0 14px rgba(255, 255, 255, 0.85),
+        0 0 22px rgba(255, 255, 255, 0.5);
+}
+
+/* ── Layer button tooltip (same style as world ES hover) ── */
+#layer-btn-tooltip {
+    position: fixed;
+    padding: 6px 12px;
+    font-family: 'Averia Libre', sans-serif;
+    font-size: clamp(12px, 1.8vh, 17px);
+    font-weight: 400;
+    color: #ffffff;
+    background: rgba(0, 10, 40, 0.88);
+    border: 1px solid rgba(120, 160, 255, 0.45);
+    border-radius: 4px;
+    white-space: nowrap;
+    letter-spacing: 0.01em;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-50%, 4px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    z-index: 9999;
+    -webkit-text-stroke: 0.4px #000;
+    text-shadow:
+        -0.7px -0.7px 0 #000,
+         0.7px -0.7px 0 #000,
+        -0.7px  0.7px 0 #000,
+         0.7px  0.7px 0 #000,
+         0 0 6px #ffffff,
+         0 0 14px rgba(255, 255, 255, 0.9),
+         0 0 28px rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 18px rgba(0, 80, 255, 0.35);
+}
+#layer-btn-tooltip.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
 }
 
 .image-panel {
