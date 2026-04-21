@@ -7,7 +7,7 @@ import { getTime } from './core/clock.js';
 import { WorldManager } from './core/worldManager.js';
 import { deviceProfile } from './core/deviceProfile.js';
 import { ResizeManager } from './core/resizeManager.js';
-import { bubblepicking } from './worlds/world09.js?v=10';
+import { bubblepicking } from './worlds/world09.js?v=11';
 import { createPlaceholder } from './worlds/world-placeholder.js';
 import { uiSound } from './audio/uiSounds.js?v=3';
 import Spectrogram from './audio/Spectrogram.js';
@@ -1123,6 +1123,7 @@ renderer.domElement.addEventListener('touchend', (e) => {
 
 let skipFrame = false;
 let rafId = 0;
+let _prevT = 0;
 
 function loop() {
     rafId = requestAnimationFrame(loop);
@@ -1132,10 +1133,15 @@ function loop() {
     if (deviceProfile.targetFPS === 30 && skipFrame) return;
 
     const t = getTime();
-    
+    // Delta seconds since last rendered frame. Clamp to avoid huge jumps after
+    // tab switch / pause (would teleport the player).
+    let dt = t - _prevT;
+    if (dt < 0 || dt > 0.1) dt = 1 / 60;
+    _prevT = t;
+
     // Solo tickear si el carousel está activo (no estamos en el intro de video)
     if (worldManager.getActive() !== 'landing') {
-        worldManager.tick(t, keys);
+        worldManager.tick(t, keys, dt);
     }
 }
 

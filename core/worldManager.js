@@ -165,16 +165,19 @@ export class WorldManager {
      * @param {number} time
      * @param {object} keys
      */
-    tick(time, keys) {
+    tick(time, keys, dt) {
+        // Default dt for callers that don't pass one yet (back-compat).
+        if (typeof dt !== 'number' || !isFinite(dt)) dt = 1 / 60;
         if (this.activeModule && this.activeModule.update) {
-            
+
             // Global Orbit Navigation via Left/Right Arrows
             if (this.activeModule.camera && this.activeModule._orbitControls && this.activeModule._orbitControls.enabled !== false) {
                 if (keys && (keys.left || keys.right)) {
                     const cam = this.activeModule.camera;
                     const target = this.activeModule._orbitControls.target;
-                    
-                    const angle = 0.02 * (keys.right ? 1 : -1);
+
+                    // 1.2 rad/s = 0.02 rad * 60 fps baseline → same feel at any FPS
+                    const angle = 1.2 * (keys.right ? 1 : -1) * dt;
                     
                     // Simple 2D rotation around Y
                     const dx = cam.position.x - target.x;
@@ -193,7 +196,7 @@ export class WorldManager {
             if (this.activeId === 'landing') {
                 this.activeModule.update(time, keys, this.renderer);
             } else {
-                this.activeModule.update(time, keys);
+                this.activeModule.update(time, keys, dt);
             }
         }
     }

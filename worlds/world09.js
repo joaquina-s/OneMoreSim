@@ -688,16 +688,19 @@ export const bubblepicking = {
         // gain ramp every frame.
         if (isMoving && !_windOn) { uiSound.startLoop('viento', 0.65, 0.6); _windOn = true; }
         else if (!isMoving && _windOn) { uiSound.stopLoop('viento', 0.8); _windOn = false; }
-        if (keys.left) velocity += 0.00024;
-        if (keys.right) velocity -= 0.00024;
-        if (!isMoving) velocity *= 0.95;
-        velocity = Math.max(-0.0032, Math.min(0.0032, velocity));
-        orbitAngle += velocity;
+        // Velocity is now rad/s (was rad/frame). delta keeps it FPS-independent.
+        // Previous per-frame values baselined at 60fps: accel 0.00024 → 0.0144 rad/s²,
+        // cap 0.0032 → 0.192 rad/s, damping 0.95/frame → 0.95^60 per sec (≈ 0.046).
+        if (keys.left)  velocity += 0.0144 * delta;
+        if (keys.right) velocity -= 0.0144 * delta;
+        if (!isMoving) velocity *= Math.pow(0.95, delta * 60);
+        velocity = Math.max(-0.192, Math.min(0.192, velocity));
+        orbitAngle += velocity * delta;
 
         playerGroup.position.x = Math.cos(orbitAngle) * orbitRadius;
         playerGroup.position.z = Math.sin(orbitAngle) * orbitRadius;
 
-        if (Math.abs(velocity) > 0.00005) {
+        if (Math.abs(velocity) > 0.003) {  // scaled threshold (was 0.00005/frame)
             const sign = velocity > 0 ? 1 : -1;
             const dx = -Math.sin(orbitAngle) * sign;
             const dz =  Math.cos(orbitAngle) * sign;
@@ -708,7 +711,7 @@ export const bubblepicking = {
             walkAction.paused = !isMoving;
             walkAction.timeScale = 0.4;
         }
-        if (playerMixer) playerMixer.update(0.016);
+        if (playerMixer) playerMixer.update(delta);
 
         // ── Camera ──
         const cameraDistance = 9;
