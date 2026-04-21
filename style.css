@@ -684,10 +684,9 @@ body.landing-video-ready #enter-button-img {
     position: relative;
 }
 .world-info-desc-es {
-    position: absolute;
-    left: 12px;
-    right: 12px;
-    bottom: calc(100% + 10px);
+    position: fixed;
+    right: 16px;
+    bottom: calc(var(--h-footer, 160px) + 10px);
     max-width: min(90vw, 640px);
     padding: 10px 14px;
     font-family: 'Averia Libre', sans-serif;
