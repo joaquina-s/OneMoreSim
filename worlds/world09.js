@@ -693,7 +693,8 @@ export const bubblepicking = {
         // cap 0.0032 → 0.192 rad/s, damping 0.95/frame → 0.95^60 per sec (≈ 0.046).
         if (keys.left)  velocity += 0.0144 * delta;
         if (keys.right) velocity -= 0.0144 * delta;
-        if (!isMoving) velocity *= Math.pow(0.95, delta * 60);
+        // Damping is always applied (matches original per-frame 0.95 multiplier).
+        velocity *= Math.pow(0.95, delta * 60);
         velocity = Math.max(-0.192, Math.min(0.192, velocity));
         orbitAngle += velocity * delta;
 
