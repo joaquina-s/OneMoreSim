@@ -105,7 +105,7 @@ if (window.matchMedia('(pointer: fine)').matches && cursor) {
 worldManager.register('0', () => import('./worlds/world-00-huevo.js?v=6').then(m => m.default));
 worldManager.register('1', () => Promise.resolve(bubblepicking));
 worldManager.register('2', () => import('./worlds/world-01-teatro.js?v=16').then(m => m.default));
-worldManager.register('3', () => import('./worlds/world-02-array3d.js?v=48').then(m => m.default));
+worldManager.register('3', () => import('./worlds/world-02-array3d.js?v=49').then(m => m.default));
 worldManager.register('4', () => import('./worlds/world-03-tunnel.js?v=19').then(m => m.default));
 worldManager.register('5', () => import('./worlds/world-04-drawrange.js?v=5').then(m => m.default));
 worldManager.register('6', () => import('./worlds/world06.js?v=14').then(m => m.default));
@@ -679,7 +679,7 @@ const WORLD_INSTRUCTION_IMG = {
     '9': 'assets/texto/RotateCam.png',       // 04Inner_World
     '6': 'assets/texto/Move.png',            // 05Aqua_Race
     '3': 'assets/texto/TapNPC.png',          // 06Super_Me_Era
-    '5': 'assets/texto/RotateCam.png',       // 07
+    '5': 'assets/panel-04.png',              // 07 Ghosts_and_Phsycotics
     '4': 'assets/texto/RotateCam.png',       // 08Fetal_Situation
     '1': 'assets/texto/Move.png'             // 09Bubblepicking
 };

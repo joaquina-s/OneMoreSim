@@ -705,15 +705,7 @@ body.landing-video-ready #enter-button-img {
     transform: translateY(4px);
     transition: opacity 0.18s ease, transform 0.18s ease;
     z-index: 9999;
-    -webkit-text-stroke: 0.4px #000;
-    text-shadow:
-        -0.7px -0.7px 0 #000,
-         0.7px -0.7px 0 #000,
-        -0.7px  0.7px 0 #000,
-         0.7px  0.7px 0 #000,
-         0 0 6px #ffffff,
-         0 0 14px rgba(255, 255, 255, 0.9),
-         0 0 28px rgba(255, 255, 255, 0.5);
+    text-shadow: 0 0 6px rgba(0, 80, 255, 0.5);
     box-shadow: 0 0 18px rgba(0, 80, 255, 0.35);
 }
 #footer-top-right:hover .world-info-desc-es,
@@ -2128,15 +2120,7 @@ body.landing-video-ready #enter-button-img {
     transform: translate(-50%, 4px);
     transition: opacity 0.18s ease, transform 0.18s ease;
     z-index: 9999;
-    -webkit-text-stroke: 0.4px #000;
-    text-shadow:
-        -0.7px -0.7px 0 #000,
-         0.7px -0.7px 0 #000,
-        -0.7px  0.7px 0 #000,
-         0.7px  0.7px 0 #000,
-         0 0 6px #ffffff,
-         0 0 14px rgba(255, 255, 255, 0.9),
-         0 0 28px rgba(255, 255, 255, 0.5);
+    text-shadow: 0 0 6px rgba(0, 80, 255, 0.5);
     box-shadow: 0 0 18px rgba(0, 80, 255, 0.35);
 }
 #layer-btn-tooltip.show {

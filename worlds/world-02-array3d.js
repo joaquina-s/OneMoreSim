@@ -82,10 +82,11 @@ export default {
     // pos=(0,2.7,4.8) · 5° downward tilt → target = pos + (0,-sin5°,-cos5°)*4.8
     //                                            ≈ (0, 2.28, 0.02)
     this.camera = new THREE.PerspectiveCamera(95, W / H, 0.1, 100);
-    this.camera.position.set(0, 2.5, 6.5);
-    this.camera.lookAt(0, 2.28, 0.02);
-    this._fixedCamPos  = new THREE.Vector3(0, 2.5, 6.5);
-    this._fixedCamLook = new THREE.Vector3(0, 2.28, 0.02);
+    // 3° downward tilt from (0, 2.4, 6.5) → target y = 2.4 − 6.5*tan(3°) ≈ 2.0594
+    this.camera.position.set(0, 2.4, 6.5);
+    this.camera.lookAt(0, 2.0594, 0);
+    this._fixedCamPos  = new THREE.Vector3(0, 2.4, 6.5);
+    this._fixedCamLook = new THREE.Vector3(0, 2.0594, 0);
 
     // ── Lighting (slightly glowier) ──
     this.scene.add(new THREE.AmbientLight(0x334466, 3.4));
