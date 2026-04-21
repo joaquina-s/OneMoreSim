@@ -538,7 +538,7 @@ const WorldChase = {
      ════════════════════════════════════════════ */
   _loadLancha() {
     const loader = new THREE.GLTFLoader();
-    loader.load('assets/3D/lanchachar.glb?v=9', (gltf) => {
+    loader.load('assets/3D/lanchachar.glb?v=10', (gltf) => {
       console.log('[world06] lanchachar loaded', gltf, 'animations:', gltf.animations.length);
       this._lancha = gltf.scene;
 
