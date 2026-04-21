@@ -1963,26 +1963,29 @@ body.landing-video-ready #enter-button-img {
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     padding: 3px 10px;
-    gap: 0;
+    gap: 10px;
 }
 
-/* ── Beat indicator bars (vertical stack, half height) ── */
+/* ── Beat indicator bars (vertical stack, half height) — pinned left ── */
 #beat-indicators {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
     display: flex;
     flex-direction: column;
     justify-content: center;
     gap: 3px;
     width: var(--w-charbtn);
     height: 60%;
-    align-self: center;
     flex-shrink: 0;
 }
 
 .beat-bar {
     flex: 1;
-    background: #ffffff;
+    background: #000000;
     border: 1.5px solid #ffffff;
     border-radius: 2px;
     box-shadow:
@@ -2008,7 +2011,6 @@ body.landing-video-ready #enter-button-img {
     flex-direction: row;
     align-items: center;
     gap: 6px;
-    margin: 0 auto;
     flex: 0 1 auto;
 }
 
