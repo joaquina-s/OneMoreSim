@@ -691,11 +691,12 @@ export const bubblepicking = {
         // Velocity is now rad/s (was rad/frame). delta keeps it FPS-independent.
         // Previous per-frame values baselined at 60fps: accel 0.00024 → 0.0144 rad/s²,
         // cap 0.0032 → 0.192 rad/s, damping 0.95/frame → 0.95^60 per sec (≈ 0.046).
-        if (keys.left)  velocity += 0.0144 * delta;
-        if (keys.right) velocity -= 0.0144 * delta;
+        // Doubled baseline speeds so walking feels right at desktop FPS.
+        if (keys.left)  velocity += 0.03 * delta;
+        if (keys.right) velocity -= 0.03 * delta;
         // Damping is always applied (matches original per-frame 0.95 multiplier).
         velocity *= Math.pow(0.95, delta * 60);
-        velocity = Math.max(-0.192, Math.min(0.192, velocity));
+        velocity = Math.max(-0.45, Math.min(0.45, velocity));
         orbitAngle += velocity * delta;
 
         playerGroup.position.x = Math.cos(orbitAngle) * orbitRadius;
