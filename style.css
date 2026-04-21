@@ -680,34 +680,36 @@ body.landing-video-ready #enter-button-img {
 }
 
 /* Spanish translation tooltip — appears on hover of the desc panel */
+#footer-top-right {
+    position: relative;
+}
 .world-info-desc-es {
     position: absolute;
-    left: 0;
-    bottom: calc(100% + 8px);
-    max-width: min(90vw, 560px);
-    padding: 8px 12px;
+    left: 12px;
+    right: 12px;
+    bottom: calc(100% + 10px);
+    max-width: min(90vw, 640px);
+    padding: 10px 14px;
     font-family: 'Averia Libre', sans-serif;
-    font-size: clamp(11px, 1.6vh, 16px);
+    font-size: clamp(12px, 1.8vh, 17px);
     font-weight: 300;
     font-style: italic;
     color: #ffffff;
-    background: rgba(0, 0, 0, 0.72);
-    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(0, 10, 40, 0.88);
+    border: 1px solid rgba(120, 160, 255, 0.45);
     border-radius: 4px;
     white-space: normal;
-    line-height: 1.3;
+    line-height: 1.35;
     letter-spacing: 0.01em;
     pointer-events: none;
     opacity: 0;
     transform: translateY(4px);
     transition: opacity 0.18s ease, transform 0.18s ease;
-    z-index: 100;
+    z-index: 9999;
     text-shadow: 0 0 6px rgba(0, 80, 255, 0.5);
+    box-shadow: 0 0 18px rgba(0, 80, 255, 0.35);
 }
-.world-info-text {
-    position: relative;
-}
-.world-info-text:hover .world-info-desc-es {
+#footer-top-right:hover .world-info-desc-es {
     opacity: 1;
     transform: translateY(0);
 }
