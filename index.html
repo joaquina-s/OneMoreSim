@@ -9,6 +9,52 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <title>One More Sim</title>
+    <!-- Inline error reporter: surface any JS error to a visible overlay so
+         we can see what's breaking without needing DevTools open. -->
+    <script>
+    (function(){
+        function showErr(msg){
+            var el = document.getElementById('__js_err_overlay');
+            if(!el){
+                el = document.createElement('div');
+                el.id = '__js_err_overlay';
+                el.style.cssText = 'position:fixed;left:10px;right:10px;bottom:10px;z-index:99999;background:rgba(120,0,0,0.92);color:#fff;font:12px/1.4 monospace;padding:10px;max-height:40vh;overflow:auto;white-space:pre-wrap;border:1px solid #f66;cursor:pointer';
+                el.title = 'Click to dismiss';
+                el.addEventListener('click', function(){ el.remove(); });
+                (document.body || document.documentElement).appendChild(el);
+            }
+            el.textContent += msg + '\n\n';
+        }
+        window.addEventListener('error', function(e){
+            showErr('[error] ' + (e.message||'') + '\n' + (e.filename||'') + ':' + (e.lineno||'') + ':' + (e.colno||''));
+        });
+        window.addEventListener('unhandledrejection', function(e){
+            showErr('[promise] ' + (e.reason && (e.reason.stack || e.reason.message || e.reason)));
+        });
+    })();
+    </script>
+    <!-- Fallback: if the main module hasn't attached a click handler within
+         3s, bind a minimal one so the user can still leave the landing. -->
+    <script>
+    window.addEventListener('load', function(){
+        setTimeout(function(){
+            var btn = document.getElementById('enter-button-img');
+            if(!btn) return;
+            // Heuristic: if the custom cursor element was never created, the
+            // main module failed to initialize. Provide a minimum-viable click.
+            if(!document.getElementById('custom-cursor')){
+                document.body.style.cursor = 'auto';
+                btn.addEventListener('click', function(){
+                    var lc = document.getElementById('landing-container');
+                    if(lc) lc.style.display = 'none';
+                    var sh = document.getElementById('ui-shell');
+                    if(sh) sh.style.display = 'block';
+                    alert('Main script failed to load — check the red error banner at the bottom of the page.');
+                });
+            }
+        }, 3000);
+    });
+    </script>
     <link rel="icon" type="image/png" href="assets/tex/Buttons/colorB1.png">
     <link rel="shortcut icon" type="image/png" href="assets/tex/Buttons/colorB1.png">
     <link rel="stylesheet" href="style.css?v=47">
@@ -424,7 +470,7 @@
         </div>
     </div>
 
-    <script type="module" src="index.js?v=56"></script>
+    <script type="module" src="index.js?v=57"></script>
 </body>
 
 </html>
