@@ -552,14 +552,16 @@ document.addEventListener('keydown', (e) => {
 const WORLD_DATA = {
     '0': {
         title: '01Embryo',
-        desc: 'Here is where the sea was. now just different memories scattered and an egg keeping systems together',
+        desc: 'Here is where the sea was. Now just scattered memories and an egg so tightly packed that nobody knows what lives inside.',
+        descEs: 'Aquí es donde estaba el mar. Ahora solo memorias dispersas y un huevo tan comprimido que nadie sabe qué vive adentro.',
         accent: '#8899cc',
         iconSvg: `<path d="M16 26 C8 24 8 16 16 6 C24 16 24 24 16 26 Z" fill="none" stroke="currentColor" stroke-width="2"/>
                   <circle cx="16" cy="18" r="3" fill="currentColor"/>`
     },
     '1': {
-        title: '09Bubblepicking',
+        title: '09Coming_back_home',
         desc: 'The story that went round and round went back to its beginning.',
+        descEs: 'La historia que daba vueltas y vueltas regresó a su principio.',
         accent: '#88ccff',
         iconSvg: `<circle cx="16" cy="16" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
               <circle cx="16" cy="16" r="4" fill="currentColor" opacity="0.4"/>
@@ -568,6 +570,7 @@ const WORLD_DATA = {
     '2': {
         title: '03Presentation_Club',
         desc: 'I feel bad for anybody that has to be around us because we only talk to each other.',
+        descEs: 'Me da pena cualquiera que tenga que estar cerca nuestro porque solo hablamos entre nosotras.',
         accent: '#8899cc',
         iconSvg: `<rect x="8" y="10" width="32" height="18" fill="none" stroke="currentColor" stroke-width="2"/>
                   <line x1="16" y1="36" x2="16" y2="28" stroke="currentColor" stroke-width="2"/>
@@ -576,7 +579,8 @@ const WORLD_DATA = {
     },
     '3': {
         title: '06Super_Me_Era',
-        desc: 'I just love transitional spaces. It feels like everyone has something to say in here.',
+        desc: 'It feels like everyone has something to say in here.',
+        descEs: 'Pareceria que todos tienen una opinion en este lugar.',
         accent: '#8899cc',
         iconSvg: `<circle cx="12" cy="24" r="3" fill="currentColor"/>
                   <circle cx="20" cy="24" r="3" fill="currentColor"/>
@@ -590,6 +594,7 @@ const WORLD_DATA = {
     '4': {
         title: '08Fetal_Situation',
         desc: 'Warm water made us spill words into the tub and now they\'re just floating there, all tangled up.',
+        descEs: 'El agua tibia nos hizo escupir palabras en la bañera y ahora solo flotan ahí, todas enredadas.',
         accent: '#88ccff',
         iconSvg: `<rect x="6" y="22" width="36" height="14" rx="7"
                     fill="none" stroke="currentColor" stroke-width="2"/>
@@ -603,8 +608,9 @@ const WORLD_DATA = {
                     stroke="currentColor" stroke-width="2"/>`
     },
     '5': {
-        title: '07',
-        desc: 'Red neuronal animada con nodos y conexiones que se escriben progresivamente en tiempo real.',
+        title: '07Ghosts_and_Phsycotics',
+        desc: 'No need to interact this time, just an array of beings no longer anchored in reality.',
+        descEs: 'No hay necesidad de interactuar esta vez, solo una serie de seres que ya no están anclados en la realidad.',
         accent: '#8899cc',
         iconSvg: `<circle cx="12" cy="12" r="3" fill="currentColor"/>
               <circle cx="36" cy="12" r="3" fill="currentColor"/>
@@ -615,14 +621,16 @@ const WORLD_DATA = {
     },
     '6': {
         title: '05Aqua_Race',
-        desc: 'She\'s blurred, a smooth presence you\'d chase forever.',
+        desc: 'She looks blurry in the beautiful pacific twilight, a presence that I\'d chase forever.',
+        descEs: 'Se ve borrosa en el hermoso crepúsculo del Pacífico, una presencia que perseguiría para siempre.',
         accent: '#ffffff',
         iconSvg: `<path d="M12 24 L36 24 M24 12 L36 24 L24 36" fill="none" stroke="currentColor" stroke-width="2"/>
               <circle cx="12" cy="24" r="3" fill="currentColor"/>`
     },
     '7': {
         title: '02Ambient_Human_presence',
-        desc: 'Whenever I remember something, I always remember it differently.',
+        desc: 'Whenever I remember something, I always remember it differently ; each time leaving a residual aura.',
+        descEs: 'Cada vez que me acuerdo de algo, me lo acuerdo distinto, dejando siempre una aura residual.',
         accent: '#ffffff',
         iconSvg: `<rect x="8" y="8" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"/>
                   <rect x="26" y="8" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"/>
@@ -630,7 +638,8 @@ const WORLD_DATA = {
     },
     '9': {
         title: '04Inner_World',
-        desc: '(( hey image, you look trapped there))',
+        desc: 'Some memories travel to a distant place, only to return much later, old and wise, to share what they have seen, with their skin layers peeling away from each other.',
+        descEs: 'Algunas memorias viajan a un lugar lejano, solo para regresar mucho después, viejas y sabias, a compartir lo que han visto, con sus capas de piel desprendiéndose la una de la otra.',
         accent: '#8899cc',
         iconSvg: `<rect x="4" y="20" width="24" height="4" rx="1"
                     fill="none" stroke="currentColor" stroke-width="2"/>
@@ -681,6 +690,8 @@ function updateWorldInfo(worldId) {
     const data = WORLD_DATA[worldId] || WORLD_DATA['0'];
     document.documentElement.style.setProperty('--world-accent', data.accent);
     typeWorldDesc(data.desc);
+    const esEl = document.getElementById('world-info-desc-es');
+    if (esEl) esEl.textContent = data.descEs || '';
     updateWorldTracker(worldId);
 
     // Update instruction image in header-credits panel
@@ -711,9 +722,9 @@ const WORLD_DISPLAY_NAMES = {
     '9': '04  Inner_World',
     '6': '05  Aqua_Race',
     '3': '06  Super_Me_Era',
-    '5': '07',
+    '5': '07  Ghosts_and_Phsycotics',
     '4': '08  Fetal_Situation',
-    '1': '09  Bubblepicking'
+    '1': '09  Coming_back_home'
 };
 const TRACK_ITEM_H = 26; // px — must match CSS
 

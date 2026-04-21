@@ -679,6 +679,39 @@ body.landing-video-ready #enter-button-img {
          0 0 28px rgba(0, 30, 255, 0.5);
 }
 
+/* Spanish translation tooltip — appears on hover of the desc panel */
+.world-info-desc-es {
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 8px);
+    max-width: min(90vw, 560px);
+    padding: 8px 12px;
+    font-family: 'Averia Libre', sans-serif;
+    font-size: clamp(11px, 1.6vh, 16px);
+    font-weight: 300;
+    font-style: italic;
+    color: #ffffff;
+    background: rgba(0, 0, 0, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 4px;
+    white-space: normal;
+    line-height: 1.3;
+    letter-spacing: 0.01em;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    z-index: 100;
+    text-shadow: 0 0 6px rgba(0, 80, 255, 0.5);
+}
+.world-info-text {
+    position: relative;
+}
+.world-info-text:hover .world-info-desc-es {
+    opacity: 1;
+    transform: translateY(0);
+}
+
 /* Square terminal cursor — inline after text inside same scaled wrapper */
 #world-text-cursor {
     font-family: monospace;
