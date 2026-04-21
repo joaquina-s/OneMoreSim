@@ -4,7 +4,7 @@
    Uses THREE.SkeletonUtils for proper skeletal cloning.
    ═══════════════════════════════════════════════════ */
 
-import { uiSound } from a../audio/uiSounds.js?v=3a;
+import { uiSound } from '../audio/uiSounds.js?v=3';
 
 // Seeded PRNG (mulberry32) — replaces Math.random() in formation layout so
 // the procession is deterministic. Without this, every refresh placed each
@@ -21,12 +21,12 @@ function _mulberry32(seed) {
 
 // Procession size scales with device — mobile cuts in half because each
 // SkinnedMesh draws separately and skinning is the heaviest per-vertex cost
-// in this scene. (True instancing isnat possible here: every figure has its
+// in this scene. (True instancing isn't possible here: every figure has its
 // own AnimationMixer and bone state.)
 const COUNT = (window.innerWidth < 768) ? 24 : 50;
 
 export default {
-  id: a2a,
+  id: '2',
   scene: null,
   camera: null,
 
@@ -43,16 +43,16 @@ export default {
   _bloomPass: null,
 
   _textImages: [
-    aassets/texto/SPE1.pnga,
-    aassets/texto/SPE2.pnga,
-    aassets/texto/SPE3.pnga,
-    aassets/texto/SPE4.pnga,
-    aassets/texto/SPE5.pnga,
-    aassets/texto/SPE6.pnga,
-    aassets/texto/SPE7.pnga,
-    aassets/texto/SPE8.pnga,
-    aassets/texto/SPE9.pnga,
-    aassets/texto/SPE10.pnga
+    'assets/texto/SPE1.png',
+    'assets/texto/SPE2.png',
+    'assets/texto/SPE3.png',
+    'assets/texto/SPE4.png',
+    'assets/texto/SPE5.png',
+    'assets/texto/SPE6.png',
+    'assets/texto/SPE7.png',
+    'assets/texto/SPE8.png',
+    'assets/texto/SPE9.png',
+    'assets/texto/SPE10.png'
   ],
   _nextTextIndex: 0,
   _spawnedTexts: [],
@@ -124,7 +124,7 @@ export default {
       );
       this._composer.addPass(this._bloomPass);
     } catch (e) {
-      console.warn(a[Array3D] bloom unavailable:a, e);
+      console.warn('[Array3D] bloom unavailable:', e);
       this._composer = null;
     }
 
@@ -140,7 +140,7 @@ export default {
       if (this._composer) this._composer.setSize(ww, hh);
       if (this._bloomPass && this._bloomPass.setSize) this._bloomPass.setSize(ww, hh);
     };
-    window.addEventListener(aresizea, this._handlers.resize);
+    window.addEventListener('resize', this._handlers.resize);
 
     // OrbitControls removed — they were re-baselining the camera each frame
     // (update() calls camera.lookAt(target) regardless of `enabled`), which
@@ -154,7 +154,7 @@ export default {
       if (!this._active) return;
 
       // Igniting only when clicking directly on one of the 50 characters
-      if (e.target.closest(a#world-nava) || e.target.closest(a#character-panela)) return;
+      if (e.target.closest('#world-nav') || e.target.closest('#character-panel')) return;
       
       if (!this.scene || this._instances.length === 0) return;
       
@@ -232,9 +232,9 @@ export default {
                       o.mat.emissiveIntensity = 2.0;
                   });
               }
-              document.body.style.cursor = apointera;
+              document.body.style.cursor = 'pointer';
           } else {
-              document.body.style.cursor = adefaulta;
+              document.body.style.cursor = 'default';
           }
 
           this._lastHovered = hoveredId;
@@ -242,18 +242,18 @@ export default {
     };
 
     // Attach to document globally to guarantee capture despite DOM overlays
-    document.addEventListener(apointerdowna, this._handlers.down);
-    document.addEventListener(apointerupa,   this._handlers.up);
-    document.addEventListener(apointermovea, this._handlers.pointermove);
+    document.addEventListener('pointerdown', this._handlers.down);
+    document.addEventListener('pointerup',   this._handlers.up);
+    document.addEventListener('pointermove', this._handlers.pointermove);
 
     // ── Load GLB ──
     const loader = new THREE.GLTFLoader();
     loader.load(
-      aassets/3D/walk.glba,
+      'assets/3D/walk.glb?v=2',
       (gltf) => { this._setupRealInstances(gltf); },
       undefined,
       (err) => {
-        console.warn(aWorldParade: GLTF failed, using fallback configuration:a, err);
+        console.warn('WorldParade: GLTF failed, using fallback configuration:', err);
       }
     );
   },
@@ -299,7 +299,7 @@ export default {
             return;
         }
 
-        // Clone materials per instance so hover on one doesnat affect others
+        // Clone materials per instance so hover on one doesn't affect others
         clone.traverse(child => {
             if (child.isMesh && child.material) {
                 if (Array.isArray(child.material)) {
@@ -374,12 +374,12 @@ export default {
 
   /* ──────────── Spawn text overlay ──────────── */
   _spawnText() {
-    let container = document.getElementById(atext-overlay-containera);
+    let container = document.getElementById('text-overlay-container');
     
     // Si no existe, crearlo y agregarlo al canvas-area
     if (!container) {
-      container = document.createElement(adiva);
-      container.id = atext-overlay-containera;
+      container = document.createElement('div');
+      container.id = 'text-overlay-container';
       container.style.cssText = `
         position: absolute;
         inset: 0;
@@ -387,8 +387,8 @@ export default {
         z-index: 10;
         overflow: hidden;
       `;
-      const canvasArea = document.getElementById(acanvas-areaa) 
-        || document.getElementById(acarousel-containera) 
+      const canvasArea = document.getElementById('canvas-area') 
+        || document.getElementById('carousel-container') 
         || document.body;
       canvasArea.appendChild(container);
     }
@@ -397,12 +397,12 @@ export default {
     const src = this._textImages[this._nextTextIndex];
     this._nextTextIndex = (this._nextTextIndex + 1) % this._textImages.length;
 
-    const img = document.createElement(aimga);
+    const img = document.createElement('img');
     img.src       = src;
-    img.className = afloating-texta;
+    img.className = 'floating-text';
 
     // Avoid spawning over the world-nav-wrap panel
-    const navWrap = document.getElementById(aworld-nav-wrapa);
+    const navWrap = document.getElementById('world-nav-wrap');
     const navR    = navWrap ? navWrap.getBoundingClientRect() : null;
 
     // Spawn range 30% smaller: was 2-92% X and 2-90% Y, now ~23-69% X / 23-67% Y
@@ -417,13 +417,13 @@ export default {
       if (!inNav) break;
     } while (++attempts < 8);
 
-    img.style.left = randX + a%a;
-    img.style.top  = randY + a%a;
+    img.style.left = randX + '%';
+    img.style.top  = randY + '%';
 
     // Scale variation: 0.61–0.83 (no rotation, per spec).
     const scale = 0.61 + Math.random() * 0.22;
-    img.style.setProperty(a--sa,   scale);
-    img.style.setProperty(a--rota, a0dega);
+    img.style.setProperty('--s',   scale);
+    img.style.setProperty('--rot', '0deg');
 
     container.appendChild(img);
     this._spawnedTexts.push(img);
@@ -467,15 +467,15 @@ export default {
   dispose() {
     this._active = false;
     if (this._handlers) {
-      if (this._handlers.down)        document.removeEventListener(apointerdowna, this._handlers.down);
-      if (this._handlers.up)          document.removeEventListener(apointerupa,   this._handlers.up);
-      if (this._handlers.up)          document.removeEventListener(atouchenda,    this._handlers.up);
-      if (this._handlers.click)       document.removeEventListener(aclicka,       this._handlers.click);
-      if (this._handlers.click)       document.removeEventListener(atouchstarta,  this._handlers.click);
-      if (this._handlers.pointermove) document.removeEventListener(apointermovea, this._handlers.pointermove);
-      if (this._handlers.resize)      window.removeEventListener(aresizea,        this._handlers.resize);
+      if (this._handlers.down)        document.removeEventListener('pointerdown', this._handlers.down);
+      if (this._handlers.up)          document.removeEventListener('pointerup',   this._handlers.up);
+      if (this._handlers.up)          document.removeEventListener('touchend',    this._handlers.up);
+      if (this._handlers.click)       document.removeEventListener('click',       this._handlers.click);
+      if (this._handlers.click)       document.removeEventListener('touchstart',  this._handlers.click);
+      if (this._handlers.pointermove) document.removeEventListener('pointermove', this._handlers.pointermove);
+      if (this._handlers.resize)      window.removeEventListener('resize',        this._handlers.resize);
       this._handlers = {};
-      document.body.style.cursor = adefaulta;
+      document.body.style.cursor = 'default';
     }
 
     if (this._orbitControls) {
@@ -489,7 +489,7 @@ export default {
     this._composer = null;
 
     // Clean up spawned text DOM elements
-    const container = document.getElementById(atext-overlay-containera);
+    const container = document.getElementById('text-overlay-container');
     if (container) {
       this._spawnedTexts.forEach(img => {
         if (img.parentNode) img.parentNode.removeChild(img);
