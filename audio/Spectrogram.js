@@ -202,6 +202,7 @@ class Spectrogram {
         const dataArray = this._dataArray;
         this.analyser.getByteFrequencyData(dataArray);
         const imageData = this._colImage;
+        const bufferLength = dataArray.length;
 
         for (let y = 0; y < this.h; y++) {
             // Cutoff at ~30% of Nyquist (around 6.6kHz) to make bass/mids fill the canvas

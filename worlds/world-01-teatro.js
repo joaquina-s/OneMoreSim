@@ -3,6 +3,9 @@ import { uiSound } from '../audio/uiSounds.js?v=3';
 const WorldTeatro = {
   scene: null,
   camera: null,
+  // Disable the global arrow-key camera rotation — in Presentation_Club only
+  // chair tap should navigate. Read by core/worldManager.js tick().
+  _disableArrowRotate: true,
   _renderer: null,
   _orbitControls: null,
   _video: null,

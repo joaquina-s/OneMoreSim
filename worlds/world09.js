@@ -696,10 +696,11 @@ export const bubblepicking = {
         //   accel = 0.00024 * 60 * 60 = 0.864 rad/s^2  (NOT 0.0144 — that was wrong)
         //   cap   = 0.0032 * 60       = 0.192 rad/s
         // Damping applied only when NOT moving (matches original).
-        if (keys.left)  velocity += 1.08 * delta;
-        if (keys.right) velocity -= 1.08 * delta;
+        // Slightly faster: accel and cap bumped ~15% (1.08 -> 1.25, 0.24 -> 0.28).
+        if (keys.left)  velocity += 1.25 * delta;
+        if (keys.right) velocity -= 1.25 * delta;
         if (!isMoving) velocity *= Math.pow(0.95, delta * 60);
-        velocity = Math.max(-0.24, Math.min(0.24, velocity));
+        velocity = Math.max(-0.28, Math.min(0.28, velocity));
         orbitAngle += velocity * delta;
 
         playerGroup.position.x = Math.cos(orbitAngle) * orbitRadius;

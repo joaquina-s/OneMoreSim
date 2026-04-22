@@ -60,10 +60,20 @@ export class ResizeManager {
 
         this.renderer.setPixelRatio(deviceProfile.dpr);
 
-        // Update camera
+        // Update camera — handle Perspective and Orthographic separately.
+        // Setting `aspect` on an OrthographicCamera is a no-op and would silently
+        // leave it un-resized; worlds 04/07 use Ortho cameras.
         const camera = this._getCamera();
         if (camera) {
-            camera.aspect = w / h;
+            if (camera.isPerspectiveCamera) {
+                camera.aspect = w / h;
+            } else if (camera.isOrthographicCamera) {
+                const aspect = w / h;
+                camera.left   = -aspect;
+                camera.right  =  aspect;
+                camera.top    =  1;
+                camera.bottom = -1;
+            }
             camera.updateProjectionMatrix();
         }
 

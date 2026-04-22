@@ -82,14 +82,22 @@ export class WorldManager {
 
             // 3. Dispose current world
             if (this.activeModule && this.activeModule.dispose) {
-                this.activeModule.dispose();
+                try { this.activeModule.dispose(); }
+                catch (e) { console.warn('WorldManager: dispose threw for previous world', e); }
             }
             // Deep-clean render lists
             if (this.renderer.renderLists) {
                 this.renderer.renderLists.dispose();
             }
-            // Clear all passes from the composer (composer may be null on mobile)
+            // Properly dispose pass-owned render targets before dropping references.
+            // Just truncating .length leaks GPU buffers held by passes that were
+            // not disposed by the world's own dispose() (composer is shared).
             if (this.composer && this.composer.passes) {
+                for (const pass of this.composer.passes) {
+                    if (pass && typeof pass.dispose === 'function') {
+                        try { pass.dispose(); } catch (_) {}
+                    }
+                }
                 this.composer.passes.length = 0;
             }
 
@@ -171,7 +179,8 @@ export class WorldManager {
         if (this.activeModule && this.activeModule.update) {
 
             // Global Orbit Navigation via Left/Right Arrows
-            if (this.activeModule.camera && this.activeModule._orbitControls && this.activeModule._orbitControls.enabled !== false) {
+            // Worlds can opt-out by setting `_disableArrowRotate = true` (e.g. Presentation_Club).
+            if (this.activeModule.camera && this.activeModule._orbitControls && this.activeModule._orbitControls.enabled !== false && !this.activeModule._disableArrowRotate) {
                 if (keys && (keys.left || keys.right)) {
                     const cam = this.activeModule.camera;
                     const target = this.activeModule._orbitControls.target;

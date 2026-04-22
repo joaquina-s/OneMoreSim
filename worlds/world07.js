@@ -341,12 +341,15 @@ export default {
                           const sceneCY = 1 - (cell.y + cell.h / 2) * 2;
                           
                           const GAP = 0.0015;
-                          const geo = applyCellUVs(new THREE.PlaneGeometry(sceneW - GAP, sceneH - GAP), cell);
-                          
-                          group.children[0].geometry.dispose();
-                          group.children[1].geometry.dispose();
-                          group.children[0].geometry = geo;
-                          group.children[1].geometry = geo;
+                          // Each child needs its OWN geometry — sharing causes
+                          // double-dispose on the next resize (already-freed buffer).
+                          const geo0 = applyCellUVs(new THREE.PlaneGeometry(sceneW - GAP, sceneH - GAP), cell);
+                          const geo1 = applyCellUVs(new THREE.PlaneGeometry(sceneW - GAP, sceneH - GAP), cell);
+
+                          if (group.children[0].geometry && group.children[0].geometry !== geo0) group.children[0].geometry.dispose();
+                          if (group.children[1].geometry && group.children[1].geometry !== geo1 && group.children[1].geometry !== group.children[0].geometry) group.children[1].geometry.dispose();
+                          group.children[0].geometry = geo0;
+                          group.children[1].geometry = geo1;
                           
                           group.position.set(sceneCX, sceneCY, 0); // Padre centra a los hijos
                           group.children[0].position.set(0, 0, 0);
@@ -391,10 +394,19 @@ export default {
         if (this.texture1) this.texture1.dispose();
         if (this.texture2) this.texture2.dispose();
 
-        this.cells.forEach(mesh => {
-            if (mesh.geometry) mesh.geometry.dispose();
-            if (mesh.userData.mat1) mesh.userData.mat1.dispose();
-            if (mesh.userData.mat2) mesh.userData.mat2.dispose();
+        // cells are THREE.Groups; the actual geometries live on the children
+        const _disposed = new Set();
+        this.cells.forEach(group => {
+            if (group.children) {
+                group.children.forEach(child => {
+                    if (child.geometry && !_disposed.has(child.geometry)) {
+                        child.geometry.dispose();
+                        _disposed.add(child.geometry);
+                    }
+                });
+            }
+            if (group.userData && group.userData.mat1) group.userData.mat1.dispose();
+            if (group.userData && group.userData.mat2) group.userData.mat2.dispose();
         });
         this.cells = [];
 
