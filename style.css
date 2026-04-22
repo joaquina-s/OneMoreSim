@@ -295,8 +295,7 @@ body.landing-video-ready #enter-button-img {
     box-sizing: border-box;
 }
 
-#intro-welcome-img,
-#intro-welcome-img-mobile {
+#intro-welcome-img {
     display: block;
     /* Preserve the PNG's natural aspect ratio and ensure it's never cropped.
        Width is capped to the design max (1428px @ 1920x1080) and to the
@@ -311,6 +310,10 @@ body.landing-video-ready #enter-button-img {
     filter: drop-shadow(0 0 24px rgba(180, 210, 255, 0.55))
             drop-shadow(0 0 64px rgba(140, 180, 255, 0.25));
 }
+/* welcomem.png and intro-mobile-text are mobile-only — never shown on desktop.
+   The `.intro-mobile-only { display:none }` rule below is what hides them; we
+   intentionally do NOT give #intro-welcome-img-mobile any base display rule
+   here, because an ID selector would beat the class and leak it onto desktop. */
 
 /* Mobile-only intro text shown above the welcomem.png image */
 #intro-mobile-text {
@@ -335,18 +338,15 @@ body.landing-video-ready #enter-button-img {
 /* Tight screens (short Macs, small laptops): shrink gap & give image more room */
 @media (max-height: 820px) {
     #intro-content { gap: 24px; padding: 16px; }
-    #intro-welcome-img,
-    #intro-welcome-img-mobile { max-height: 62vh; }
+    #intro-welcome-img { max-height: 62vh; }
 }
 @media (max-height: 640px) {
     #intro-content { gap: 16px; padding: 10px; }
-    #intro-welcome-img,
-    #intro-welcome-img-mobile { max-height: 56vh; }
+    #intro-welcome-img { max-height: 56vh; }
 }
 /* Narrow screens */
 @media (max-width: 640px) {
-    #intro-welcome-img,
-    #intro-welcome-img-mobile { max-width: 96vw; }
+    #intro-welcome-img { max-width: 96vw; }
 }
 
 /* Mobile: welcomem.png fills the screen as a background, and the intro text is
@@ -382,15 +382,21 @@ body.landing-video-ready #enter-button-img {
         left: 50%;
         transform: translate(-50%, -50%);
         z-index: 2;
-        font-size: 13px;
-        line-height: 1.4;
-        max-width: 88vw;
-        padding: 0 6px;
+        /* Cover most of the screen width — small rows, lots of them. */
+        width: 96vw;
+        max-width: 96vw;
+        padding: 0 8px;
+        box-sizing: border-box;
+        font-size: 12px;
+        line-height: 1.35;
+        text-align: center;
         color: #ffffff;
-        text-shadow: 0 0 6px rgba(0,0,0,0.55),
-                     0 0 14px rgba(0,0,0,0.35),
+        text-shadow: 0 0 6px rgba(0,0,0,0.6),
+                     0 0 14px rgba(0,0,0,0.4),
                      0 0 10px rgba(140, 180, 255, 0.35);
     }
+    #intro-mobile-text p { margin: 0 0 8px 0; }
+    #intro-mobile-text p:last-child { margin-bottom: 0; }
 
     /* Keep loading bar + enter button above the bg image */
     #intro-loading-bar-wrap { position: relative; z-index: 3; }
