@@ -1840,16 +1840,40 @@ body.landing-video-ready #enter-button-img {
         gap: 0;
     }
     #sound-bar,
-    #img-panel-1,
-    #img-panel-3,
     #spectrogram-cell {
         display: none !important;
     }
-    #world-tracker-panel {
-        flex: 1 1 100% !important;
-        width: 100%;
-        max-width: none;
+    /* Bring back the two side text panels (panel-02 + panel-04) on mobile.
+       Narrow the memory picker so all three fit in one row. */
+    #img-panel-1,
+    #img-panel-3 {
+        display: flex !important;
+        flex: 1 1 0 !important;
         height: 80px;
+    }
+    #world-tracker-panel {
+        flex: 0 0 110px !important;
+        width: 110px;
+        max-width: 130px;
+        height: 80px;
+    }
+    /* Show only the currently active world inside the tracker (no scroll list) */
+    #world-track-list {
+        transform: none !important;
+    }
+    #world-track-list .track-item {
+        display: none;
+    }
+    #world-track-list .track-item.active {
+        display: flex;
+        height: 100%;
+        font-size: 14px;
+        padding: 0 6px;
+        letter-spacing: -0.3px;
+    }
+    #world-track-list .track-item.active::before {
+        font-size: 9px;
+        margin-right: 4px;
     }
     #footer-top-right {
         flex: 1 1 100%;
