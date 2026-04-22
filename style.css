@@ -433,10 +433,9 @@ body.landing-video-ready #enter-button-img {
 }
 
 @media (max-width: 480px) {
-    .image-panel:nth-child(4),
-    .image-panel:nth-child(5) {
-        display: none;
-    }
+    /* Mobile keeps only the world-tracker panel (handled in 768px block).
+       Don't blanket-hide nth-child here since mobile already hides
+       sound-bar, img-panel-1, img-panel-3 by id. */
     .image-panel {
         flex: 1;
     }
@@ -1786,23 +1785,92 @@ body.landing-video-ready #enter-button-img {
             "worlds"
             "footer";
         grid-template-columns: 1fr;
-        grid-template-rows: 69px 1fr auto 144px;
+        grid-template-rows: 69px 1fr auto 200px;
     }
 
     #hud-header {
         height: 69px;
     }
 
+    /* Header: keep only the central map */
+    #header-logo,
+    #header-credits {
+        display: none !important;
+    }
+    #hud-header {
+        grid-template-columns: 1fr;
+    }
+    #header-map {
+        flex: 1 1 100%;
+        width: 100%;
+    }
+
+    /* Hide character panel + texture FAB/drawer entirely on mobile */
+    #character-panel,
+    #texture-fab,
+    #texture-drawer,
+    #texture-drawer-backdrop {
+        display: none !important;
+    }
+
+    /* Footer: stack memory picker on top, world description below.
+       Hide sound bar, image panels, spectrogram. */
     #hud-footer {
-        height: 144px;
+        height: 200px;
+        flex-direction: column;
+        padding: 4px;
+        gap: 4px;
     }
-
-    #character-panel {
-        display: none;
+    #footer-top-row {
+        order: 2;
+        flex: 1 1 auto;
+        width: 100%;
+        height: auto;
     }
-
-    #texture-fab {
-        display: flex;
+    #footer-bottom-row {
+        order: 1;
+        flex: 0 0 80px;
+        width: 100%;
+        gap: 0;
+    }
+    #sound-bar,
+    #img-panel-1,
+    #img-panel-3,
+    #spectrogram-cell {
+        display: none !important;
+    }
+    #world-tracker-panel {
+        flex: 1 1 100% !important;
+        width: 100%;
+        max-width: none;
+        height: 80px;
+    }
+    #footer-top-right {
+        flex: 1 1 100%;
+        width: 100%;
+        padding: 8px 12px;
+    }
+    /* Re-enable world description on mobile (was hidden at <=1024px) */
+    .world-info-desc {
+        display: inline !important;
+    }
+    .world-info-text {
+        width: 100%;
+        height: 100%;
+        align-items: flex-start;
+        overflow: visible;
+    }
+    .world-info-desc-wrap {
+        transform: none;
+        white-space: normal;
+        display: block;
+        width: 100%;
+        line-height: 1.25;
+    }
+    .world-info-desc {
+        font-size: clamp(13px, 3.6vw, 18px);
+        white-space: normal;
+        line-height: 1.25;
     }
 
     #world-nav {

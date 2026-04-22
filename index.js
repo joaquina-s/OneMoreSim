@@ -1118,22 +1118,47 @@ if (drawerBackdrop) {
 }
 
 // ───────────────────────────────────────────────
-// Touch Swipe Controls (carousel navigation)
+// Touch Drag Controls — continuous rotate-by-finger.
+// While the finger is held off the start position past a small
+// threshold, the corresponding arrow key is "pressed" so worlds
+// rotate as long as you keep dragging.
 // ───────────────────────────────────────────────
 
 let touchStartX = 0;
+let touchActive = false;
+const TOUCH_DEADZONE = 8;  // px
+
+function clearTouchKeys() {
+    keys.left = false;
+    keys.right = false;
+}
+
 renderer.domElement.addEventListener('touchstart', (e) => {
     touchStartX = e.touches[0].clientX;
+    touchActive = true;
+    clearTouchKeys();
 }, { passive: true });
 
-renderer.domElement.addEventListener('touchend', (e) => {
-    const delta = e.changedTouches[0].clientX - touchStartX;
-    if (Math.abs(delta) > 50) {
-        if (delta > 0) keys.left = true;
-        else keys.right = true;
-        setTimeout(() => { keys.left = false; keys.right = false; }, 100);
+renderer.domElement.addEventListener('touchmove', (e) => {
+    if (!touchActive) return;
+    const dx = e.touches[0].clientX - touchStartX;
+    if (dx > TOUCH_DEADZONE) {
+        keys.right = true;
+        keys.left = false;
+    } else if (dx < -TOUCH_DEADZONE) {
+        keys.left = true;
+        keys.right = false;
+    } else {
+        clearTouchKeys();
     }
 }, { passive: true });
+
+function endTouch() {
+    touchActive = false;
+    clearTouchKeys();
+}
+renderer.domElement.addEventListener('touchend', endTouch, { passive: true });
+renderer.domElement.addEventListener('touchcancel', endTouch, { passive: true });
 
 // ───────────────────────────────────────────────
 // Animation Loop — Adaptive FPS
