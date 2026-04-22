@@ -350,7 +350,8 @@ body.landing-video-ready #enter-button-img {
 }
 
 /* Mobile: welcomem.png IS the entire screen — no blur/godrays/glow behind it.
-   The intro text is overlaid on top of the image. */
+   Layout (top→bottom): image fullscreen → text overlaid in upper half →
+   loading bar + enter button stacked BELOW the text in the lower half. */
 @media (max-width: 768px) {
     .intro-desktop-only { display: none !important; }
     .intro-mobile-only  { display: block !important; }
@@ -365,34 +366,46 @@ body.landing-video-ready #enter-button-img {
         background: #000 !important;
     }
 
-    /* Keep content flex so loading-bar + enter-btn still stack, but
-       promote the mobile image to a full-bleed absolute background. */
-    #intro-content {
-        gap: 18px;
-        padding: 14px;
-        padding-top: 30vh; /* reserve space so text/image aren't hidden by loading bar */
-        justify-content: flex-end;
+    /* welcomem.png fills the entire viewport, behind everything else.
+       Pinned to the viewport (position: fixed) so it doesn't depend on
+       parent sizing — true fullscreen background. */
+    #intro-welcome-img-mobile {
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;     /* iOS Safari: exclude address bar */
+        max-width: none !important;
+        max-height: none !important;
+        object-fit: cover !important;
+        z-index: 1 !important;
+        filter: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        pointer-events: none;
     }
 
-    #intro-welcome-img-mobile {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        max-width: none;
-        max-height: none;
-        object-fit: cover;
-        z-index: 1;
-        filter: none;
+    /* The intro flex column controls vertical stacking of text + bar + button. */
+    #intro-content {
+        position: relative;
+        z-index: 3;
+        width: 100vw;
+        max-width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        max-height: 100dvh;
+        padding: 0;
+        gap: 0;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
     }
 
     #intro-mobile-text {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 2;
-        /* Cover most of the screen width — small rows, lots of them. */
+        position: static;          /* part of the flex flow now */
+        transform: none;
+        margin-top: 14vh;          /* upper portion of screen */
+        margin-bottom: 22px;
         width: 96vw;
         max-width: 96vw;
         padding: 0 8px;
@@ -408,9 +421,17 @@ body.landing-video-ready #enter-button-img {
     #intro-mobile-text p { margin: 0 0 8px 0; }
     #intro-mobile-text p:last-child { margin-bottom: 0; }
 
-    /* Keep loading bar + enter button above the bg image */
-    #intro-loading-bar-wrap { position: relative; z-index: 3; }
-    #intro-enter-btn        { position: relative; z-index: 3; }
+    /* Loading bar + enter button stacked BELOW the text */
+    #intro-loading-bar-wrap {
+        position: relative;
+        z-index: 3;
+        margin: 6px auto 14px auto;
+    }
+    #intro-enter-btn {
+        position: relative;
+        z-index: 3;
+        margin-top: 4px;
+    }
 
     /* Enter button 20% smaller than desktop (169 * 0.8, 64 * 0.8) */
     #intro-enter-btn img {
