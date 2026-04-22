@@ -349,11 +349,21 @@ body.landing-video-ready #enter-button-img {
     #intro-welcome-img { max-width: 96vw; }
 }
 
-/* Mobile: welcomem.png fills the screen as a background, and the intro text is
-   overlaid ON TOP of the image (not stacked below it). Desktop assets hidden. */
+/* Mobile: welcomem.png IS the entire screen — no blur/godrays/glow behind it.
+   The intro text is overlaid on top of the image. */
 @media (max-width: 768px) {
     .intro-desktop-only { display: none !important; }
     .intro-mobile-only  { display: block !important; }
+
+    /* Kill the desktop overlay layers so only the image shows */
+    #intro-blur-bg,
+    #intro-godrays,
+    #intro-center-glow {
+        display: none !important;
+    }
+    #intro-overlay {
+        background: #000 !important;
+    }
 
     /* Keep content flex so loading-bar + enter-btn still stack, but
        promote the mobile image to a full-bleed absolute background. */
@@ -387,8 +397,8 @@ body.landing-video-ready #enter-button-img {
         max-width: 96vw;
         padding: 0 8px;
         box-sizing: border-box;
-        font-size: 12px;
-        line-height: 1.35;
+        font-size: 14px;
+        line-height: 1.4;
         text-align: center;
         color: #ffffff;
         text-shadow: 0 0 6px rgba(0,0,0,0.6),
