@@ -412,10 +412,10 @@ body.landing-video-ready #enter-button-img {
     #intro-loading-bar-wrap { position: relative; z-index: 3; }
     #intro-enter-btn        { position: relative; z-index: 3; }
 
-    /* Enter button 20% smaller on mobile */
+    /* Enter button 20% smaller than desktop (169 * 0.8, 64 * 0.8) */
     #intro-enter-btn img {
-        max-width: 123px;   /* 154 * 0.8 */
-        max-height: 46px;   /* 58  * 0.8 */
+        max-width: 135px;
+        max-height: 51px;
     }
 }
 
@@ -454,8 +454,8 @@ body.landing-video-ready #enter-button-img {
     display: block;
     width: auto;
     height: auto;
-    max-width: 154px;
-    max-height: 58px;
+    max-width: 169px;   /* 154 * 1.10 */
+    max-height: 64px;   /* 58  * 1.10 */
     object-fit: contain;
     pointer-events: none;
 }
