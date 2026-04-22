@@ -809,8 +809,9 @@ const WorldChase = {
     }
 
     // 6. Character movement — animación siempre activa
+    // FPS-independent: 2.4 units/sec (20% slower than previous 0.05/frame at 60fps = 3.0 u/s)
     if (this._character) {
-      const speed = 0.05;
+      const speed = 2.4 * delta;
 
       if (keys.left) {
         this._character.position.x -= speed;
