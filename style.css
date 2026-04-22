@@ -402,7 +402,12 @@ body.landing-video-ready #enter-button-img {
     }
 
     #intro-mobile-text {
-        position: static;          /* part of the flex flow now */
+        /* `position: relative` + z-index puts the text ABOVE the image,
+           which is also a child of #intro-content (z-index: 1). Without an
+           explicit z-index, the text is in-flow content (z=auto) and the
+           positioned image paints over it. */
+        position: relative;
+        z-index: 5;
         transform: none;
         margin-top: 14vh;          /* upper portion of screen */
         margin-bottom: 22px;
@@ -424,12 +429,12 @@ body.landing-video-ready #enter-button-img {
     /* Loading bar + enter button stacked BELOW the text */
     #intro-loading-bar-wrap {
         position: relative;
-        z-index: 3;
+        z-index: 5;
         margin: 6px auto 14px auto;
     }
     #intro-enter-btn {
         position: relative;
-        z-index: 3;
+        z-index: 5;
         margin-top: 4px;
     }
 
