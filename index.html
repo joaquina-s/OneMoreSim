@@ -57,7 +57,7 @@
     </script>
     <link rel="icon" type="image/png" href="assets/tex/Buttons/colorB1.png">
     <link rel="shortcut icon" type="image/png" href="assets/tex/Buttons/colorB1.png">
-    <link rel="stylesheet" href="style.css?v=58">
+    <link rel="stylesheet" href="style.css?v=59">
     <link
         href="https://fonts.googleapis.com/css2?family=Averia+Libre:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap"
         rel="stylesheet">
@@ -380,7 +380,12 @@
         <div id="intro-godrays"></div>
         <div id="intro-center-glow"></div>
         <div id="intro-content">
-            <img src="assets/UIText/welcome.png" id="intro-welcome-img" alt="Welcome"/>
+            <div id="intro-mobile-text" class="intro-mobile-only">
+                <p>Like a simulation, a memory is always unclear, its limits bleeding into everything else. It has agency of its own, leaving us as mere spectators of its whims. If a memory were granted a body, what would they do? Would they follow their dreams and live life to the fullest?</p>
+                <p>Within this memory simulator, water becomes the spectral holder of nested worlds, each independent of one another. One More Sim is an experiment in intimacy and the inner world of the image. Entering each Memory/World is like stepping into the mind of a new lover: that boundary-bending togetherness of a raw encounter with another soul.</p>
+            </div>
+            <img src="assets/UIText/welcome.png?v=2"  id="intro-welcome-img"        class="intro-desktop-only" alt="Welcome"/>
+            <img src="assets/UIText/welcomem.png?v=1" id="intro-welcome-img-mobile" class="intro-mobile-only"  alt="Welcome"/>
             <div id="intro-loading-bar-wrap">
                 <div id="intro-loading-bar"></div>
             </div>

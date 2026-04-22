@@ -295,7 +295,8 @@ body.landing-video-ready #enter-button-img {
     box-sizing: border-box;
 }
 
-#intro-welcome-img {
+#intro-welcome-img,
+#intro-welcome-img-mobile {
     display: block;
     /* Preserve the PNG's natural aspect ratio and ensure it's never cropped.
        Width is capped to the design max (1428px @ 1920x1080) and to the
@@ -311,18 +312,50 @@ body.landing-video-ready #enter-button-img {
             drop-shadow(0 0 64px rgba(140, 180, 255, 0.25));
 }
 
+/* Mobile-only intro text shown above the welcomem.png image */
+#intro-mobile-text {
+    color: #ffffff;
+    font-family: 'Averia Libre', serif;
+    font-size: 14px;
+    line-height: 1.45;
+    text-align: center;
+    max-width: 92vw;
+    margin: 0 auto;
+    padding: 0 4px;
+    text-shadow: 0 0 8px rgba(140, 180, 255, 0.55),
+                 0 0 16px rgba(80, 130, 255, 0.35);
+}
+#intro-mobile-text p { margin: 0 0 10px 0; }
+#intro-mobile-text p:last-child { margin-bottom: 0; }
+
+/* Default visibility: desktop image visible, mobile assets hidden */
+.intro-mobile-only  { display: none; }
+.intro-desktop-only { display: block; }
+
 /* Tight screens (short Macs, small laptops): shrink gap & give image more room */
 @media (max-height: 820px) {
     #intro-content { gap: 24px; padding: 16px; }
-    #intro-welcome-img { max-height: 62vh; }
+    #intro-welcome-img,
+    #intro-welcome-img-mobile { max-height: 62vh; }
 }
 @media (max-height: 640px) {
     #intro-content { gap: 16px; padding: 10px; }
-    #intro-welcome-img { max-height: 56vh; }
+    #intro-welcome-img,
+    #intro-welcome-img-mobile { max-height: 56vh; }
 }
 /* Narrow screens */
 @media (max-width: 640px) {
-    #intro-welcome-img { max-width: 96vw; }
+    #intro-welcome-img,
+    #intro-welcome-img-mobile { max-width: 96vw; }
+}
+
+/* Mobile: swap welcome image and reveal intro text */
+@media (max-width: 768px) {
+    .intro-desktop-only { display: none !important; }
+    .intro-mobile-only  { display: block !important; }
+    #intro-content { gap: 18px; padding: 14px; }
+    #intro-welcome-img-mobile { max-height: 55vh; }
+    #intro-mobile-text { font-size: 13px; line-height: 1.4; }
 }
 
 /* Loading bar shown while preloading worlds */
