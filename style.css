@@ -1002,6 +1002,12 @@ body.landing-video-ready #enter-button-img {
     position: relative;
     overflow: hidden;
     background: #000;
+    /* Prevent the browser from intercepting touch gestures (scroll/pinch/zoom)
+       so touchmove fires for our rotate-by-finger handler on mobile. */
+    touch-action: none;
+}
+#canvas-area canvas {
+    touch-action: none;
 }
 
 /* World 00 — world01bw on the right side (85% height, vertically centered). */

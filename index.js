@@ -1133,14 +1133,14 @@ function clearTouchKeys() {
     keys.right = false;
 }
 
-renderer.domElement.addEventListener('touchstart', (e) => {
+function onTouchStart(e) {
+    if (!e.touches || !e.touches[0]) return;
     touchStartX = e.touches[0].clientX;
     touchActive = true;
     clearTouchKeys();
-}, { passive: true });
-
-renderer.domElement.addEventListener('touchmove', (e) => {
-    if (!touchActive) return;
+}
+function onTouchMove(e) {
+    if (!touchActive || !e.touches || !e.touches[0]) return;
     const dx = e.touches[0].clientX - touchStartX;
     if (dx > TOUCH_DEADZONE) {
         keys.right = true;
@@ -1151,14 +1151,22 @@ renderer.domElement.addEventListener('touchmove', (e) => {
     } else {
         clearTouchKeys();
     }
-}, { passive: true });
-
+}
 function endTouch() {
     touchActive = false;
     clearTouchKeys();
 }
-renderer.domElement.addEventListener('touchend', endTouch, { passive: true });
-renderer.domElement.addEventListener('touchcancel', endTouch, { passive: true });
+
+// Attach to BOTH the WebGL canvas and the canvas-area wrapper so touches
+// over absolute-positioned overlays inside the canvas region still rotate.
+const _touchTargets = [renderer.domElement, document.getElementById('canvas-area')]
+    .filter(Boolean);
+_touchTargets.forEach(el => {
+    el.addEventListener('touchstart',  onTouchStart, { passive: true });
+    el.addEventListener('touchmove',   onTouchMove,  { passive: true });
+    el.addEventListener('touchend',    endTouch,     { passive: true });
+    el.addEventListener('touchcancel', endTouch,     { passive: true });
+});
 
 // ───────────────────────────────────────────────
 // Animation Loop — Adaptive FPS
