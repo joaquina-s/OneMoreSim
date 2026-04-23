@@ -10,7 +10,7 @@ import { ResizeManager } from './core/resizeManager.js';
 import { bubblepicking } from './worlds/world09.js?v=17';
 import { uiSound } from './audio/uiSounds.js?v=3';
 import Spectrogram from './audio/Spectrogram.js';
-import LayeredMusic from './audio/LayeredMusic.js?v=2';
+import LayeredMusic from './audio/LayeredMusic.js?v=3';
 
 // ───────────────────────────────────────────────
 // Draco support — patch GLTFLoader once so every world's `new GLTFLoader()`
@@ -347,7 +347,7 @@ document.getElementById('intro-enter-btn').addEventListener('click', async () =>
     // whether the preload finished by the time ENTER is tapped.
     try {
         if (!_musicInited) await ensureMusicInit();
-        layeredMusic.play();
+        await layeredMusic.play();
     } catch (e) { console.warn('music start failed', e); }
     const introOverlay = document.getElementById('intro-overlay');
     if (introOverlay) introOverlay.style.pointerEvents = 'none'; // Immediately stop blocking clicks
