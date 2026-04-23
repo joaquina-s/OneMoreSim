@@ -2610,3 +2610,37 @@ body.credits-open #credits-close {
     #credits-content { padding: 10px; }
     #credits-img { max-height: 70vh; }
 }
+
+/* ════════════════════════════════════════════════
+   MOBILE-ONLY OVERRIDES (misc world/intro tweaks)
+   ════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+    /* Landing ENTER button 20% smaller than desktop (320*0.8, 120*0.8) */
+    #enter-btn-img {
+        max-width: 256px !important;
+        max-height: 96px !important;
+    }
+
+    /* Welcome screen intro text: 15px and text block 15% narrower */
+    #intro-mobile-text {
+        font-size: 15px !important;
+        line-height: 1.45 !important;
+        width: 81.6vw !important;
+        max-width: 81.6vw !important;
+    }
+
+    /* Hide world01bw.png overlay on mobile for world 01 Embryo */
+    #world-00-overlay-right,
+    #world-00-overlay-right.visible,
+    #egg-bw-img-2 {
+        display: none !important;
+    }
+
+    /* World 06 Super_Me_Era charBW overlay: shift right and 30% smaller */
+    #world-03-overlay {
+        transform: translateX(-20%) !important;
+    }
+    #char-bw-img {
+        height: min(39.2vh, 367px) !important;
+    }
+}

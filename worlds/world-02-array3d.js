@@ -83,10 +83,15 @@ export default {
     //                                            ≈ (0, 2.28, 0.02)
     this.camera = new THREE.PerspectiveCamera(95, W / H, 0.1, 100);
     // 3° downward tilt from (0, 2.4, 6.5) → target y = 2.4 − 6.5*tan(3°) ≈ 2.0594
-    this.camera.position.set(0, 2.4, 6.5);
-    this.camera.lookAt(0, 2.0594, 0);
-    this._fixedCamPos  = new THREE.Vector3(0, 2.4, 6.5);
-    this._fixedCamLook = new THREE.Vector3(0, 2.0594, 0);
+    // Mobile: bring camera closer so characters don't feel distant
+    const _isMobileCam = window.innerWidth < 768;
+    const _camZ = _isMobileCam ? 4.2 : 6.5;
+    const _camY = _isMobileCam ? 2.2 : 2.4;
+    const _lookY = _camY - _camZ * Math.tan(3 * Math.PI / 180);
+    this.camera.position.set(0, _camY, _camZ);
+    this.camera.lookAt(0, _lookY, 0);
+    this._fixedCamPos  = new THREE.Vector3(0, _camY, _camZ);
+    this._fixedCamLook = new THREE.Vector3(0, _lookY, 0);
 
     // ── Lighting (slightly glowier) ──
     this.scene.add(new THREE.AmbientLight(0x334466, 3.4));

@@ -23,8 +23,8 @@ const WorldTeatro = {
   _loadingText: null,
   _isSeated: false,
   _isAnimating: false,
-  _initialCameraPos: new THREE.Vector3(3, 2.5, 7),
-  _initialTargetPos: new THREE.Vector3(0, 1.0, 0),
+  _initialCameraPos: new THREE.Vector3(1, 2.5, 7),
+  _initialTargetPos: new THREE.Vector3(-2, 1.0, 0),
 
   init(renderer, _composer) {
     this._renderer = renderer;
