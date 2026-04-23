@@ -159,6 +159,7 @@ export default {
         // ── Load GLB ──
         const loader = new THREE.GLTFLoader();
         loader.load('assets/3D/baneraLow.glb?v=4', (gltf) => {
+            if (!this.scene) return;   // world was switched while loading
             // Extract the huevo mesh from the baneraLow composition
             let huevoObj = null;
             gltf.scene.traverse((child) => {
@@ -260,11 +261,14 @@ export default {
             this.scene.clear();
         }
 
-        this.scene = null;
-        this.camera = null;
-        this.renderer = null;
-        this._sunMesh = null;
-        this._sunLight = null;
-        this._huevoMesh = null;
+        this.scene          = null;
+        this.camera         = null;
+        this.renderer       = null;
+        this._sunMesh       = null;
+        this._sunLight      = null;
+        this._huevoMesh     = null;
+        this._video         = null;
+        this._videoTex      = null;
+        this._orbitControls = null;
     }
 };

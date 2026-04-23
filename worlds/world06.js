@@ -397,6 +397,7 @@ const WorldChase = {
 
     const placePalms = () => {
       if (!palm1Proto || !palm2Proto || placed) return;
+      if (!this.scene) return;   // disposed while loading
       placed = true;
 
       palmPositions.forEach(pos => {
@@ -443,18 +444,18 @@ const WorldChase = {
     };
 
     loader.load('assets/3D/palm1.1.glb?v=4', (gltf) => {
-      console.log('[world06] palm1.1 loaded', gltf);
+      if (!this.scene) return;   // world was switched while loading
       palm1Proto = gltf.scene;
       placePalms();
-      this._onGlbLoaded();
-    }, undefined, (e) => { console.error('[world06] palm1.1 load error:', e); this._onGlbLoaded(); });
+      if (this._onGlbLoaded) this._onGlbLoaded();
+    }, undefined, (e) => { console.error('[world06] palm1.1 load error:', e); if (this._onGlbLoaded) this._onGlbLoaded(); });
 
     loader.load('assets/3D/palm2.1.glb?v=4', (gltf) => {
-      console.log('[world06] palm2.1 loaded', gltf);
+      if (!this.scene) return;
       palm2Proto = gltf.scene;
       placePalms();
-      this._onGlbLoaded();
-    }, undefined, (e) => { console.error('[world06] palm2.1 load error:', e); this._onGlbLoaded(); });
+      if (this._onGlbLoaded) this._onGlbLoaded();
+    }, undefined, (e) => { console.error('[world06] palm2.1 load error:', e); if (this._onGlbLoaded) this._onGlbLoaded(); });
   },
 
   /* ════════════════════════════════════════════
@@ -539,7 +540,7 @@ const WorldChase = {
   _loadLancha() {
     const loader = new THREE.GLTFLoader();
     loader.load('assets/3D/lanchachar.glb?v=11', (gltf) => {
-      console.log('[world06] lanchachar loaded', gltf, 'animations:', gltf.animations.length);
+      if (!this.scene) return;   // world was switched while loading
       this._lancha = gltf.scene;
 
       this._lancha.scale.setScalar(1);
@@ -596,8 +597,8 @@ const WorldChase = {
 
       // Wake planes removed per request (they showed up as two bars under the lancha)
       this._wakePlanes = [];
-      this._onGlbLoaded();
-    }, undefined, (e) => { console.error('[world06] lanchachar load error:', e); this._onGlbLoaded(); });
+      if (this._onGlbLoaded) this._onGlbLoaded();
+    }, undefined, (e) => { console.error('[world06] lanchachar load error:', e); if (this._onGlbLoaded) this._onGlbLoaded(); });
   },
 
   /* ════════════════════════════════════════════
@@ -607,6 +608,7 @@ const WorldChase = {
     // Character now uses the original GLB texture — no video texture setup.
     const loader = new THREE.GLTFLoader();
     loader.load('assets/3D/walk.glb?v=5', (gltf) => {
+      if (!this.scene) return;   // world was switched while loading
       this._character = THREE.SkeletonUtils ? THREE.SkeletonUtils.clone(gltf.scene) : gltf.scene;
       this._character.position.set(0, 0, 2);
       this._character.scale.setScalar(0.5);
@@ -655,8 +657,8 @@ const WorldChase = {
         // Animación SIEMPRE activa (no pausar cuando no se mueve)
         this._walkAction.paused = false;
       }
-      this._onGlbLoaded();
-    }, undefined, (e) => { console.error(e); this._onGlbLoaded(); });
+      if (this._onGlbLoaded) this._onGlbLoaded();
+    }, undefined, (e) => { console.error(e); if (this._onGlbLoaded) this._onGlbLoaded(); });
   },
 
   /* ════════════════════════════════════════════
@@ -913,6 +915,23 @@ const WorldChase = {
       this.scene.clear();
     }
     this._palmModels = [];
+    // Null everything so stale async callbacks (checking `!this.scene`) bail out
+    this.scene         = null;
+    this.camera        = null;
+    this._rtScene      = null;
+    this._rtAccumOld   = null;
+    this._rtAccumNew   = null;
+    this._accumMat     = null;
+    this._finalMat     = null;
+    this._waterMat     = null;
+    this._foamMat      = null;
+    this._videoTexture = null;
+    this._lancha       = null;
+    this._character    = null;
+    this._foam         = null;
+    this._terrain      = null;
+    this._speedLines   = null;
+    this._stars        = null;
   }
 };
 

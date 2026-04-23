@@ -430,6 +430,7 @@ function createPlayer(scene) {
     scene.add(playerGroup);
     const loader = new THREE.GLTFLoader();
     loader.load('assets/3D/walk.glb?v=5', (gltf) => {
+        if (!playerGroup) return;  // world was switched while loading
         let clone;
         if (THREE.SkeletonUtils && THREE.SkeletonUtils.clone) {
             clone = THREE.SkeletonUtils.clone(gltf.scene);

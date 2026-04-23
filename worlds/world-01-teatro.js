@@ -126,6 +126,7 @@ const WorldTeatro = {
       // Remove loading indicator
       if (this._loadingText) { this._loadingText.remove(); this._loadingText = null; }
 
+      if (!this.scene) return;   // world was switched while loading
       this.scene.add(gltf.scene);
 
       gltf.scene.traverse((child) => {
@@ -499,6 +500,13 @@ const WorldTeatro = {
     this._chairOriginalEmissive = new Map();
     this._hoveredChairGroup = null;
     this._isSeated = false;
+    // Null so stale GLB callback bails out
+    this.scene          = null;
+    this.camera         = null;
+    this._orbitControls = null;
+    this._video         = null;
+    this._videoTex      = null;
+    this._pizarra       = null;
   }
 };
 
