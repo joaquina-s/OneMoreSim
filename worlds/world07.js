@@ -140,7 +140,10 @@ export default {
 
             const tryPlay = () => v.play().catch(() => {});
             tryPlay();
-            v.addEventListener('canplaythrough', tryPlay, { once: true });
+            v.addEventListener('loadedmetadata',  tryPlay);
+            v.addEventListener('loadeddata',      tryPlay);
+            v.addEventListener('canplay',         tryPlay);
+            v.addEventListener('canplaythrough',  tryPlay, { once: true });
 
             // Self-recovery: browsers sometimes freeze looping videos under
             // memory pressure or after many loops without firing 'stalled'.
@@ -150,13 +153,38 @@ export default {
             v.addEventListener('suspend',  () => { if (v.paused) tryPlay(); });
             v.addEventListener('pause',    () => { if (!v._intentPause) tryPlay(); });
 
-            // Watchdog: check every 3s — if paused when it shouldn't be, restart.
             v._intentPause = false;
-            v._watchdog = setInterval(() => {
-                if (!v._intentPause && (v.paused || v.ended || v.readyState < 3)) {
+
+            // Fast watchdog for first ~4 s (catches initial autoplay hiccup
+            // where vid2 shows paused on first entry), then relax to 3 s.
+            let fastTicks = 0;
+            const FAST_INTERVAL = 400;
+            const SLOW_INTERVAL = 3000;
+            const tick = () => {
+                if (!v._intentPause && (v.paused || v.ended || v.readyState < 2)) {
                     tryPlay();
                 }
-            }, 3000);
+            };
+            v._watchdog = setInterval(() => {
+                tick();
+                fastTicks++;
+                if (fastTicks === 10) {
+                    clearInterval(v._watchdog);
+                    v._watchdog = setInterval(tick, SLOW_INTERVAL);
+                }
+            }, FAST_INTERVAL);
+
+            // Unlock on first user gesture (autoplay policy safety net).
+            const unlock = () => {
+                tryPlay();
+                window.removeEventListener('pointerdown', unlock, true);
+                window.removeEventListener('touchstart',  unlock, true);
+                window.removeEventListener('keydown',     unlock, true);
+            };
+            window.addEventListener('pointerdown', unlock, true);
+            window.addEventListener('touchstart',  unlock, true);
+            window.addEventListener('keydown',     unlock, true);
+            v._unlock = unlock;
 
             return v;
         };
@@ -376,20 +404,21 @@ export default {
             this.worldCanvas.style.cursor = 'default';
         }
 
-        if (this.vid1) {
-            this.vid1._intentPause = true;
-            clearInterval(this.vid1._watchdog);
-            this.vid1.pause();
-            this.vid1.removeAttribute('src');
-            this.vid1.load();
-        }
-        if (this.vid2) {
-            this.vid2._intentPause = true;
-            clearInterval(this.vid2._watchdog);
-            this.vid2.pause();
-            this.vid2.removeAttribute('src');
-            this.vid2.load();
-        }
+        const cleanupVideo = (v) => {
+            if (!v) return;
+            v._intentPause = true;
+            if (v._watchdog) clearInterval(v._watchdog);
+            if (v._unlock) {
+                window.removeEventListener('pointerdown', v._unlock, true);
+                window.removeEventListener('touchstart',  v._unlock, true);
+                window.removeEventListener('keydown',     v._unlock, true);
+            }
+            v.pause();
+            v.removeAttribute('src');
+            v.load();
+        };
+        cleanupVideo(this.vid1);
+        cleanupVideo(this.vid2);
 
         if (this.texture1) this.texture1.dispose();
         if (this.texture2) this.texture2.dispose();
