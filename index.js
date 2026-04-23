@@ -121,7 +121,7 @@ worldManager.register('4', () => import('./worlds/world-03-tunnel.js?v=19').then
 worldManager.register('5', () => import('./worlds/world-04-drawrange.js?v=5').then(m => m.default));
 worldManager.register('6', () => import('./worlds/world06.js?v=15').then(m => m.default));
 worldManager.register('7', () => import('./worlds/world07.js?v=4').then(m => m.default));
-worldManager.register('9', () => import('./worlds/world-layer.js?v=2').then(m => m.default));
+worldManager.register('9', () => import('./worlds/world-layer.js?v=3').then(m => m.default));
 
 // ───────────────────────────────────────────────
 // Video Landing Autoplay Fallback

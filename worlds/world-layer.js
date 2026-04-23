@@ -59,6 +59,15 @@ const WorldLayer = {
       textureLoader.load(
         `assets/layers/${filename}`,
         (texture) => {
+          // Guard: the user may have switched worlds while this texture was
+          // still downloading. If dispose() already ran, `this.scene` is null
+          // and `this.scene.add(...)` would throw. Dispose the fresh texture
+          // so we don't leak GPU memory.
+          if (!this.scene) {
+            texture.dispose()
+            return
+          }
+
           texture.premultiplyAlpha = false
 
           const mat = new THREE.MeshBasicMaterial({
@@ -97,6 +106,7 @@ const WorldLayer = {
         undefined,
         (err) => {
           console.warn(`Layer ${filename} no pudo cargar:`, err)
+          if (!this.scene) return  // disposed while loading; nothing to do
           const mat = new THREE.MeshBasicMaterial({
             transparent: true, opacity: 0
           })
