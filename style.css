@@ -1782,7 +1782,7 @@ body.landing-video-ready #enter-button-img {
             "name   memory"
             "canvas memory"
             "footer memory";
-        grid-template-columns: 1fr 44px;
+        grid-template-columns: 1fr 52px;
         grid-template-rows:
             calc(60px + env(safe-area-inset-top, 0))   /* header + notch */
             auto                                        /* world-name strip */
@@ -1871,7 +1871,7 @@ body.landing-video-ready #enter-button-img {
     /* ─── RIGHT-SIDE VERTICAL MEMORY BAR ─── */
     #world-nav-wrap {
         grid-area: memory;
-        width: 44px;
+        width: 52px;
         height: 100%;
         /* Stronger bottom padding so the 9th button isn't covered by Safari's
            bottom toolbar (and the top has room for the notch). */
@@ -1919,11 +1919,11 @@ body.landing-video-ready #enter-button-img {
        devices. Icon rotated 90° with object-fit:contain so the full art
        is visible (no chopped width). */
     .world-btn {
-        width: 40px !important;
-        max-width: 40px !important;
+        width: 48px !important;
+        max-width: 48px !important;
         height: auto !important;
-        max-height: 76px !important;
-        min-height: 36px !important;
+        max-height: 91px !important;
+        min-height: 43px !important;
         padding: 0 !important;
         flex: 1 1 0 !important;
         border-radius: 4px;
