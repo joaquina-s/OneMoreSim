@@ -366,18 +366,24 @@ body.landing-video-ready #enter-button-img {
         background: #000 !important;
     }
 
-    /* welcomem.png fills the entire viewport, behind everything else.
-       Pinned to the viewport (position: fixed) so it doesn't depend on
-       parent sizing — true fullscreen background. */
+    /* welcomem.png fully visible within the safe viewport area (never cropped
+       by Safari's top address bar or bottom toolbar). `object-fit: contain`
+       keeps the whole image on-screen; `100dvh` + safe-area padding respects
+       the browser chrome. */
     #intro-welcome-img-mobile {
         position: fixed !important;
-        inset: 0 !important;
+        top: env(safe-area-inset-top, 0) !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: env(safe-area-inset-bottom, 0) !important;
         width: 100vw !important;
-        height: 100vh !important;
-        height: 100dvh !important;     /* iOS Safari: exclude address bar */
-        max-width: none !important;
-        max-height: none !important;
-        object-fit: cover !important;
+        height: auto !important;
+        max-width: 100vw !important;
+        max-height: calc(100dvh
+            - env(safe-area-inset-top, 0)
+            - env(safe-area-inset-bottom, 0)) !important;
+        object-fit: contain !important;
+        object-position: center center !important;
         z-index: 1 !important;
         filter: none !important;
         margin: 0 !important;
@@ -536,20 +542,9 @@ body.landing-video-ready #enter-button-img {
     #vertical-divider {
         display: none;
     }
-    #ui-shell {
-        grid-template-columns: 1fr;
-        grid-template-areas:
-            "header"
-            "canvas"
-            "worlds"
-            "footer";
-        grid-template-rows: 60px 1fr auto 160px;
-    }
-    #hud-footer {
-        height: 160px;
-        gap: 2px;
-        padding: 2px;
-    }
+    /* Mobile layout: the full definition lives in the MOBILE block near the
+       bottom of this file (around line ~1765). Keep this block minimal so it
+       doesn't fight the main one. */
 }
 
 @media (max-width: 480px) {
@@ -1763,26 +1758,44 @@ body.landing-video-ready #enter-button-img {
    ════════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
+    /* ─── MOBILE GRID ────────────────────────────────────────────────
+       Layout (Safari-safe — respects top/bottom browser chrome):
+
+         ┌────────────────┬──────┐
+         │  header (map)  │      │
+         ├────────────────┤  9-  │
+         │  name strip    │ btn  │
+         ├────────────────┤ ver- │
+         │                │ tic- │
+         │    canvas      │ al   │
+         │                │ col- │
+         │                │ umn  │
+         ├────────────────┤      │
+         │ footer:        │      │
+         │  desc          │      │
+         │  spectrogram   │      │
+         └────────────────┴──────┘
+    */
     #ui-shell.visible {
         grid-template-areas:
-            "header"
-            "canvas"
-            "worlds"
-            "footer";
-        grid-template-columns: 1fr;
-        /* footer: slim strip (world name) + memory picker row. Header has extra
-           top padding below to clear the iOS Safari address bar. */
-        grid-template-rows: 84px 1fr auto 96px;
+            "header memory"
+            "name   memory"
+            "canvas memory"
+            "footer memory";
+        grid-template-columns: 1fr 54px;
+        grid-template-rows:
+            calc(60px + env(safe-area-inset-top, 0))   /* header + notch */
+            auto                                        /* world-name strip */
+            1fr                                         /* canvas fills rest */
+            calc(140px + env(safe-area-inset-bottom, 0)); /* desc + spectrogram + safe-area */
     }
 
-    /* Header: pushed down so the Safari address bar doesn't cover the map. */
+    /* ─── HEADER ─── */
     #hud-header {
-        height: 84px;
-        padding-top: env(safe-area-inset-top, 18px);
+        height: auto;
+        padding-top: env(safe-area-inset-top, 0);
         box-sizing: border-box;
     }
-
-    /* Header: keep only the central map */
     #header-logo,
     #header-credits {
         display: none !important;
@@ -1803,46 +1816,19 @@ body.landing-video-ready #enter-button-img {
         display: none !important;
     }
 
-    /* Footer: thin world-name strip on top, memory picker (single row) below.
-       Hide sound bar, spectrogram, and the two side image panels. */
-    #hud-footer {
-        height: 96px;
-        flex-direction: column;
-        padding: 2px;
-        gap: 2px;
-    }
-    #footer-top-row {
-        order: 1;
-        flex: 0 0 auto;
-        width: 100%;
-        height: auto;
-        min-height: 0;
-    }
-    #footer-bottom-row {
-        order: 2;
-        flex: 1 1 auto;
-        width: 100%;
-        gap: 0;
-        min-height: 0;
-    }
-    /* Hide everything in the top row except the world name strip */
-    #sound-bar,
-    #img-panel-1,
-    #img-panel-3,
-    #footer-top-right {
-        display: none !important;
-    }
-    /* World tracker becomes a FULL-WIDTH slim strip showing only the active
-       world's name — height = text height, no padding chrome. */
+    /* ─── WORLD NAME STRIP (between header and canvas) ───
+       JS relocates #world-tracker-panel into this grid area on mobile. */
     #world-tracker-panel {
-        flex: 1 1 100% !important;
+        grid-area: name;
         width: 100% !important;
         max-width: none !important;
         height: auto !important;
         min-height: 0 !important;
         padding: 0 !important;
-        background: transparent !important;
+        background: #0a0c14 !important;
         border: none !important;
+        border-top: 1px solid #2d2d4a !important;
+        border-bottom: 1px solid #2d2d4a !important;
         box-shadow: none !important;
     }
     #world-track-list {
@@ -1860,7 +1846,7 @@ body.landing-video-ready #enter-button-img {
         height: auto;
         line-height: 1.1;
         font-size: 14px;
-        padding: 2px 6px;
+        padding: 4px 6px;
         letter-spacing: -0.3px;
         background: transparent !important;
     }
@@ -1869,34 +1855,138 @@ body.landing-video-ready #enter-button-img {
         margin-right: 4px;
     }
 
-    /* Memory picker (bottom row): single row of 9 buttons, tight spacing. */
-    #world-nav {
-        display: grid;
-        grid-template-columns: repeat(9, 1fr);
-        gap: 2px;
-        padding: 4px 4px;
-        justify-items: stretch;
-        align-items: center;
-        width: 100%;
+    /* ─── RIGHT-SIDE VERTICAL MEMORY BAR ─── */
+    #world-nav-wrap {
+        grid-area: memory;
+        width: 54px;
+        height: 100%;
+        padding-top: env(safe-area-inset-top, 0);
+        padding-bottom: env(safe-area-inset-bottom, 0);
+        box-sizing: border-box;
+        background: #0a0c14;
+        border-left: 1px solid #2d2d4a;
+        overflow: hidden;
     }
-
+    #memorypicker-title {
+        display: none;      /* hide the horizontal title on mobile */
+    }
+    #world-nav {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(9, 1fr);
+        gap: 2px;
+        padding: 4px 2px;
+        width: 100%;
+        height: 100%;
+        background: none;    /* rotated bg handled via ::before below */
+        isolation: isolate;
+    }
+    /* Rotate the horizontal background image 90° so it fills the vertical bar.
+       Pseudo-element is sized large enough to cover when rotated, centered. */
+    #world-nav::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 1200px;
+        height: 120px;
+        background: url('assets/tex/buttonsWBG.png') center/100% 100% no-repeat;
+        transform: translate(-50%, -50%) rotate(90deg);
+        transform-origin: center;
+        z-index: -1;
+        opacity: 0.9;
+        pointer-events: none;
+    }
     .world-btn {
         width: 100%;
         max-width: none;
         height: 100%;
-        min-height: 48px;
+        min-height: 0;
         padding: 2px;
     }
-
     .world-icon {
         width: 100%;
         height: auto;
         max-width: 34px;
         max-height: 34px;
     }
-
     .world-label {
         display: none;
+    }
+
+    /* ─── FOOTER: world description (top) + spectrogram (bottom) ─── */
+    #hud-footer {
+        height: auto;
+        padding: 0 0 env(safe-area-inset-bottom, 0) 0;
+        gap: 0;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    /* Stack footer rows vertically: top-row has the desc, bottom-row collapses */
+    #footer-top-row {
+        order: 1;
+        display: flex;
+        flex-direction: column-reverse;  /* desc (right child) on top, spectrogram (left child) below */
+        width: 100%;
+        height: 100%;
+        flex: 1 1 auto;
+        min-height: 0;
+        border-bottom: none;
+    }
+    #footer-bottom-row {
+        display: none !important;       /* hide old bottom-row (moved tracker away) */
+    }
+    /* Spectrogram cell: bottom half of footer */
+    #footer-top-left {
+        width: 100% !important;
+        height: 60px;
+        flex: 0 0 60px !important;
+        border-right: none !important;
+        border-top: 1px solid #2d2d4a;
+        background: #0a0c14;
+    }
+    /* World description cell: top half of footer — compact, single-line */
+    #footer-top-right {
+        display: flex !important;
+        flex: 1 1 auto;
+        width: 100% !important;
+        min-height: 48px;
+        gap: 8px;
+        padding: 8px 12px;
+        background: #001eff !important;    /* console-blue */
+        box-shadow: inset 0 0 20px rgba(0, 30, 255, 0.45);
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+    #footer-top-right .world-info-icon {
+        display: none;   /* hide icon on mobile to save horizontal room */
+    }
+    #footer-top-right .world-info-text {
+        width: 100%;
+        gap: 0;
+        align-items: flex-start;
+    }
+    #footer-top-right .world-info-desc-wrap {
+        transform: scaleX(0.9) scaleY(1.1);   /* less aggressive than desktop */
+        transform-origin: left center;
+        white-space: normal;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+    }
+    #footer-top-right .world-info-desc {
+        font-size: clamp(10px, 3.2vw, 14px);
+        white-space: normal;
+    }
+    #footer-top-right .world-info-title {
+        display: none;      /* title already shown in the strip under the map */
+    }
+    /* Spanish tooltip hover — hide on touch devices; it relies on hover */
+    .world-info-desc-es {
+        display: none !important;
     }
 }
 

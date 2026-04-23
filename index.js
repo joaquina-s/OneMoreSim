@@ -8,7 +8,6 @@ import { WorldManager } from './core/worldManager.js';
 import { deviceProfile } from './core/deviceProfile.js';
 import { ResizeManager } from './core/resizeManager.js';
 import { bubblepicking } from './worlds/world09.js?v=17';
-import { createPlaceholder } from './worlds/world-placeholder.js';
 import { uiSound } from './audio/uiSounds.js?v=3';
 import Spectrogram from './audio/Spectrogram.js';
 import LayeredMusic from './audio/LayeredMusic.js?v=2';
@@ -191,6 +190,16 @@ function enterExperience() {
             uiShell.style.display = 'grid';
             uiShell.classList.add('visible');
 
+            // Mobile: relocate #world-tracker-panel out of the footer and make
+            // it a direct child of the shell, so it can occupy its own grid
+            // area (`name`) between header and canvas. Done once per session.
+            if (window.matchMedia('(max-width: 768px)').matches) {
+                const _tracker = document.getElementById('world-tracker-panel');
+                if (_tracker && _tracker.parentElement && _tracker.parentElement.id !== 'ui-shell') {
+                    uiShell.appendChild(_tracker);
+                }
+            }
+
             // 2. Show carousel container
             carouselContainer.style.display = 'block';
 
@@ -201,6 +210,10 @@ function enterExperience() {
             renderer.domElement.style.top = '0';
             renderer.domElement.style.width = '100%';
             renderer.domElement.style.height = '100%';
+            // Prevent the browser from swallowing horizontal swipes (scroll,
+            // back-navigation). Our touch-drag handler relies on uninterrupted
+            // touchmove events.
+            renderer.domElement.style.touchAction = 'none';
 
             // 4. Wait one frame so the browser completes layout reflow
             requestAnimationFrame(async () => {
@@ -326,11 +339,16 @@ document.getElementById('enter-button-img').addEventListener('click', () => {
 // ───────────────────────────────────────────────
 // Second ENTRAR (on welcome overlay): dismiss it
 // ───────────────────────────────────────────────
-document.getElementById('intro-enter-btn').addEventListener('click', () => {
+document.getElementById('intro-enter-btn').addEventListener('click', async () => {
     // (no click sound on the welcome-overlay ENTER — too redundant after the
     //  landing ENTER already plays gritito)
-    // Start music on enter
-    if (_musicInited) layeredMusic.play();
+    // Start music on enter. On mobile the sound-bar is hidden but the audio
+    // engine still runs — ensure it's initialised and playing regardless of
+    // whether the preload finished by the time ENTER is tapped.
+    try {
+        if (!_musicInited) await ensureMusicInit();
+        layeredMusic.play();
+    } catch (e) { console.warn('music start failed', e); }
     const introOverlay = document.getElementById('intro-overlay');
     if (introOverlay) introOverlay.style.pointerEvents = 'none'; // Immediately stop blocking clicks
     gsap.to(introOverlay, {
@@ -1136,23 +1154,34 @@ if (drawerBackdrop) {
 // ───────────────────────────────────────────────
 
 let touchStartX = 0;
+let touchLastX  = 0;
 let touchActive = false;
-const TOUCH_DEADZONE = 8;  // px
+const TOUCH_DEADZONE = 6;  // px
 
 function clearTouchKeys() {
     keys.left = false;
     keys.right = false;
 }
 
+// Return true when a touch started on a region that should NOT be treated as
+// a camera-rotate drag (buttons, memory picker, header, footer).
+function _isInteractiveTarget(el) {
+    if (!el) return false;
+    return !!el.closest('#world-nav, #world-nav-wrap, #hud-header, #hud-footer, #world-tracker-panel, button, a, input, [role="button"]');
+}
+
 function onTouchStart(e) {
     if (!e.touches || !e.touches[0]) return;
+    if (_isInteractiveTarget(e.target)) return;   // let buttons receive tap
     touchStartX = e.touches[0].clientX;
+    touchLastX  = touchStartX;
     touchActive = true;
     clearTouchKeys();
 }
 function onTouchMove(e) {
     if (!touchActive || !e.touches || !e.touches[0]) return;
-    const dx = e.touches[0].clientX - touchStartX;
+    touchLastX = e.touches[0].clientX;
+    const dx = touchLastX - touchStartX;
     if (dx > TOUCH_DEADZONE) {
         keys.right = true;
         keys.left = false;
@@ -1168,16 +1197,12 @@ function endTouch() {
     clearTouchKeys();
 }
 
-// Attach to BOTH the WebGL canvas and the canvas-area wrapper so touches
-// over absolute-positioned overlays inside the canvas region still rotate.
-const _touchTargets = [renderer.domElement, document.getElementById('canvas-area')]
-    .filter(Boolean);
-_touchTargets.forEach(el => {
-    el.addEventListener('touchstart',  onTouchStart, { passive: true });
-    el.addEventListener('touchmove',   onTouchMove,  { passive: true });
-    el.addEventListener('touchend',    endTouch,     { passive: true });
-    el.addEventListener('touchcancel', endTouch,     { passive: true });
-});
+// Attach at the document level (capture phase) so touches land here first —
+// even when OrbitControls or other elements also have touch listeners.
+document.addEventListener('touchstart',  onTouchStart, { passive: true, capture: true });
+document.addEventListener('touchmove',   onTouchMove,  { passive: true, capture: true });
+document.addEventListener('touchend',    endTouch,     { passive: true, capture: true });
+document.addEventListener('touchcancel', endTouch,     { passive: true, capture: true });
 
 // ───────────────────────────────────────────────
 // Animation Loop — Adaptive FPS
