@@ -1782,12 +1782,12 @@ body.landing-video-ready #enter-button-img {
             "name   memory"
             "canvas memory"
             "footer memory";
-        grid-template-columns: 1fr 54px;
+        grid-template-columns: 1fr 44px;
         grid-template-rows:
             calc(60px + env(safe-area-inset-top, 0))   /* header + notch */
             auto                                        /* world-name strip */
             1fr                                         /* canvas fills rest */
-            calc(140px + env(safe-area-inset-bottom, 0)); /* desc + spectrogram + safe-area */
+            calc(170px + env(safe-area-inset-bottom, 24px)); /* desc + spectrogram + Safari toolbar */
     }
 
     /* ─── HEADER ─── */
@@ -1820,37 +1820,50 @@ body.landing-video-ready #enter-button-img {
        JS relocates #world-tracker-panel into this grid area on mobile. */
     #world-tracker-panel {
         grid-area: name;
+        position: relative !important;
         width: 100% !important;
         max-width: none !important;
         height: auto !important;
-        min-height: 0 !important;
+        min-height: 24px !important;
         padding: 0 !important;
         background: #0a0c14 !important;
         border: none !important;
         border-top: 1px solid #2d2d4a !important;
         border-bottom: 1px solid #2d2d4a !important;
         box-shadow: none !important;
+        overflow: visible !important;
     }
-    #world-track-list {
+    /* The viewport is desktop-only `position:absolute`; on mobile it must be
+       in flow so the strip auto-sizes to the visible track item. */
+    #world-tracker-panel #world-track-viewport {
+        position: static !important;
+        inset: auto !important;
+        overflow: visible !important;
+        height: auto !important;
+        display: block !important;
+    }
+    #world-tracker-panel #world-track-list {
         transform: none !important;
         height: auto !important;
         padding: 0 !important;
+        display: block !important;
     }
-    #world-track-list .track-item {
-        display: none;
+    #world-tracker-panel #world-track-list .track-item {
+        display: none !important;
     }
-    #world-track-list .track-item.active {
-        display: flex;
+    #world-tracker-panel #world-track-list .track-item.active {
+        display: flex !important;
         justify-content: center;
         align-items: center;
-        height: auto;
-        line-height: 1.1;
+        height: auto !important;
+        line-height: 1.2;
         font-size: 14px;
         padding: 4px 6px;
         letter-spacing: -0.3px;
         background: transparent !important;
+        color: #e8eaff;
     }
-    #world-track-list .track-item.active::before {
+    #world-tracker-panel #world-track-list .track-item.active::before {
         font-size: 9px;
         margin-right: 4px;
     }
@@ -1858,10 +1871,12 @@ body.landing-video-ready #enter-button-img {
     /* ─── RIGHT-SIDE VERTICAL MEMORY BAR ─── */
     #world-nav-wrap {
         grid-area: memory;
-        width: 54px;
+        width: 44px;
         height: 100%;
-        padding-top: env(safe-area-inset-top, 0);
-        padding-bottom: env(safe-area-inset-bottom, 0);
+        /* Strong bottom padding so the 9th button isn't covered by Safari's
+           bottom toolbar (and the top has room for the notch). */
+        padding-top: calc(env(safe-area-inset-top, 0) + 4px);
+        padding-bottom: calc(env(safe-area-inset-bottom, 24px) + 12px);
         box-sizing: border-box;
         background: #0a0c14;
         border-left: 1px solid #2d2d4a;
@@ -1872,18 +1887,19 @@ body.landing-video-ready #enter-button-img {
     }
     #world-nav {
         position: relative;
-        display: grid;
-        grid-template-columns: 1fr;
-        grid-template-rows: repeat(9, 1fr);
-        gap: 2px;
-        padding: 4px 2px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        gap: 4px;
+        padding: 2px;
         width: 100%;
         height: 100%;
         background: none;    /* rotated bg handled via ::before below */
         isolation: isolate;
+        box-sizing: border-box;
     }
-    /* Rotate the horizontal background image 90° so it fills the vertical bar.
-       Pseudo-element is sized large enough to cover when rotated, centered. */
+    /* Rotate the horizontal background image 90° so it fills the vertical bar. */
     #world-nav::before {
         content: '';
         position: absolute;
@@ -1898,18 +1914,32 @@ body.landing-video-ready #enter-button-img {
         opacity: 0.9;
         pointer-events: none;
     }
+    /* Square-ish buttons, smaller than the bar's width so a small gap shows. */
     .world-btn {
-        width: 100%;
-        max-width: none;
-        height: 100%;
-        min-height: 0;
-        padding: 2px;
+        width: 32px !important;
+        height: 32px !important;
+        max-width: 32px !important;
+        max-height: 32px !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        flex: 0 0 auto;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    .world-btn-img,
+    .world-btn img {
+        width: 100% !important;
+        height: 100% !important;
+        max-width: none !important;
+        max-height: none !important;
+        object-fit: cover;
+        display: block;
     }
     .world-icon {
         width: 100%;
         height: auto;
-        max-width: 34px;
-        max-height: 34px;
+        max-width: 28px;
+        max-height: 28px;
     }
     .world-label {
         display: none;
@@ -1946,43 +1976,57 @@ body.landing-video-ready #enter-button-img {
         border-top: 1px solid #2d2d4a;
         background: #0a0c14;
     }
-    /* World description cell: top half of footer — compact, single-line */
+    /* World description cell: top half of footer — compact, multi-line */
     #footer-top-right {
         display: flex !important;
         flex: 1 1 auto;
         width: 100% !important;
-        min-height: 48px;
-        gap: 8px;
+        min-height: 60px;
+        gap: 0;
         padding: 8px 12px;
         background: #001eff !important;    /* console-blue */
         box-shadow: inset 0 0 20px rgba(0, 30, 255, 0.45);
         box-sizing: border-box;
         overflow: hidden;
+        align-items: center !important;
+        justify-content: flex-start !important;
     }
     #footer-top-right .world-info-icon {
-        display: none;   /* hide icon on mobile to save horizontal room */
+        display: none !important;   /* hide icon on mobile to save horizontal room */
     }
     #footer-top-right .world-info-text {
-        width: 100%;
-        gap: 0;
-        align-items: flex-start;
-    }
-    #footer-top-right .world-info-desc-wrap {
-        transform: scaleX(0.9) scaleY(1.1);   /* less aggressive than desktop */
-        transform-origin: left center;
-        white-space: normal;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-    }
-    #footer-top-right .world-info-desc {
-        font-size: clamp(10px, 3.2vw, 14px);
-        white-space: normal;
+        width: 100% !important;
+        height: auto !important;
+        gap: 0 !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+        overflow: visible !important;
+        display: block !important;
     }
     #footer-top-right .world-info-title {
-        display: none;      /* title already shown in the strip under the map */
+        display: none !important; /* title is shown in the strip under the map */
+    }
+    /* Reset the desktop scale-transform so text renders at its real size. */
+    #footer-top-right .world-info-desc-wrap {
+        display: block !important;
+        transform: none !important;
+        white-space: normal !important;
+    }
+    #footer-top-right .world-info-desc {
+        display: inline !important;
+        font-size: 13px !important;
+        line-height: 1.25 !important;
+        font-weight: 300 !important;
+        color: #ffffff !important;
+        white-space: normal !important;
+        letter-spacing: 0 !important;
+        -webkit-text-stroke: 0 !important;
+        text-shadow: 0 0 4px rgba(0, 0, 0, 0.7) !important;
+    }
+    #footer-top-right #world-text-cursor {
+        display: inline !important;
+        color: #ffffff !important;
+        font-size: 13px !important;
     }
     /* Spanish tooltip hover — hide on touch devices; it relies on hover */
     .world-info-desc-es {
