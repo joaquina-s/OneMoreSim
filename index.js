@@ -10,7 +10,7 @@ import { ResizeManager } from './core/resizeManager.js';
 import { bubblepicking } from './worlds/world09.js?v=17';
 import { uiSound } from './audio/uiSounds.js?v=3';
 import Spectrogram from './audio/Spectrogram.js';
-import LayeredMusic from './audio/LayeredMusic.js?v=3';
+import LayeredMusic from './audio/LayeredMusic.js?v=4';
 
 // ───────────────────────────────────────────────
 // Draco support — patch GLTFLoader once so every world's `new GLTFLoader()`
@@ -339,16 +339,28 @@ document.getElementById('enter-button-img').addEventListener('click', () => {
 // ───────────────────────────────────────────────
 // Second ENTRAR (on welcome overlay): dismiss it
 // ───────────────────────────────────────────────
-document.getElementById('intro-enter-btn').addEventListener('click', async () => {
+document.getElementById('intro-enter-btn').addEventListener('click', (ev) => {
     // (no click sound on the welcome-overlay ENTER — too redundant after the
     //  landing ENTER already plays gritito)
-    // Start music on enter. On mobile the sound-bar is hidden but the audio
-    // engine still runs — ensure it's initialised and playing regardless of
-    // whether the preload finished by the time ENTER is tapped.
+    //
+    // ── iOS Safari audio unlock ──
+    // We MUST call play() synchronously inside this click handler. Any
+    // `await` before play() yields a microtask and Safari treats the audio
+    // gesture as expired, leaving the AudioContext suspended (which is why
+    // the music only "appeared" briefly when an unmuted video later kicked
+    // the audio session awake). ensureMusicInit() runs during preload so by
+    // the time the welcome ENTER button is tapped, _musicInited is already
+    // true and we can call play() right away.
     try {
-        if (!_musicInited) await ensureMusicInit();
-        await layeredMusic.play();
+        if (_musicInited && layeredMusic.audioCtx) {
+            layeredMusic.play();
+        } else {
+            // Fallback (rare race): finish init then play. iOS may not unlock
+            // on this path but it's better than nothing.
+            ensureMusicInit().then(() => layeredMusic.play()).catch(() => {});
+        }
     } catch (e) { console.warn('music start failed', e); }
+
     const introOverlay = document.getElementById('intro-overlay');
     if (introOverlay) introOverlay.style.pointerEvents = 'none'; // Immediately stop blocking clicks
     gsap.to(introOverlay, {

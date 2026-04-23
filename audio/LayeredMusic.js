@@ -68,15 +68,23 @@ export default class LayeredMusic {
      * Start all layers simultaneously (called after init).
      * Safe to call multiple times — only starts once.
      */
-    async play() {
+    play() {
         if (this.isPlaying || !this.audioCtx) return;
 
-        // Resume context if suspended (autoplay policy).
-        // iOS Safari requires the resume() promise to be AWAITED inside the
-        // user-gesture stack, otherwise sources won't actually start.
+        // iOS Safari unlock: resume() must be called SYNCHRONOUSLY inside
+        // the user-gesture stack — never awaited (an await yields a microtask
+        // and Safari then considers the gesture expired). We also play a
+        // silent priming buffer in the same tick so iOS routes audio output.
         if (this.audioCtx.state === 'suspended') {
-            try { await this.audioCtx.resume(); } catch (_) {}
+            try { this.audioCtx.resume(); } catch (_) {}
         }
+        try {
+            const silentBuf = this.audioCtx.createBuffer(1, 1, 22050);
+            const silentSrc = this.audioCtx.createBufferSource();
+            silentSrc.buffer = silentBuf;
+            silentSrc.connect(this.audioCtx.destination);
+            silentSrc.start(0);
+        } catch (_) {}
 
         const now = this.audioCtx.currentTime;
         this._startTime = now;
