@@ -58,10 +58,13 @@ export default {
         const video = document.createElement('video');
         video.src = 'assets/videos/hfloat.mp4?v=2';
         video.loop = true;
-        video.muted = false;
-        // Lower volume so the layered music keeps audible underneath
-        // (overlap rather than drown out the soundtrack).
-        video.volume = 0.35;
+        // Mobile: keep the video MUTED so iOS doesn't reroute the audio
+        // session to it (which pauses the layered HTMLAudio music). Desktop
+        // gets the original soundtrack at a moderate volume that overlaps
+        // with the music.
+        const _isMobileVid = window.innerWidth < 768;
+        video.muted = _isMobileVid;
+        video.volume = _isMobileVid ? 0 : 0.35;
         video.playsInline = true;
         video.crossOrigin = 'anonymous';
         video.play().catch(() => {

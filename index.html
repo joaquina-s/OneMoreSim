@@ -57,7 +57,7 @@
     </script>
     <link rel="icon" type="image/png" href="assets/tex/Buttons/colorB1.png">
     <link rel="shortcut icon" type="image/png" href="assets/tex/Buttons/colorB1.png">
-    <link rel="stylesheet" href="style.css?v=75">
+    <link rel="stylesheet" href="style.css?v=76">
     <link
         href="https://fonts.googleapis.com/css2?family=Averia+Libre:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap"
         rel="stylesheet">
@@ -281,8 +281,6 @@
                     <div id="spectrogram-container"></div>
                 </div>
                 <div id="footer-top-right">
-                    <!-- Mobile-only: world instruction TEXT bar, shown for 5s on world change -->
-                    <div id="mobile-world-instruction-text"></div>
                     <div class="world-info-icon" id="world-info-icon">
                         <svg viewBox="0 0 48 48" id="world-icon-svg">
                             <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="2" />
@@ -292,6 +290,8 @@
                     <div class="world-info-text">
                         <div class="world-info-title" id="world-info-title">CAROUSEL</div>
                         <span class="world-info-desc-wrap"><span class="world-info-desc" id="world-info-desc"></span><span id="world-text-cursor">█</span></span>
+                        <!-- Mobile-only: world instruction text shown below desc, persists -->
+                        <div id="mobile-world-instruction-text"></div>
                     </div>
                     <div class="world-info-desc-es" id="world-info-desc-es"></div>
                 </div>
@@ -378,6 +378,8 @@
             <button id="intro-enter-btn" style="display:none;">
                 <img src="assets/buttonEnter.png" alt="Enter"/>
             </button>
+            <!-- Mobile-only hint shown under the ENTER button -->
+            <div id="intro-mobile-bigscreen-hint" class="intro-mobile-only">Built for the big screen. Switch to desktop to dive deeper.</div>
         </div>
     </div>
 
@@ -458,7 +460,7 @@
         </div>
     </div>
 
-    <script type="module" src="index.js?v=86"></script>
+    <script type="module" src="index.js?v=87"></script>
 </body>
 
 </html>

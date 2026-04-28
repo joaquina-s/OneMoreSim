@@ -117,7 +117,7 @@ worldManager.register('1', () => Promise.resolve(bubblepicking));
 worldManager.register('2', () => import('./worlds/world-01-teatro.js?v=19').then(m => m.default));
 worldManager.register('3', () => import('./worlds/world-02-array3d.js?v=52').then(m => m.default));
 worldManager.register('4', () => import('./worlds/world-03-tunnel.js?v=19').then(m => m.default));
-worldManager.register('5', () => import('./worlds/world-04-drawrange.js?v=6').then(m => m.default));
+worldManager.register('5', () => import('./worlds/world-04-drawrange.js?v=7').then(m => m.default));
 worldManager.register('6', () => import('./worlds/world06.js?v=16').then(m => m.default));
 worldManager.register('7', () => import('./worlds/world07.js?v=5').then(m => m.default));
 worldManager.register('9', () => import('./worlds/world-layer.js?v=3').then(m => m.default));
@@ -775,21 +775,12 @@ function updateWorldInfo(worldId) {
     if (creditsImg) {
         creditsImg.src = instructionSrc;
     }
-    // Mobile-only: flash a text instruction bar above the world description for 5s.
+    // Mobile-only: instruction text shown below the description, always
+    // visible while the world is active (no auto-hide).
     const mobileInstrText = document.getElementById('mobile-world-instruction-text');
     if (mobileInstrText && window.innerWidth <= 768) {
         const text = WORLD_INSTRUCTION_TEXT[worldId] || '';
-        mobileInstrText.textContent = text;
-        if (text) {
-            mobileInstrText.classList.add('visible');
-            if (mobileInstrText._hideTimer) clearTimeout(mobileInstrText._hideTimer);
-            mobileInstrText._hideTimer = setTimeout(() => {
-                mobileInstrText.classList.remove('visible');
-                mobileInstrText._hideTimer = null;
-            }, 5000);
-        } else {
-            mobileInstrText.classList.remove('visible');
-        }
+        mobileInstrText.textContent = text ? text.toUpperCase() : '';
     }
     // Pulse the header-credits panel with electric-blue glow for ~10s on world enter.
     // We also lift the hud-header's overflow so the glow isn't clipped by siblings.
