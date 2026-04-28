@@ -85,8 +85,8 @@ export default {
     // 3° downward tilt from (0, 2.4, 6.5) → target y = 2.4 − 6.5*tan(3°) ≈ 2.0594
     // Mobile: bring camera closer so characters don't feel distant
     const _isMobileCam = window.innerWidth < 768;
-    const _camZ = _isMobileCam ? 4.2 : 6.5;
-    const _camY = _isMobileCam ? 2.2 : 2.4;
+    const _camZ = _isMobileCam ? 3.0 : 6.5;
+    const _camY = _isMobileCam ? 2.05 : 2.4;
     const _lookY = _camY - _camZ * Math.tan(3 * Math.PI / 180);
     this.camera.position.set(0, _camY, _camZ);
     this.camera.lookAt(0, _lookY, 0);

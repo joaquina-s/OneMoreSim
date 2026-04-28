@@ -1782,12 +1782,12 @@ body.landing-video-ready #enter-button-img {
             "name   memory"
             "canvas memory"
             "footer memory";
-        grid-template-columns: 1fr 52px;
+        grid-template-columns: 1fr 40px;
         grid-template-rows:
-            calc(60px + env(safe-area-inset-top, 0))   /* header + notch */
+            calc(54px + env(safe-area-inset-top, 0))   /* header + notch */
             auto                                        /* world-name strip */
             1fr                                         /* canvas fills rest */
-            calc(170px + env(safe-area-inset-bottom, 24px)); /* desc + spectrogram + Safari toolbar */
+            calc(140px + env(safe-area-inset-bottom, 0)); /* desc + spectrogram */
     }
 
     /* ─── HEADER ─── */
@@ -1871,7 +1871,7 @@ body.landing-video-ready #enter-button-img {
     /* ─── RIGHT-SIDE VERTICAL MEMORY BAR ─── */
     #world-nav-wrap {
         grid-area: memory;
-        width: 52px;
+        width: 40px;
         height: 100%;
         /* Stronger bottom padding so the 9th button isn't covered by Safari's
            bottom toolbar (and the top has room for the notch). */
@@ -1919,11 +1919,11 @@ body.landing-video-ready #enter-button-img {
        devices. Icon rotated 90° with object-fit:contain so the full art
        is visible (no chopped width). */
     .world-btn {
-        width: 48px !important;
-        max-width: 48px !important;
+        width: 36px !important;
+        max-width: 36px !important;
         height: auto !important;
-        max-height: 91px !important;
-        min-height: 43px !important;
+        max-height: 105px !important;
+        min-height: 49px !important;
         padding: 0 !important;
         flex: 1 1 0 !important;
         border-radius: 4px;
@@ -1953,9 +1953,9 @@ body.landing-video-ready #enter-button-img {
     /* ─── FOOTER: world description (top) + spectrogram (bottom) ─── */
     #hud-footer {
         height: auto;
-        /* Lift the whole footer above the Safari bottom toolbar so the
-           spectrogram (last child) is fully visible. */
-        padding: 0 0 calc(env(safe-area-inset-bottom, 0) + 36px) 0;
+        /* With 100svh viewport-lock the Safari toolbar no longer overlaps,
+           so we only reserve the home-indicator safe area. */
+        padding: 0 0 env(safe-area-inset-bottom, 0) 0;
         gap: 0;
         flex-direction: column;
         overflow: hidden;
@@ -2632,9 +2632,9 @@ body.credits-open #credits-close {
         max-height: 96px !important;
     }
 
-    /* Welcome screen intro text: 16px and text block 15% narrower */
+    /* Welcome screen intro text: 18px and text block 15% narrower */
     #intro-mobile-text {
-        font-size: 16px !important;
+        font-size: 18px !important;
         line-height: 1.45 !important;
         width: 81.6vw !important;
         max-width: 81.6vw !important;
@@ -2653,5 +2653,70 @@ body.credits-open #credits-close {
     }
     #char-bw-img {
         height: min(39.2vh, 367px) !important;
+    }
+
+    /* ─── Hide mobile instruction image on desktop (id selector beats class) ─── */
+}
+
+/* Desktop: keep mobile instruction image hidden everywhere */
+#mobile-world-instruction-img {
+    display: none;
+}
+
+/* ════════════════════════════════════════════════
+   MOBILE: viewport lock + swipe lock + instruction overlay
+   ════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+    /* Lock the entire page so:
+       (a) iOS Safari can't scroll the layout vertically,
+       (b) horizontal swipe-to-rotate inside the canvas doesn't drag the page,
+       (c) overscroll bounce is disabled. */
+    html, body {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        /* 100svh = small viewport (Safari toolbar visible) so the layout
+           fits without being clipped by the bottom toolbar. */
+        height: 100svh !important;
+        max-height: 100svh !important;
+        overflow: hidden !important;
+        overscroll-behavior: none !important;
+        touch-action: none !important;
+    }
+    #ui-shell.visible {
+        height: 100svh !important;
+        max-height: 100svh !important;
+        overflow: hidden !important;
+        touch-action: none !important;
+    }
+
+    /* Mobile instruction image — fades over the description for 5s after a
+       world change. position:absolute on top of #footer-top-right so it
+       doesn't push the typewriter text. */
+    #mobile-world-instruction-img {
+        display: block !important;
+        position: absolute !important;
+        top: 4px !important;
+        left: 50% !important;
+        transform: translateX(-50%) scale(0.9);
+        max-width: 70%;
+        max-height: 38px;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 30;
+        transition: opacity 0.35s ease, transform 0.35s ease;
+        filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.5));
+    }
+    #mobile-world-instruction-img.visible {
+        opacity: 1;
+        transform: translateX(-50%) scale(1);
+    }
+    /* Make footer-top-right a positioning context for the overlay */
+    #footer-top-right {
+        position: relative !important;
     }
 }

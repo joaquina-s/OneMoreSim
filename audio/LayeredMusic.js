@@ -1,12 +1,15 @@
 // audio/LayeredMusic.js
-// 4-layer music system: all tracks play simultaneously, always in sync.
-// Individual layers can be muted/unmuted without stopping playback.
+// 5-layer music system. Uses HTMLAudioElement + MediaElementAudioSourceNode
+// instead of BufferSource so iOS Safari (which silences WebAudio when the
+// physical mute switch is on, and has stricter unlock rules) plays audio
+// reliably. The WebAudio graph (gain + analyser) is kept so the spectrogram
+// and per-layer mute still work.
 
 export default class LayeredMusic {
     constructor() {
         this.audioCtx = null;
         this.masterGain = null;
-        this.layers = {};      // { synth, bass, perc, voice }
+        this.layers = {};
         this.isPlaying = false;
         this._beatCallbacks = [];
         this._beatInterval = null;
@@ -15,23 +18,16 @@ export default class LayeredMusic {
         this._bpm = 0;
     }
 
-    /**
-     * Initialise the audio context and load all 4 layers.
-     * Must be called after a user gesture (click) for autoplay policy.
-     * @param {number} bpm - beats per minute of the track
-     */
     async init(bpm = 120) {
-        if (this.audioCtx) return; // already initialised
+        if (this.audioCtx) return;
 
         this._bpm = bpm;
         this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        // Master gain (volume control)
         this.masterGain = this.audioCtx.createGain();
-        this.masterGain.gain.value = 0.70; // start at 70%
+        this.masterGain.gain.value = 0.70;
         this.masterGain.connect(this.audioCtx.destination);
 
-        // Define all 5 layers (principal always plays, no toggle)
         const layerDefs = [
             { key: 'principal', src: 'assets/Sound/1-layer-principal-one-more-sim.mp3', muted: false },
             { key: 'synth',     src: 'assets/Sound/2-layer-synth-one-more-sim.mp3',     muted: false },
@@ -40,93 +36,92 @@ export default class LayeredMusic {
             { key: 'voice',     src: 'assets/Sound/5-layer-voice-one-more-sim.mp3',     muted: false },
         ];
 
-        // Fetch and decode all buffers in parallel
-        const buffers = await Promise.all(
-            layerDefs.map(async (def) => {
-                const resp = await fetch(def.src);
-                const ab   = await resp.arrayBuffer();
-                return this.audioCtx.decodeAudioData(ab);
-            })
-        );
+        // Create one HTMLAudioElement per layer + a gain node. We DON'T wire
+        // the MediaElementSource to the WebAudio graph yet — that has to
+        // happen lazily inside the first user-gesture call to play(),
+        // because creating a MediaElementSource on a not-yet-played element
+        // can fail on Safari.
+        await Promise.all(layerDefs.map((def) => new Promise((resolve) => {
+            const el = new Audio();
+            el.src = def.src;
+            el.loop = true;
+            el.crossOrigin = 'anonymous';
+            el.preload = 'auto';
+            el.muted = false;
+            // playsInline avoids iOS opening the native fullscreen player
+            el.setAttribute('playsinline', '');
+            el.setAttribute('webkit-playsinline', '');
 
-        // Create a gain + source for each layer
-        layerDefs.forEach((def, i) => {
             const gain = this.audioCtx.createGain();
             gain.gain.value = def.muted ? 0 : 1;
             gain.connect(this.masterGain);
 
             this.layers[def.key] = {
-                buffer: buffers[i],
+                el,
                 gain,
-                source: null,
+                mediaSource: null,
                 muted: def.muted,
             };
-        });
+
+            // Wait until the file is far enough buffered to play through
+            const ready = () => { el.removeEventListener('canplaythrough', ready); resolve(); };
+            el.addEventListener('canplaythrough', ready);
+            el.addEventListener('error', ready); // resolve anyway so init finishes
+            // Force load() in case browser is lazy
+            try { el.load(); } catch (_) {}
+        })));
     }
 
     /**
-     * Start all layers simultaneously (called after init).
-     * Safe to call multiple times — only starts once.
+     * Start all layers simultaneously. MUST be called synchronously inside
+     * a user-gesture handler — no `await` between the gesture and this call.
      */
     play() {
         if (this.isPlaying || !this.audioCtx) return;
 
-        // iOS Safari unlock: resume() must be called SYNCHRONOUSLY inside
-        // the user-gesture stack — never awaited (an await yields a microtask
-        // and Safari then considers the gesture expired). We also play a
-        // silent priming buffer in the same tick so iOS routes audio output.
+        // Resume context (sync, never await)
         if (this.audioCtx.state === 'suspended') {
             try { this.audioCtx.resume(); } catch (_) {}
         }
-        try {
-            const silentBuf = this.audioCtx.createBuffer(1, 1, 22050);
-            const silentSrc = this.audioCtx.createBufferSource();
-            silentSrc.buffer = silentBuf;
-            silentSrc.connect(this.audioCtx.destination);
-            silentSrc.start(0);
-        } catch (_) {}
 
-        const now = this.audioCtx.currentTime;
-        this._startTime = now;
-
+        // Wire each HTMLAudio into the WebAudio graph (lazy, once) and start
+        // playback. Calling .play() on each <audio> inside the gesture is
+        // what unlocks iOS Safari's audio output.
         for (const key of Object.keys(this.layers)) {
             const layer = this.layers[key];
-            const src   = this.audioCtx.createBufferSource();
-            src.buffer  = layer.buffer;
-            src.loop    = true;
-            src.connect(layer.gain);
-            src.start(now); // all start at the exact same instant
-            layer.source = src;
+            if (!layer.mediaSource) {
+                try {
+                    layer.mediaSource = this.audioCtx.createMediaElementSource(layer.el);
+                    layer.mediaSource.connect(layer.gain);
+                } catch (e) {
+                    // If already connected or fails, fall back to direct output
+                    console.warn('[LayeredMusic] mediaSource connect failed', key, e);
+                }
+            }
+            try {
+                layer.el.currentTime = 0;
+                const p = layer.el.play();
+                if (p && p.catch) p.catch((err) => console.warn('[LayeredMusic] play()', key, err));
+            } catch (e) {
+                console.warn('[LayeredMusic] play exception', key, e);
+            }
         }
 
+        this._startTime = this.audioCtx.currentTime;
         this.isPlaying = true;
-
-        // Start the beat tick
         this._startBeatClock();
     }
 
-    /**
-     * Mute or unmute a specific layer.
-     * The source keeps playing (stays in sync) — only the gain changes.
-     * @param {string} key - 'synth' | 'bass' | 'perc' | 'voice'
-     * @param {boolean} muted
-     */
     setMuted(key, muted) {
         const layer = this.layers[key];
         if (!layer) return;
         layer.muted = muted;
-        // Smooth 50ms ramp to avoid click
         layer.gain.gain.linearRampToValueAtTime(
             muted ? 0 : 1,
             this.audioCtx.currentTime + 0.05
         );
     }
 
-    /**
-     * Toggle mute state. Returns the new muted value.
-     * @param {string} key
-     * @returns {boolean} true if now muted
-     */
     toggleMute(key) {
         const layer = this.layers[key];
         if (!layer) return false;
@@ -135,15 +130,10 @@ export default class LayeredMusic {
         return newMuted;
     }
 
-    /** @returns {boolean} */
     isMuted(key) {
         return this.layers[key] ? this.layers[key].muted : false;
     }
 
-    /**
-     * Set master volume (0–1).
-     * @param {number} vol
-     */
     setVolume(vol) {
         if (!this.masterGain) return;
         this.masterGain.gain.linearRampToValueAtTime(
@@ -152,16 +142,11 @@ export default class LayeredMusic {
         );
     }
 
-    /**
-     * Get the AnalyserNode for the spectrogram (connected to master output).
-     * Creates one lazily.
-     */
     getAnalyser() {
         if (!this._analyser && this.audioCtx) {
             this._analyser = this.audioCtx.createAnalyser();
             this._analyser.fftSize = 2048;
             this._analyser.smoothingTimeConstant = 0.8;
-            // Insert between masterGain and destination
             this.masterGain.disconnect();
             this.masterGain.connect(this._analyser);
             this._analyser.connect(this.audioCtx.destination);
@@ -169,12 +154,6 @@ export default class LayeredMusic {
         return this._analyser;
     }
 
-    /**
-     * Get per-layer AnalyserNodes for multi-color spectrogram.
-     * Creates lazily. Each layer gets its own analyser spliced AFTER
-     * the layer's gain node (so it respects mute state).
-     * @returns {Object} { key: AnalyserNode }
-     */
     getLayerAnalysers() {
         if (!this._layerAnalysers) {
             this._layerAnalysers = {};
@@ -182,7 +161,6 @@ export default class LayeredMusic {
                 const an = this.audioCtx.createAnalyser();
                 an.fftSize = 1024;
                 an.smoothingTimeConstant = 0.82;
-                // Tap from the layer gain (post-mute)
                 layer.gain.connect(an);
                 this._layerAnalysers[key] = an;
             }
@@ -190,15 +168,10 @@ export default class LayeredMusic {
         return this._layerAnalysers;
     }
 
-    /**
-     * Register a callback that fires on every quarter-note beat.
-     * @param {function(beatIndex: number)} fn
-     */
     onBeat(fn) {
         this._beatCallbacks.push(fn);
     }
 
-    // ── internal beat clock ──
     _startBeatClock() {
         if (this._beatInterval) clearInterval(this._beatInterval);
         const msPerBeat = 60000 / this._bpm;
@@ -209,11 +182,13 @@ export default class LayeredMusic {
         }, msPerBeat);
     }
 
-    /** Clean-up */
     dispose() {
         if (this._beatInterval) clearInterval(this._beatInterval);
         for (const layer of Object.values(this.layers)) {
-            if (layer.source) { try { layer.source.stop(); } catch (_) {} }
+            if (layer.el) {
+                try { layer.el.pause(); } catch (_) {}
+                try { layer.el.src = ''; } catch (_) {}
+            }
         }
         if (this.audioCtx) this.audioCtx.close();
         this.isPlaying = false;

@@ -10,7 +10,7 @@ import { ResizeManager } from './core/resizeManager.js';
 import { bubblepicking } from './worlds/world09.js?v=17';
 import { uiSound } from './audio/uiSounds.js?v=3';
 import Spectrogram from './audio/Spectrogram.js';
-import LayeredMusic from './audio/LayeredMusic.js?v=4';
+import LayeredMusic from './audio/LayeredMusic.js?v=5';
 
 // ───────────────────────────────────────────────
 // Draco support — patch GLTFLoader once so every world's `new GLTFLoader()`
@@ -115,7 +115,7 @@ if (window.matchMedia('(pointer: fine)').matches && cursor) {
 worldManager.register('0', () => import('./worlds/world-00-huevo.js?v=7').then(m => m.default));
 worldManager.register('1', () => Promise.resolve(bubblepicking));
 worldManager.register('2', () => import('./worlds/world-01-teatro.js?v=19').then(m => m.default));
-worldManager.register('3', () => import('./worlds/world-02-array3d.js?v=50').then(m => m.default));
+worldManager.register('3', () => import('./worlds/world-02-array3d.js?v=51').then(m => m.default));
 worldManager.register('4', () => import('./worlds/world-03-tunnel.js?v=19').then(m => m.default));
 worldManager.register('5', () => import('./worlds/world-04-drawrange.js?v=5').then(m => m.default));
 worldManager.register('6', () => import('./worlds/world06.js?v=16').then(m => m.default));
@@ -746,8 +746,20 @@ function updateWorldInfo(worldId) {
 
     // Update instruction image in header-credits panel
     const creditsImg = document.getElementById('header-credits-img');
+    const instructionSrc = WORLD_INSTRUCTION_IMG[worldId] || 'assets/texto/RotateCam.png';
     if (creditsImg) {
-        creditsImg.src = WORLD_INSTRUCTION_IMG[worldId] || 'assets/texto/RotateCam.png';
+        creditsImg.src = instructionSrc;
+    }
+    // Mobile-only: also flash the instruction image in the footer for 5s.
+    const mobileInstrImg = document.getElementById('mobile-world-instruction-img');
+    if (mobileInstrImg && window.innerWidth <= 768) {
+        mobileInstrImg.src = instructionSrc;
+        mobileInstrImg.classList.add('visible');
+        if (mobileInstrImg._hideTimer) clearTimeout(mobileInstrImg._hideTimer);
+        mobileInstrImg._hideTimer = setTimeout(() => {
+            mobileInstrImg.classList.remove('visible');
+            mobileInstrImg._hideTimer = null;
+        }, 5000);
     }
     // Pulse the header-credits panel with electric-blue glow for ~10s on world enter.
     // We also lift the hud-header's overflow so the glow isn't clipped by siblings.
