@@ -57,7 +57,7 @@
     </script>
     <link rel="icon" type="image/png" href="assets/tex/Buttons/colorB1.png">
     <link rel="shortcut icon" type="image/png" href="assets/tex/Buttons/colorB1.png">
-    <link rel="stylesheet" href="style.css?v=77">
+    <link rel="stylesheet" href="style.css?v=78">
     <link
         href="https://fonts.googleapis.com/css2?family=Averia+Libre:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap"
         rel="stylesheet">
@@ -209,13 +209,14 @@
 
         <div id="vertical-divider"></div>
 
+        <!-- Mobile-only: skin-mode toggle button (fixed, always on top) -->
+        <button id="mobile-skin-toggle" type="button" aria-label="Toggle skin panel"
+                onclick="document.body.classList.toggle('mobile-skin-mode'); event.preventDefault(); event.stopPropagation(); return false;">
+            <img src="assets/tex/Buttons/colorB1.png" alt="" />
+        </button>
+
         <!-- MAIN CANVAS AREA — Three.js canvas is inserted here -->
         <div id="canvas-area">
-            <!-- Mobile-only: skin-mode toggle button (top-left of canvas) -->
-            <button id="mobile-skin-toggle" type="button" aria-label="Toggle skin panel">
-                <img src="assets/tex/Buttons/colorB1.png" alt="" />
-            </button>
-
             <!-- World Switch Flash Text -->
             <div id="world-flash">01</div>
 
@@ -460,7 +461,7 @@
         </div>
     </div>
 
-    <script type="module" src="index.js?v=88"></script>
+    <script type="module" src="index.js?v=89"></script>
 </body>
 
 </html>

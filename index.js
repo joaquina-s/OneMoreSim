@@ -371,20 +371,8 @@ document.getElementById('intro-enter-btn').addEventListener('click', (ev) => {
     });
 });
 
-// ───────────────────────────────────────────────
-// MOBILE skin-mode toggle (top-left of canvas)
-// ───────────────────────────────────────────────
-const _mobileSkinToggle = document.getElementById('mobile-skin-toggle');
-if (_mobileSkinToggle) {
-    // Use pointerdown so the response is immediate on iOS (the click event
-    // can be delayed/dropped after document-level touchstart handlers run).
-    // Only ONE listener — pointerdown unifies mouse + touch + pen so we
-    // don't double-toggle.
-    _mobileSkinToggle.addEventListener('pointerdown', (e) => {
-        e.stopPropagation();
-        document.body.classList.toggle('mobile-skin-mode');
-    });
-}
+// MOBILE skin-mode toggle: handler lives as inline onclick on the button
+// (see index.html). That way it works even if this module errors out.
 
 // ───────────────────────────────────────────────
 // HEADER LOGO BUTTON 1 → activate tutorial mode
