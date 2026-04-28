@@ -376,8 +376,11 @@ document.getElementById('intro-enter-btn').addEventListener('click', (ev) => {
 // ───────────────────────────────────────────────
 const _mobileSkinToggle = document.getElementById('mobile-skin-toggle');
 if (_mobileSkinToggle) {
-    _mobileSkinToggle.addEventListener('click', (e) => {
-        e.preventDefault();
+    // Use pointerdown so the response is immediate on iOS (the click event
+    // can be delayed/dropped after document-level touchstart handlers run).
+    // Only ONE listener — pointerdown unifies mouse + touch + pen so we
+    // don't double-toggle.
+    _mobileSkinToggle.addEventListener('pointerdown', (e) => {
         e.stopPropagation();
         document.body.classList.toggle('mobile-skin-mode');
     });

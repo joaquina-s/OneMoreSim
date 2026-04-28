@@ -458,7 +458,7 @@ body.landing-video-ready #enter-button-img {
         padding: 0 18px;
         max-width: 92vw;
         font-family: 'Averia Libre', serif;
-        font-size: 13px;
+        font-size: 15px;
         line-height: 1.35;
         font-style: italic;
         text-align: center;
@@ -1812,7 +1812,7 @@ body.landing-video-ready #enter-button-img {
             "name   memory"
             "canvas memory"
             "footer memory";
-        grid-template-columns: 1fr 40px;
+        grid-template-columns: 1fr 46px;
         grid-template-rows:
             calc(54px + env(safe-area-inset-top, 0))   /* header + notch */
             auto                                        /* world-name strip */
@@ -1901,7 +1901,7 @@ body.landing-video-ready #enter-button-img {
     /* ─── RIGHT-SIDE VERTICAL MEMORY BAR ─── */
     #world-nav-wrap {
         grid-area: memory;
-        width: 40px;
+        width: 46px;
         height: 100%;
         /* Stronger bottom padding so the 9th button isn't covered by Safari's
            bottom toolbar (and the top has room for the notch). */
@@ -1949,11 +1949,11 @@ body.landing-video-ready #enter-button-img {
        devices. Icon rotated 90° with object-fit:contain so the full art
        is visible (no chopped width). */
     .world-btn {
-        width: 36px !important;
-        max-width: 36px !important;
+        width: 42px !important;
+        max-width: 42px !important;
         height: auto !important;
-        max-height: 105px !important;
-        min-height: 49px !important;
+        max-height: 121px !important;
+        min-height: 56px !important;
         padding: 0 !important;
         flex: 1 1 0 !important;
         border-radius: 4px;
@@ -2014,14 +2014,15 @@ body.landing-video-ready #enter-button-img {
         border-top: 1px solid #2d2d4a;
         background: #0a0c14;
     }
-    /* World description cell: top half of footer — compact, multi-line */
+    /* World description cell: top half of footer — sized to content so the
+       blue panel hugs the text instead of leaving empty space below. */
     #footer-top-right {
         display: flex !important;
-        flex: 1 1 auto;
+        flex: 0 0 auto !important;
         width: 100% !important;
         min-height: 0 !important;
         gap: 0;
-        padding: 0 12px;
+        padding: 4px 12px 4px 12px !important;
         background: #001eff !important;    /* console-blue */
         box-shadow: inset 0 0 20px rgba(0, 30, 255, 0.45);
         box-sizing: border-box;
@@ -2032,6 +2033,13 @@ body.landing-video-ready #enter-button-img {
     #footer-top-right .world-info-text {
         padding-top: 0 !important;
         margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+    /* Spectrogram absorbs the remaining vertical space */
+    #footer-top-left {
+        flex: 1 1 auto !important;
+        min-height: 60px !important;
     }
     #footer-top-right .world-info-icon {
         display: none !important;   /* hide icon on mobile to save horizontal room */
@@ -2723,14 +2731,13 @@ body.credits-open #credits-close {
         touch-action: none !important;
     }
 
-    /* Mobile instruction text — sits BELOW the typewriter description
-       inside the footer's blue panel. Persists while the world is active
-       (no auto-hide). Uppercase, centered, with a stronger glow than the
-       description so it reads as a separate UI hint. */
+    /* Mobile instruction text — sits ABOVE the typewriter description so
+       it stays anchored while the desc types itself out below. Persists
+       while the world is active. Uppercase, centered, strong glow. */
     #mobile-world-instruction-text {
         display: block !important;
         width: 100% !important;
-        margin-top: 6px !important;
+        margin: 0 0 4px 0 !important;
         padding: 0 4px !important;
         box-sizing: border-box !important;
         font-family: 'Averia Libre', sans-serif !important;
@@ -2832,8 +2839,8 @@ body.credits-open #credits-close {
         justify-content: space-between !important;
         align-items: center !important;
         gap: 0 !important;
-        width: 40px !important;
-        max-width: 40px !important;
+        width: 46px !important;
+        max-width: 46px !important;
         height: 100% !important;
         padding: 4px 0 !important;
         background: #0a0c14 !important;
@@ -2842,11 +2849,11 @@ body.credits-open #credits-close {
     }
     body.mobile-skin-mode .texture-btn {
         display: block !important;
-        width: 36px !important;
-        max-width: 36px !important;
+        width: 42px !important;
+        max-width: 42px !important;
         height: auto !important;
-        min-height: 49px !important;
-        max-height: 105px !important;
+        min-height: 56px !important;
+        max-height: 121px !important;
         flex: 1 1 0 !important;
         padding: 0 !important;
         margin: 0 !important;
