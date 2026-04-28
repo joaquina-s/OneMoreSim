@@ -372,6 +372,18 @@ document.getElementById('intro-enter-btn').addEventListener('click', (ev) => {
 });
 
 // ───────────────────────────────────────────────
+// MOBILE skin-mode toggle (top-left of canvas)
+// ───────────────────────────────────────────────
+const _mobileSkinToggle = document.getElementById('mobile-skin-toggle');
+if (_mobileSkinToggle) {
+    _mobileSkinToggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        document.body.classList.toggle('mobile-skin-mode');
+    });
+}
+
+// ───────────────────────────────────────────────
 // HEADER LOGO BUTTON 1 → activate tutorial mode
 // ───────────────────────────────────────────────
 function positionTutorialLabel(labelId, targetId, placement, opts) {
