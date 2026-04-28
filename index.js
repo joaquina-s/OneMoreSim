@@ -115,9 +115,9 @@ if (window.matchMedia('(pointer: fine)').matches && cursor) {
 worldManager.register('0', () => import('./worlds/world-00-huevo.js?v=7').then(m => m.default));
 worldManager.register('1', () => Promise.resolve(bubblepicking));
 worldManager.register('2', () => import('./worlds/world-01-teatro.js?v=19').then(m => m.default));
-worldManager.register('3', () => import('./worlds/world-02-array3d.js?v=51').then(m => m.default));
+worldManager.register('3', () => import('./worlds/world-02-array3d.js?v=52').then(m => m.default));
 worldManager.register('4', () => import('./worlds/world-03-tunnel.js?v=19').then(m => m.default));
-worldManager.register('5', () => import('./worlds/world-04-drawrange.js?v=5').then(m => m.default));
+worldManager.register('5', () => import('./worlds/world-04-drawrange.js?v=6').then(m => m.default));
 worldManager.register('6', () => import('./worlds/world06.js?v=16').then(m => m.default));
 worldManager.register('7', () => import('./worlds/world07.js?v=5').then(m => m.default));
 worldManager.register('9', () => import('./worlds/world-layer.js?v=3').then(m => m.default));
@@ -712,7 +712,20 @@ function typeWorldDesc(text) {
     next();
 }
 
-// ── Instruction image per world (header-credits panel) ──
+// ── Mobile instruction text per world (footer overlay) ──
+const WORLD_INSTRUCTION_TEXT = {
+    '0': 'Swipe Horizontal',         // 01 Embryo
+    '7': 'Tap the Cells',            // 02 Ambient_Human_presence
+    '2': 'Tap Chair to Sit',         // 03 Presentation_Club
+    '9': 'Swipe Horizontal',         // 04 Inner_World
+    '6': 'Swipe Horizontal',         // 05 Aqua_Race
+    '3': 'Tap the NPC',              // 06 Super_Me_Era
+    '5': '',                         // 07 Ghosts_and_Phsycotics — no instruction
+    '4': 'Swipe Horizontal',         // 08 Fetal_Situation
+    '1': 'Swipe Horizontal'          // 09 Coming_back_home
+};
+
+// ── Instruction image per world (header-credits panel, desktop) ──
 const WORLD_INSTRUCTION_IMG = {
     '0': 'assets/texto/RotateCam.png',      // 01Embryo
     '7': 'assets/texto/clickCells.png',      // 02Ambient_Human_presence
@@ -750,16 +763,21 @@ function updateWorldInfo(worldId) {
     if (creditsImg) {
         creditsImg.src = instructionSrc;
     }
-    // Mobile-only: also flash the instruction image in the footer for 5s.
-    const mobileInstrImg = document.getElementById('mobile-world-instruction-img');
-    if (mobileInstrImg && window.innerWidth <= 768) {
-        mobileInstrImg.src = instructionSrc;
-        mobileInstrImg.classList.add('visible');
-        if (mobileInstrImg._hideTimer) clearTimeout(mobileInstrImg._hideTimer);
-        mobileInstrImg._hideTimer = setTimeout(() => {
-            mobileInstrImg.classList.remove('visible');
-            mobileInstrImg._hideTimer = null;
-        }, 5000);
+    // Mobile-only: flash a text instruction bar above the world description for 5s.
+    const mobileInstrText = document.getElementById('mobile-world-instruction-text');
+    if (mobileInstrText && window.innerWidth <= 768) {
+        const text = WORLD_INSTRUCTION_TEXT[worldId] || '';
+        mobileInstrText.textContent = text;
+        if (text) {
+            mobileInstrText.classList.add('visible');
+            if (mobileInstrText._hideTimer) clearTimeout(mobileInstrText._hideTimer);
+            mobileInstrText._hideTimer = setTimeout(() => {
+                mobileInstrText.classList.remove('visible');
+                mobileInstrText._hideTimer = null;
+            }, 5000);
+        } else {
+            mobileInstrText.classList.remove('visible');
+        }
     }
     // Pulse the header-credits panel with electric-blue glow for ~10s on world enter.
     // We also lift the hud-header's overflow so the glow isn't clipped by siblings.

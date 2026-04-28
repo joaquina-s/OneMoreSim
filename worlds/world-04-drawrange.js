@@ -59,7 +59,9 @@ export default {
         video.src = 'assets/videos/hfloat.mp4?v=2';
         video.loop = true;
         video.muted = false;
-        video.volume = 0.9;
+        // Lower volume so the layered music keeps audible underneath
+        // (overlap rather than drown out the soundtrack).
+        video.volume = 0.35;
         video.playsInline = true;
         video.crossOrigin = 'anonymous';
         video.play().catch(() => {

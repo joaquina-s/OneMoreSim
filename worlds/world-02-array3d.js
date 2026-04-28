@@ -75,8 +75,10 @@ export default {
 
     // ── Scene ──
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x020612);
-    this.scene.fog = new THREE.Fog(0x001040, 8, 26);
+    // Mobile gets an electric-blue background (matches the footer); desktop keeps the dark.
+    const _isMobileBg = window.innerWidth < 768;
+    this.scene.background = new THREE.Color(_isMobileBg ? 0x001eff : 0x020612);
+    this.scene.fog = new THREE.Fog(_isMobileBg ? 0x001eff : 0x001040, 8, 26);
 
     // ── Camera — moderate fisheye FOV 95, tilt 5° down ──
     // pos=(0,2.7,4.8) · 5° downward tilt → target = pos + (0,-sin5°,-cos5°)*4.8
