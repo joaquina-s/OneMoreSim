@@ -818,35 +818,9 @@ body.landing-video-ready #enter-button-img {
 #footer-top-right {
     position: relative;
 }
+/* Spanish hover-tooltip removed (no longer rendered). */
 .world-info-desc-es {
-    position: fixed;
-    right: 16px;
-    bottom: calc(var(--h-footer, 160px) + 10px);
-    max-width: min(90vw, 640px);
-    padding: 10px 14px;
-    font-family: 'Averia Libre', sans-serif;
-    font-size: clamp(12px, 1.8vh, 17px);
-    font-weight: 300;
-    font-style: italic;
-    color: #ffffff;
-    background: rgba(0, 10, 40, 0.88);
-    border: 1px solid rgba(120, 160, 255, 0.45);
-    border-radius: 4px;
-    white-space: normal;
-    line-height: 1.35;
-    letter-spacing: 0.01em;
-    pointer-events: none;
-    opacity: 0;
-    transform: translateY(4px);
-    transition: opacity 0.18s ease, transform 0.18s ease;
-    z-index: 9999;
-    text-shadow: 0 0 6px rgba(0, 80, 255, 0.5);
-    box-shadow: 0 0 18px rgba(0, 80, 255, 0.35);
-}
-#footer-top-right:hover .world-info-desc-es,
-.world-info-desc-es.show {
-    opacity: 1;
-    transform: translateY(0);
+    display: none !important;
 }
 
 /* Square terminal cursor — inline after text inside same scaled wrapper */

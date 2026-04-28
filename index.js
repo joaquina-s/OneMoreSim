@@ -745,19 +745,7 @@ function updateWorldInfo(worldId) {
     const data = WORLD_DATA[worldId] || WORLD_DATA['0'];
     document.documentElement.style.setProperty('--world-accent', data.accent);
     typeWorldDesc(data.desc);
-    const esEl = document.getElementById('world-info-desc-es');
-    if (esEl) {
-        esEl.textContent = data.descEs || '';
-        // Move to body once so no ancestor overflow can clip it
-        if (esEl.parentElement !== document.body) {
-            document.body.appendChild(esEl);
-            const hoverZone = document.getElementById('footer-top-right');
-            if (hoverZone) {
-                hoverZone.addEventListener('mouseenter', () => esEl.classList.add('show'));
-                hoverZone.addEventListener('mouseleave', () => esEl.classList.remove('show'));
-            }
-        }
-    }
+    // Spanish hover-tooltip removed — we no longer show data.descEs on hover.
     updateWorldTracker(worldId);
 
     // Update instruction image in header-credits panel
