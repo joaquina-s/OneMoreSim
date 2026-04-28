@@ -44,8 +44,9 @@ const WorldChase = {
     this._clock = new THREE.Clock();
     this._pendingLoads = 0; // lanchachar + walk + palm1 + palm2 = 4 GLBs
 
-    // Background ambient loop — quieter than main music layers.
-    uiSound.startLoop('navegando', 0.55, 1.6);
+    // Background ambient loop — Aqua Race ambience, louder so it reads
+    // clearly under the music layers.
+    uiSound.startLoop('navegando', 1.4, 1.6);
 
     // ── LOADING TEXT (removed once all GLBs are loaded) ──
     this._loadingEl = document.createElement('div');

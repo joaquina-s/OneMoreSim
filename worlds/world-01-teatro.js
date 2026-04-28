@@ -23,8 +23,8 @@ const WorldTeatro = {
   _loadingText: null,
   _isSeated: false,
   _isAnimating: false,
-  _initialCameraPos: new THREE.Vector3(1, 2.5, 7),
-  _initialTargetPos: new THREE.Vector3(-2, 1.0, 0),
+  _initialCameraPos: new THREE.Vector3(1, 1.7, 7),
+  _initialTargetPos: new THREE.Vector3(-2, 0.4, 0),
 
   init(renderer, _composer) {
     this._renderer = renderer;
@@ -397,7 +397,7 @@ const WorldTeatro = {
       window.gsap.to(this._orbitControls.target, {
         x: lookPos.x, y: lookPos.y, z: lookPos.z,
         duration: 2.2, ease: 'power2.inOut',
-        onUpdate: () => { this.camera.lookAt(this._orbitControls.target); },
+        onUpdate: () => { if (this.camera && this._orbitControls) this.camera.lookAt(this._orbitControls.target); },
         onComplete: () => {
           this._isAnimating = false;
           // Explicitly pin camera to the computed seat position and re-derive
@@ -440,7 +440,7 @@ const WorldTeatro = {
       window.gsap.to(this._orbitControls.target, {
         x: this._initialTargetPos.x, y: this._initialTargetPos.y, z: this._initialTargetPos.z,
         duration: 2.0, ease: 'power2.inOut',
-        onUpdate: () => { this.camera.lookAt(this._orbitControls.target); },
+        onUpdate: () => { if (this.camera && this._orbitControls) this.camera.lookAt(this._orbitControls.target); },
         onComplete: () => {
           this._isAnimating = false;
           this._orbitControls.enabled = true;
@@ -471,6 +471,12 @@ const WorldTeatro = {
   },
 
   dispose() {
+    // Kill any in-flight GSAP tweens that reference camera/orbitControls
+    // so their onUpdate doesn't fire after we null those out.
+    if (window.gsap) {
+      if (this.camera && this.camera.position) window.gsap.killTweensOf(this.camera.position);
+      if (this._orbitControls && this._orbitControls.target) window.gsap.killTweensOf(this._orbitControls.target);
+    }
     window.removeEventListener('mousedown', this._handlers.down);
     window.removeEventListener('mousemove', this._handlers.move);
     window.removeEventListener('mouseup', this._handlers.up);

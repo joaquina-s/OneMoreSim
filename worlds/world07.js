@@ -155,15 +155,41 @@ export default {
 
             v._intentPause = false;
 
-            // Fast watchdog for first ~4 s (catches initial autoplay hiccup
-            // where vid2 shows paused on first entry), then relax to 3 s.
+            // Watchdog. Detects two failure modes:
+            //  (a) paused/ended/not-loaded         → call play() again
+            //  (b) playing but currentTime stalled → bump currentTime
+            //      forward (sometimes a tiny seek unsticks the decoder) and
+            //      replay. Browsers can silently freeze a looping video
+            //      after many loops without ever firing 'pause' or 'stalled'.
             let fastTicks = 0;
             const FAST_INTERVAL = 400;
-            const SLOW_INTERVAL = 3000;
+            const SLOW_INTERVAL = 1500;   // stronger than before (was 3000)
+            let lastCurrentTime = -1;
+            let stuckCount = 0;
             const tick = () => {
-                if (!v._intentPause && (v.paused || v.ended || v.readyState < 2)) {
+                if (v._intentPause) return;
+                if (v.paused || v.ended || v.readyState < 2) {
                     tryPlay();
+                    lastCurrentTime = v.currentTime;
+                    stuckCount = 0;
+                    return;
                 }
+                // Frozen-while-playing detector
+                if (v.currentTime === lastCurrentTime) {
+                    stuckCount++;
+                    if (stuckCount >= 2) {
+                        // Nudge the decoder and force a replay
+                        try {
+                            const nudge = Math.min(v.duration - 0.05, v.currentTime + 0.05);
+                            if (isFinite(nudge) && nudge >= 0) v.currentTime = nudge;
+                        } catch (_) {}
+                        tryPlay();
+                        stuckCount = 0;
+                    }
+                } else {
+                    stuckCount = 0;
+                }
+                lastCurrentTime = v.currentTime;
             };
             v._watchdog = setInterval(() => {
                 tick();

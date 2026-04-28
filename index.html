@@ -9,27 +9,30 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <title>One More Sim</title>
-    <!-- Inline error reporter: surface any JS error to a visible overlay so
-         we can see what's breaking without needing DevTools open. -->
+    <!-- Production: errors only logged to console, no on-screen overlay.
+         Adblock / Chrome-extension errors are filtered out so they don't
+         spam the console either. -->
     <script>
     (function(){
-        function showErr(msg){
-            var el = document.getElementById('__js_err_overlay');
-            if(!el){
-                el = document.createElement('div');
-                el.id = '__js_err_overlay';
-                el.style.cssText = 'position:fixed;left:10px;right:10px;bottom:10px;z-index:99999;background:rgba(120,0,0,0.92);color:#fff;font:12px/1.4 monospace;padding:10px;max-height:40vh;overflow:auto;white-space:pre-wrap;border:1px solid #f66;cursor:pointer';
-                el.title = 'Click to dismiss';
-                el.addEventListener('click', function(){ el.remove(); });
-                (document.body || document.documentElement).appendChild(el);
-            }
-            el.textContent += msg + '\n\n';
+        function isThirdPartyNoise(filename, message){
+            if (filename && filename.indexOf('chrome-extension://') === 0) return true;
+            if (filename && filename.indexOf('moz-extension://')   === 0) return true;
+            if (filename && filename.indexOf('safari-extension://')=== 0) return true;
+            var m = String(message || '');
+            if (m.indexOf('Cannot read properties of undefined (reading \'indexOf\')') !== -1
+                && m.indexOf('counter.js') !== -1) return true;
+            return false;
         }
         window.addEventListener('error', function(e){
-            showErr('[error] ' + (e.message||'') + '\n' + (e.filename||'') + ':' + (e.lineno||'') + ':' + (e.colno||''));
+            if (isThirdPartyNoise(e.filename, e.message)) {
+                e.preventDefault();
+                return;
+            }
+            // Silent — only console. Visible overlay disabled for production.
+            try { console.error('[error]', e.message, e.filename + ':' + e.lineno + ':' + e.colno); } catch (_) {}
         });
         window.addEventListener('unhandledrejection', function(e){
-            showErr('[promise] ' + (e.reason && (e.reason.stack || e.reason.message || e.reason)));
+            try { console.error('[promise]', e.reason); } catch (_) {}
         });
     })();
     </script>
@@ -57,7 +60,7 @@
     </script>
     <link rel="icon" type="image/png" href="assets/tex/Buttons/colorB1.png">
     <link rel="shortcut icon" type="image/png" href="assets/tex/Buttons/colorB1.png">
-    <link rel="stylesheet" href="style.css?v=78">
+    <link rel="stylesheet" href="style.css?v=79">
     <link
         href="https://fonts.googleapis.com/css2?family=Averia+Libre:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap"
         rel="stylesheet">
@@ -461,7 +464,7 @@
         </div>
     </div>
 
-    <script type="module" src="index.js?v=89"></script>
+    <script type="module" src="index.js?v=90"></script>
 </body>
 
 </html>
