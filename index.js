@@ -114,7 +114,7 @@ if (window.matchMedia('(pointer: fine)').matches && cursor) {
 // Register all 8 worlds
 worldManager.register('0', () => import('./worlds/world-00-huevo.js?v=7').then(m => m.default));
 worldManager.register('1', () => Promise.resolve(bubblepicking));
-worldManager.register('2', () => import('./worlds/world-01-teatro.js?v=21').then(m => m.default));
+worldManager.register('2', () => import('./worlds/world-01-teatro.js?v=22').then(m => m.default));
 worldManager.register('3', () => import('./worlds/world-02-array3d.js?v=52').then(m => m.default));
 worldManager.register('4', () => import('./worlds/world-03-tunnel.js?v=19').then(m => m.default));
 worldManager.register('5', () => import('./worlds/world-04-drawrange.js?v=7').then(m => m.default));
