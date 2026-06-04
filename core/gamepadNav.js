@@ -67,13 +67,30 @@ function simulateClick() {
     }
 }
 
-function simulateKey(code, key) {
-    const base = { bubbles: true, cancelable: true, code, key, view: window };
-    document.dispatchEvent(new KeyboardEvent('keydown', base));
-    // Brief delay then keyup so listeners that check for held keys work
-    setTimeout(() => {
-        document.dispatchEvent(new KeyboardEvent('keyup', base));
-    }, 80);
+function dispatchKey(type, code, key) {
+    document.dispatchEvent(new KeyboardEvent(type, {
+        bubbles: true, cancelable: true, code, key, view: window,
+    }));
+}
+
+// Track held state of the analogue triggers so we can keep the arrow key
+// "pressed" for as long as the trigger is held (matching keyboard behaviour
+// where holding ← / → keeps advancing).
+let ltHeld = false;
+let rtHeld = false;
+
+function updateHeldTrigger(gp, index, key, heldFlag) {
+    const val = gp.buttons[index];
+    const pressed = typeof val === 'object' ? val.pressed : val > TRIGGER_THRESHOLD;
+    if (pressed && !heldFlag) {
+        dispatchKey('keydown', key, key);   // leading edge → keydown
+        return true;
+    }
+    if (!pressed && heldFlag) {
+        dispatchKey('keyup', key, key);     // trailing edge → keyup
+        return false;
+    }
+    return heldFlag;                        // no change (still held / still up)
 }
 
 // Returns true on leading-edge press (false while held)
@@ -120,9 +137,11 @@ function poll() {
             simulateClick();
         }
 
-        // ── LT (6) → Left arrow  /  RT (7) → Right arrow ──
-        if (justPressed(gp, 6)) simulateKey('ArrowLeft',  'ArrowLeft');
-        if (justPressed(gp, 7)) simulateKey('ArrowRight', 'ArrowRight');
+        // ── LT (6) → hold Left arrow  /  RT (7) → hold Right arrow ──
+        // Keep the arrow key "down" while the trigger is held so the world
+        // keeps advancing, exactly like holding ← / → on the keyboard.
+        ltHeld = updateHeldTrigger(gp, 6, 'ArrowLeft',  ltHeld);
+        rtHeld = updateHeldTrigger(gp, 7, 'ArrowRight', rtHeld);
 
         // ── LB (4) / RB (5) → reload page ──
         if (justPressed(gp, 4) || justPressed(gp, 5)) {
@@ -144,6 +163,9 @@ export function initGamepadNav() {
     window.addEventListener('gamepaddisconnected', (e) => {
         console.log('[gamepadNav] controller disconnected:', e.gamepad.id);
         prevButtons = {};
+        // Release any keys still "held" by the triggers so they don't stick
+        if (ltHeld) { dispatchKey('keyup', 'ArrowLeft',  'ArrowLeft');  ltHeld = false; }
+        if (rtHeld) { dispatchKey('keyup', 'ArrowRight', 'ArrowRight'); rtHeld = false; }
     });
 
     // Begin the rAF poll loop immediately — getGamepads() returns null

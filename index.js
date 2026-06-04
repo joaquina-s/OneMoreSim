@@ -11,7 +11,7 @@ import { bubblepicking } from './worlds/world09.js?v=17';
 import { uiSound } from './audio/uiSounds.js?v=3';
 import Spectrogram from './audio/Spectrogram.js';
 import LayeredMusic from './audio/LayeredMusic.js?v=5';
-import { initGamepadNav } from './core/gamepadNav.js?v=1';
+import { initGamepadNav } from './core/gamepadNav.js?v=2';
 
 // ───────────────────────────────────────────────
 // Draco support — patch GLTFLoader once so every world's `new GLTFLoader()`
