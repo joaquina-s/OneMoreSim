@@ -5,11 +5,10 @@
 //   Axes:    Left stick X=0, Y=1  |  Right stick X=2, Y=3
 //
 // Behaviour:
-//   - Both thumbsticks move a virtual cursor (combined velocity).
+//   - LEFT thumbstick  → moves a virtual cursor (mouse).
+//   - RIGHT thumbstick (X) → holds Left/Right arrow (advance worlds).
 //   - A / B / X / Y  → click at the cursor's current position.
-//   - LT (button 6)  → simulates Left-arrow key press.
-//   - RT (button 7)  → simulates Right-arrow key press.
-//   - LB (button 4) or RB (button 5) → reload the page.
+//   - LT (button 6) or RT (button 7) → reload the page / reset experience.
 
 const DEADZONE = 0.15;          // ignore stick drift below this threshold
 const CURSOR_SPEED = 12;        // px per frame at full deflection
@@ -73,24 +72,23 @@ function dispatchKey(type, code, key) {
     }));
 }
 
-// Track held state of the analogue triggers so we can keep the arrow key
-// "pressed" for as long as the trigger is held (matching keyboard behaviour
-// where holding ← / → keeps advancing).
-let ltHeld = false;
-let rtHeld = false;
+// Track held state of the right-stick arrow directions so we can keep the
+// arrow key "pressed" for as long as the stick is pushed (matching keyboard
+// behaviour where holding ← / → keeps advancing).
+let leftHeld  = false;
+let rightHeld = false;
 
-function updateHeldTrigger(gp, index, key, heldFlag) {
-    const val = gp.buttons[index];
-    const pressed = typeof val === 'object' ? val.pressed : val > TRIGGER_THRESHOLD;
-    if (pressed && !heldFlag) {
+// Dispatch keydown/keyup edges from a boolean "is this direction active".
+function updateHeldDir(active, key, heldFlag) {
+    if (active && !heldFlag) {
         dispatchKey('keydown', key, key);   // leading edge → keydown
         return true;
     }
-    if (!pressed && heldFlag) {
+    if (!active && heldFlag) {
         dispatchKey('keyup', key, key);     // trailing edge → keyup
         return false;
     }
-    return heldFlag;                        // no change (still held / still up)
+    return heldFlag;                        // no change
 }
 
 // Returns true on leading-edge press (false while held)
@@ -111,18 +109,15 @@ function poll() {
     }
 
     if (gp) {
-        // ── Thumbsticks → cursor movement ──
+        // ── LEFT thumbstick → cursor movement ──
         const lx = applyDeadzone(gp.axes[0] || 0);
         const ly = applyDeadzone(gp.axes[1] || 0);
-        const rx = applyDeadzone(gp.axes[2] || 0);
-        const ry = applyDeadzone(gp.axes[3] || 0);
 
-        const dx = (lx + rx) * CURSOR_SPEED;
-        const dy = (ly + ry) * CURSOR_SPEED;
-        if (dx !== 0 || dy !== 0) moveCursor(dx, dy);
-
-        // Also dispatch a synthetic mousemove so hover states update
+        const dx = lx * CURSOR_SPEED;
+        const dy = ly * CURSOR_SPEED;
         if (dx !== 0 || dy !== 0) {
+            moveCursor(dx, dy);
+            // Synthetic mousemove so hover states update
             const t = document.elementFromPoint(cx, cy);
             if (t) {
                 t.dispatchEvent(new MouseEvent('mousemove', {
@@ -131,20 +126,23 @@ function poll() {
             }
         }
 
+        // ── RIGHT thumbstick X → hold Left / Right arrow ──
+        // Pushing the right stick left/right behaves like holding ← / → on
+        // the keyboard, so the world keeps advancing while it's pushed.
+        const rx = gp.axes[2] || 0;
+        const goLeft  = rx < -TRIGGER_THRESHOLD;
+        const goRight = rx >  TRIGGER_THRESHOLD;
+        leftHeld  = updateHeldDir(goLeft,  'ArrowLeft',  leftHeld);
+        rightHeld = updateHeldDir(goRight, 'ArrowRight', rightHeld);
+
         // ── A (0), B (1), X (2), Y (3) → click ──
         if (justPressed(gp, 0) || justPressed(gp, 1) ||
             justPressed(gp, 2) || justPressed(gp, 3)) {
             simulateClick();
         }
 
-        // ── LT (6) → hold Left arrow  /  RT (7) → hold Right arrow ──
-        // Keep the arrow key "down" while the trigger is held so the world
-        // keeps advancing, exactly like holding ← / → on the keyboard.
-        ltHeld = updateHeldTrigger(gp, 6, 'ArrowLeft',  ltHeld);
-        rtHeld = updateHeldTrigger(gp, 7, 'ArrowRight', rtHeld);
-
-        // ── LB (4) / RB (5) → reload page ──
-        if (justPressed(gp, 4) || justPressed(gp, 5)) {
+        // ── LT (6) / RT (7) → reload page / reset experience ──
+        if (justPressed(gp, 6) || justPressed(gp, 7)) {
             window.location.reload();
         }
     }
@@ -163,9 +161,9 @@ export function initGamepadNav() {
     window.addEventListener('gamepaddisconnected', (e) => {
         console.log('[gamepadNav] controller disconnected:', e.gamepad.id);
         prevButtons = {};
-        // Release any keys still "held" by the triggers so they don't stick
-        if (ltHeld) { dispatchKey('keyup', 'ArrowLeft',  'ArrowLeft');  ltHeld = false; }
-        if (rtHeld) { dispatchKey('keyup', 'ArrowRight', 'ArrowRight'); rtHeld = false; }
+        // Release any arrow keys still "held" by the stick so they don't stick
+        if (leftHeld)  { dispatchKey('keyup', 'ArrowLeft',  'ArrowLeft');  leftHeld  = false; }
+        if (rightHeld) { dispatchKey('keyup', 'ArrowRight', 'ArrowRight'); rightHeld = false; }
     });
 
     // Begin the rAF poll loop immediately — getGamepads() returns null
