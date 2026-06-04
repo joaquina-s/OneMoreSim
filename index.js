@@ -11,6 +11,7 @@ import { bubblepicking } from './worlds/world09.js?v=17';
 import { uiSound } from './audio/uiSounds.js?v=3';
 import Spectrogram from './audio/Spectrogram.js';
 import LayeredMusic from './audio/LayeredMusic.js?v=5';
+import { initGamepadNav } from './core/gamepadNav.js?v=1';
 
 // ───────────────────────────────────────────────
 // Draco support — patch GLTFLoader once so every world's `new GLTFLoader()`
@@ -110,6 +111,9 @@ if (window.matchMedia('(pointer: fine)').matches && cursor) {
         setTimeout(() => cursor.classList.remove('flash'), 100);
     });
 }
+
+// Xbox 360 controller navigation (Gamepad API)
+initGamepadNav();
 
 // Register all 8 worlds
 worldManager.register('0', () => import('./worlds/world-00-huevo.js?v=7').then(m => m.default));
